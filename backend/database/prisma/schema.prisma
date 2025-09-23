@@ -13,6 +13,35 @@ enum UserType {
     USER
 }
 
+enum NotificationType {
+    TELEGRAM
+    EMAIL
+    WEBHOOK
+}
+
+enum JobType {
+    SYNC_PRODUCTS
+    COMPARE_DATA
+    CLEANUP_LOGS
+    CUSTOM
+}
+
+enum ExecutionStatus {
+    PENDING
+    RUNNING
+    SUCCESS
+    FAILED
+    CANCELLED
+}
+
+enum IntegrationType {
+    RP
+    CRESCEVENDAS
+    TELEGRAM
+    EMAIL
+    WEBHOOK
+}
+
 model User {
     id    Int      @id @default(autoincrement())
     email String   @unique
@@ -47,9 +76,10 @@ model Auth {
 }
 
 model Integration {
-    id       Int     @id @default(autoincrement())
-    name     String
-    base_url String
+    id       Int             @id @default(autoincrement())
+    name     String          @unique
+    type     IntegrationType @default(RP)
+    base_url String?
     email    String?
     password String?
     config   Json?
@@ -61,6 +91,7 @@ model Integration {
     deleted_at DateTime?
 
     integrationKey IntegrationKey[]
+    job_configs    JobConfiguration[]
 
     @@map("integrations")
 }
@@ -116,4 +147,78 @@ model Product {
     store Store @relation(fields: [store_id], references: [id])
 
     @@map("products")
+}
+
+model NotificationChannel {
+    id           Int                 @id @default(autoincrement())
+    name         String              @unique
+    type         NotificationType
+    config       Json // Flexible config for different types: { chat_id, bot_token, email, webhook_url, etc }
+    active       Boolean             @default(true)
+    
+    created_at   DateTime            @default(now())
+    updated_at   DateTime            @updatedAt
+    deleted_at   DateTime?
+    
+    job_notifications JobNotification[]
+
+    @@map("notification_channels")
+}
+
+model JobConfiguration {
+    id               Int                 @id @default(autoincrement())
+    name             String              @unique
+    description      String?
+    cron_pattern     String              // "0 5 * * *" - cron expression
+    job_type         JobType
+    config           Json                // Job-specific configuration
+    active           Boolean             @default(true)
+    
+    // Relationships
+    integration_id   Int?                // Optional: specific integration to use
+    
+    created_at       DateTime            @default(now())
+    updated_at       DateTime            @updatedAt
+    deleted_at       DateTime?
+    
+    executions           JobExecution[]
+    notification_configs JobNotification[]
+    integration          Integration?     @relation(fields: [integration_id], references: [id])
+
+    @@map("job_configurations")
+}
+
+model JobExecution {
+    id              String           @id @default(uuid())
+    job_config_id   Int
+    status          ExecutionStatus
+    started_at      DateTime         @default(now())
+    finished_at     DateTime?
+    logs            String?          // Structured logs as text
+    metrics         Json?            // Performance metrics: { duration, records_processed, errors_count }
+    error_details   Json?            // Error stack trace, context, etc
+    
+    job_config      JobConfiguration @relation(fields: [job_config_id], references: [id])
+
+    @@map("job_executions")
+}
+
+model JobNotification {
+    id                      Int                 @id @default(autoincrement())
+    job_config_id          Int
+    notification_channel_id Int
+    
+    // When to notify
+    on_success             Boolean             @default(false)
+    on_failure             Boolean             @default(true)
+    on_start               Boolean             @default(false)
+    
+    created_at             DateTime            @default(now())
+    updated_at             DateTime            @updatedAt
+    
+    job_config             JobConfiguration    @relation(fields: [job_config_id], references: [id])
+    notification_channel   NotificationChannel @relation(fields: [notification_channel_id], references: [id])
+
+    @@unique([job_config_id, notification_channel_id])
+    @@map("job_notifications")
 }

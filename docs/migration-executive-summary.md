@@ -12,7 +12,7 @@
 
 ### 🔄 Da Situação Atual Para o Futuro
 
-```
+```plaintext
 Server-Node-Fill (Atual)           →    PSM Chimera v2 (Futuro)
 ├── Configurações fixas no código  →    ├── Configuração dinâmica via UI
 ├── Credenciais em ENV             →    ├── Gestão segura no banco
@@ -50,7 +50,7 @@ Server-Node-Fill (Atual)           →    PSM Chimera v2 (Futuro)
 
 ### Componentes Principais
 
-```
+```plaintext
 ┌─────────────────────────────────────────────────────────────┐
 │                    PSM Chimera v2                           │
 ├─────────────────────────────────────────────────────────────┤
@@ -104,12 +104,14 @@ Server-Node-Fill (Atual)           →    PSM Chimera v2 (Futuro)
 ## 🛠️ Stack Tecnológica
 
 ### 🎨 Frontend
+
 - **Framework:** Next.js 14 (App Router)
 - **Styling:** TailwindCSS + Shadcn/ui
 - **State:** Zustand + React Query
 - **Auth:** NextAuth.js
 
 ### ⚙️ Backend
+
 - **Runtime:** Node.js 20 + TypeScript
 - **Framework:** Express.js
 - **ORM:** Prisma
@@ -117,6 +119,7 @@ Server-Node-Fill (Atual)           →    PSM Chimera v2 (Futuro)
 - **Auth:** JWT + bcrypt
 
 ### 🗄️ Database & Infrastructure
+
 - **Database:** PostgreSQL 17
 - **Cache:** Redis
 - **Containers:** Docker + Docker Compose
@@ -128,7 +131,7 @@ Server-Node-Fill (Atual)           →    PSM Chimera v2 (Futuro)
 
 ### 🗓️ Q4 2025
 
-```
+```plaintext
 Setembro          Outubro           Novembro          Dezembro
 ────────────────────────────────────────────────────────────
 │ Fase 1: Fundação                  │ Fase 2: Frontend │
@@ -164,16 +167,19 @@ Setembro          Outubro           Novembro          Dezembro
 ## 📋 Próximos Passos Imediatos
 
 ### ✅ Esta Semana
+
 1. **Aprovação do Plano:** Review e sign-off do plano de migração
 2. **Setup Ambiente:** Preparar ambiente de desenvolvimento
 3. **Database Design:** Finalizar extensões do schema Prisma
 
 ### ✅ Próxima Semana
+
 1. **Sprint 1.1 Start:** Implementar extensões do database schema
 2. **Team Setup:** Definir responsabilidades e rituais
 3. **Tooling:** Setup CI/CD pipeline
 
 ### ✅ Próximas 2 Semanas
+
 1. **Core API:** Implementação da API REST básica
 2. **Authentication:** Sistema de login e autorização
 3. **Integration Tests:** Validação com APIs externas
@@ -183,12 +189,14 @@ Setembro          Outubro           Novembro          Dezembro
 ## 📞 Pontos de Contato
 
 ### 🏆 Success Criteria
+
 - [ ] **Zero downtime** durante migração
 - [ ] **100% feature parity** com sistema atual
 - [ ] **50% redução** no tempo de configuração
 - [ ] **Dashboard funcional** para monitoramento
 
 ### 📊 Como Medir Sucesso
+
 - **Performance:** Response time ≤ 200ms
 - **Reliability:** Uptime ≥ 99.9%
 - **User Experience:** ≤ 5 cliques para qualquer configuração
@@ -203,18 +211,21 @@ Com o PSM Chimera v2, transformaremos completamente a experiência operacional:
 ### 🌟 **Dia Típico - Antes vs Depois**
 
 **Antes (Server-Node-Fill):**
+
 - 🕐 30min para configurar nova loja
 - ❓ Sem visibilidade de status de jobs
 - 📧 Logs espalhados em arquivos
 - 🔧 Mudanças requerem deploy
 
 **Depois (PSM Chimera v2):**
+
 - ⚡ 2min para configurar nova loja via UI
 - 👀 Dashboard em tempo real
 - 📊 Métricas consolidadas
 - 🎛️ Configurações instant
 
 ### 🚀 **Preparado para o Futuro**
+
 - Novas integrações em horas
 - Scaling automático
 - AI/ML integration ready
@@ -224,4 +235,4 @@ Com o PSM Chimera v2, transformaremos completamente a experiência operacional:
 
 *Este é mais que uma migração técnica - é uma evolução para uma plataforma moderna que cresce com o negócio.*
 
-**Ready to transform? Let's build the future! 🚀**
+> **Ready to transform? Let's build the future! 🚀**

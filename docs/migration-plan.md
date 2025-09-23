@@ -84,10 +84,12 @@ graph TB
 #### **Sprint 1.1: Database Schema Enhancement (1-2 semanas)**
 
 **Objetivos:**
+
 - Expandir schema atual para suportar configurações dinâmicas
 - Migrar dados existentes
 
 **Entregas:**
+
 - [ ] **Schema Extensions**
   - Notification settings (Telegram users/groups)
   - Cron job configurations
@@ -95,6 +97,7 @@ graph TB
   - Audit logs and execution history
 
 - [ ] **Data Models**
+
   ```prisma
   model NotificationChannel {
     id          Int     @id @default(autoincrement())
@@ -162,12 +165,15 @@ graph TB
 #### **Sprint 1.2: Core Backend API (2-3 semanas)**
 
 **Objetivos:**
+
 - Implementar API REST básica
 - Sistema de autenticação
 - CRUD para entidades principais
 
 **Entregas:**
+
 - [ ] **Authentication & Authorization**
+
   ```typescript
   // Routes
   POST /api/v1/auth/login
@@ -177,6 +183,7 @@ graph TB
   ```
 
 - [ ] **Integrations Management**
+
   ```typescript
   // Integration CRUD
   GET    /api/v1/integrations
@@ -187,6 +194,7 @@ graph TB
   ```
 
 - [ ] **Stores Management**
+
   ```typescript
   // Store CRUD with enhanced features
   GET    /api/v1/stores
@@ -198,6 +206,7 @@ graph TB
   ```
 
 - [ ] **Notification Channels**
+
   ```typescript
   GET    /api/v1/notifications/channels
   POST   /api/v1/notifications/channels
@@ -208,11 +217,14 @@ graph TB
 #### **Sprint 1.3: Job Scheduler Foundation (1 semana)**
 
 **Objetivos:**
+
 - Sistema básico de agendamento
 - Execução de jobs configuráveis
 
 **Entregas:**
+
 - [ ] **Job Scheduler Service**
+
   ```typescript
   class JobScheduler {
     async scheduleJob(jobConfig: JobConfiguration): Promise<void>
@@ -228,6 +240,7 @@ graph TB
   - CleanupLogsJob (equivalente ao fazTudo3)
 
 - [ ] **Job Configuration API**
+
   ```typescript
   GET    /api/v1/jobs/configurations
   POST   /api/v1/jobs/configurations
@@ -244,11 +257,13 @@ graph TB
 #### **Sprint 2.1: Dashboard Foundation (1-2 semanas)**
 
 **Objetivos:**
+
 - Setup básico do frontend
 - Sistema de autenticação
 - Layout principal
 
 **Entregas:**
+
 - [ ] **Frontend Setup**
   - Next.js 14 com App Router
   - TailwindCSS + Shadcn/ui
@@ -268,10 +283,12 @@ graph TB
 #### **Sprint 2.2: Configuration Panels (1-2 semanas)**
 
 **Objetivos:**
+
 - Interfaces para configuração de integrações
 - Gestão de lojas e notificações
 
 **Entregas:**
+
 - [ ] **Integrations Panel**
   - List/create/edit integrations
   - Test connection functionality
@@ -291,10 +308,12 @@ graph TB
 #### **Sprint 2.3: Jobs & Monitoring (1 semana)**
 
 **Objetivos:**
+
 - Interface para gestão de jobs
 - Dashboard de monitoramento
 
 **Entregas:**
+
 - [ ] **Job Configuration UI**
   - Create/edit cron jobs
   - Visual cron expression builder
@@ -313,11 +332,14 @@ graph TB
 #### **Sprint 3.1: Legacy Integration Bridge (1-2 semanas)**
 
 **Objetivos:**
+
 - Conectar sistema novo com funcionalidades existentes
 - Migração gradual de funcionalidades
 
 **Entregas:**
+
 - [ ] **Integration Adapters**
+
   ```typescript
   class RpIntegrationAdapter {
     constructor(config: IntegrationConfig) {}
@@ -337,6 +359,7 @@ graph TB
   - Implementar logging estruturado
 
 - [ ] **Notification Service**
+
   ```typescript
   class NotificationService {
     async sendTelegramMessage(channelId: string, message: string): Promise<void>
@@ -348,10 +371,12 @@ graph TB
 #### **Sprint 3.2: Data Migration & Testing (1 semana)**
 
 **Objetivos:**
+
 - Migrar dados existentes
 - Testes de integração completos
 
 **Entregas:**
+
 - [ ] **Data Migration Scripts**
   - Import existing stores from server-node-fill
   - Import integration configurations
@@ -369,10 +394,12 @@ graph TB
 #### **Sprint 4.1: Production Deployment (1 semana)**
 
 **Objetivos:**
+
 - Deploy em produção
 - Monitoramento e observabilidade
 
 **Entregas:**
+
 - [ ] **Production Setup**
   - Docker production build
   - Environment configuration
@@ -387,10 +414,12 @@ graph TB
 #### **Sprint 4.2: Legacy Sunset (1-2 semanas)**
 
 **Objetivos:**
+
 - Descomissionamento gradual do sistema antigo
 - Validação final
 
 **Entregas:**
+
 - [ ] **Parallel Operation**
   - Run both systems in parallel
   - Compare results and performance
