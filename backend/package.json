@@ -1,0 +1,16 @@
+{
+    "scripts": {
+        "db:generate": "npx prisma generate --schema=./src/database/prisma/schema.prisma",
+        "db:migrate": "prisma migrate deploy --schema=./src/database/prisma/schema.prisma",
+        "db:seed": "tsx src/database/prisma/seed.ts",
+        "db:setup": "npm run db:generate && npm run db:migrate && npm run db:seed"
+    },
+    "devDependencies": {
+        "@types/node": "^24.5.2",
+        "prisma": "^6.16.2",
+        "tsx": "^4.20.5"
+    },
+    "dependencies": {
+        "@prisma/client": "^6.16.2"
+    }
+}

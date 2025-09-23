@@ -1,0 +1,59 @@
+services:
+
+  # ======================================================
+  # 🗄️ BANCO DE DADOS POSTGRESQL
+  # ======================================================
+  postgres:
+    image: postgres:17.0
+    container_name: psm-chimera-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: psm_chimera
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: masterkey
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - psm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d psm_chimera"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ======================================================
+  # 🔧 SETUP DO BANCO (MIGRATIONS + SEED) - JOB ÚNICO
+  # ======================================================
+  database-setup:
+    build:
+      context: .
+      target: production
+    container_name: psm-chimera-db-setup
+    restart: "no"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:masterkey@postgres:5432/psm_chimera
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - psm-network
+
+# ======================================================
+# 🌐 NETWORKS
+# ======================================================
+networks:
+  psm-network:
+    driver: bridge
+
+# ======================================================
+# 💾 VOLUMES
+# ======================================================
+volumes:
+  postgres_data:
+    driver: local
+
+
+

@@ -1,0 +1,119 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+    output   = "../generated/prisma"
+}
+
+enum UserType {
+    ADMIN
+    USER
+}
+
+model User {
+    id    Int      @id @default(autoincrement())
+    email String   @unique
+    name  String?
+    role  UserType @default(ADMIN)
+
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @default(now()) @updatedAt
+    deletedAt DateTime?
+
+    auth Auth?
+
+    @@map("users")
+}
+
+model Auth {
+    id Int @id @default(autoincrement())
+
+    user_id       Int    @unique
+    email         String @unique
+    password_hash String
+
+    active Boolean @default(true)
+
+    created_at DateTime  @default(now())
+    updated_at DateTime  @default(now()) @updatedAt
+    deleted_at DateTime?
+
+    user User @relation(fields: [user_id], references: [id])
+
+    @@map("authentications")
+}
+
+model Integration {
+    id       Int     @id @default(autoincrement())
+    name     String
+    base_url String
+    email    String?
+    password String?
+    config   Json?
+
+    active Boolean @default(true)
+
+    created_at DateTime  @default(now())
+    updated_at DateTime  @default(now()) @updatedAt
+    deleted_at DateTime?
+
+    integrationKey IntegrationKey[]
+
+    @@map("integrations")
+}
+
+model IntegrationKey {
+    id Int @id @default(autoincrement())
+
+    integration_id Int
+    key            String    @unique
+    expires_at     DateTime?
+
+    created_at DateTime  @default(now())
+    updated_at DateTime  @default(now()) @updatedAt
+    deleted_at DateTime?
+
+    integration Integration @relation(fields: [integration_id], references: [id])
+
+    @@map("integration_keys")
+}
+
+model Store {
+    id Int @id @default(autoincrement())
+
+    name         String
+    registration String  @unique
+    document     String  @default("")
+    active       Boolean @default(true)
+
+    created_at DateTime  @default(now())
+    updated_at DateTime  @default(now()) @updatedAt
+    deleted_at DateTime?
+
+    products Product[]
+
+    @@map("stores")
+}
+
+model Product {
+    id          String @id @default(uuid())
+    code        Int
+    price       Float
+    final_price Float
+    limit       Int
+
+    store_id   Int
+    starts_at  String?
+    expires_at String?
+
+    created_at DateTime  @default(now())
+    updated_at DateTime  @default(now()) @updatedAt
+    deleted_at DateTime?
+
+    store Store @relation(fields: [store_id], references: [id])
+
+    @@map("products")
+}

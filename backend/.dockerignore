@@ -1,0 +1,68 @@
+# ======================================================
+# 🚫 DOCKERIGNORE PARA PSM-CHIMERA BACKEND
+# ======================================================
+
+# Dependências
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime
+*.log
+logs
+*.pid
+*.seed
+*.pid.lock
+
+# Diretórios de build e cache
+.next
+.nuxt
+dist
+build
+.cache
+
+# Arquivos de ambiente (serão copiados conforme necessário)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE e editores
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git
+.gitignore
+README.md
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Prisma gerado (será regenerado no container)
+src/database/generated/
+
+# Testes
+coverage
+.nyc_output
+test-results
+
+# Temporários
+tmp
+temp
+.tmp
