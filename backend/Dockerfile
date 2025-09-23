@@ -31,11 +31,12 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copiar código fonte
-COPY package*.json ./
+COPY database/prisma ./database/prisma
 COPY src/ ./src/
+COPY package*.json ./
 
 # Gerar Prisma Client (especificando o caminho do schema)
-RUN npx prisma generate --schema=./src/database/prisma/schema.prisma
+RUN npx prisma generate --schema=./database/prisma/schema.prisma
 
 # Criar usuário não-root
 RUN addgroup --system --gid 1001 nodejs

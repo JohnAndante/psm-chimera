@@ -55,7 +55,7 @@ docker-compose*.yml
 .dockerignore
 
 # Prisma gerado (será regenerado no container)
-src/database/generated/
+database/generated/
 
 # Testes
 coverage
