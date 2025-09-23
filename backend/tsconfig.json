@@ -1,12 +1,15 @@
     {
       "compilerOptions": {
-        "target": "es6",
-        "module": "commonjs",
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
         "outDir": "./dist",
         "strict": true,
         "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
+        "allowImportingTsExtensions": false,
         "types": [
           "node"
         ]

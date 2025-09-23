@@ -27,16 +27,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // API Routes
-app.use('/api/v1/auth', authRoutes);
-
-// Health check
-app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        version: '1.0.0'
-    });
-});
+app.use('/api/v1', routes);
 
 // Error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
