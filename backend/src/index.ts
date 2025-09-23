@@ -2,17 +2,16 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-
-// Routes
-import authRoutes from './routes/auth.route';
+import { EnvFactory } from './factory/environment.factory.js';
+import routes from './routes/index';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = EnvFactory.getPort();
 
 // Security middleware
 app.use(helmet());
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    origin: EnvFactory.get('FRONTEND_URL') || 'http://localhost:3001',
     credentials: true
 }));
 
@@ -44,7 +43,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     console.error('Error:', err);
     res.status(err.status || 500).json({
         error: err.message || 'Internal Server Error',
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+        ...(EnvFactory.isDevelopment() && { stack: err.stack })
     });
 });
 
