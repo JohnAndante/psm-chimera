@@ -100,7 +100,10 @@ export class AuthController {
 
     // POST /api/v1/auth/change-password
     static async changePassword(req: AuthenticatedRequest, res: Response) {
-        const { currentPassword, newPassword } = req.body;
+        const {
+            current_password: currentPassword,
+            new_password: newPassword
+        } = req.body;
 
         if (!currentPassword || !newPassword) {
             return res.status(400).json({

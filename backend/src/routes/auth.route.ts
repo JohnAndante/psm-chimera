@@ -5,11 +5,26 @@ import { authenticateToken } from '../utils/auth';
 const router = Router();
 
 // Rotas públicas
-router.post('/login', AuthController.login);
-router.post('/logout', AuthController.logout);
+router.post(
+    '/login',
+    AuthController.login
+);
+
+router.post(
+    '/logout',
+    AuthController.logout
+);
 
 // Rotas protegidas
-router.get('/me', authenticateToken, AuthController.me);
-router.post('/change-password', authenticateToken, AuthController.changePassword);
+router.get(
+    '/me',
+    authenticateToken,
+    AuthController.me
+);
+router.post(
+    '/change-password',
+    authenticateToken,
+    AuthController.changePassword
+);
 
 export default router;
