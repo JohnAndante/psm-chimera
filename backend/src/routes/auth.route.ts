@@ -4,27 +4,16 @@ import { authenticateToken } from '../utils/auth';
 
 const router = Router();
 
-// Rotas públicas
-router.post(
-    '/login',
-    AuthController.login
-);
+// POST /api/v1/auth/login
+router.post('/login', AuthController.login);
 
-router.post(
-    '/logout',
-    AuthController.logout
-);
+// POST /api/v1/auth/logout
+router.post('/logout', AuthController.logout);
 
-// Rotas protegidas
-router.get(
-    '/me',
-    authenticateToken,
-    AuthController.me
-);
-router.post(
-    '/change-password',
-    authenticateToken,
-    AuthController.changePassword
-);
+// GET /api/v1/auth/me
+router.get('/me', authenticateToken, AuthController.me);
+
+// POST /api/v1/auth/change-password
+router.post('/change-password', authenticateToken, AuthController.changePassword);
 
 export default router;
