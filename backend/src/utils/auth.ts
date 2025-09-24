@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
+import { UserAuthData } from '../types/auth.type';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'psm-chimera-secret-key';
 
@@ -48,6 +49,10 @@ export const requireAdmin = (
     next();
 };
 
-export const generateToken = (user: { id: number; email: string; role: string }) => {
-    return jwt.sign(user, JWT_SECRET, { expiresIn: '24h' });
+export const generateToken = (user: UserAuthData) => {
+    const { id, name, email, role } = user;
+
+    const payload = { id, name, email, role };
+
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
 };

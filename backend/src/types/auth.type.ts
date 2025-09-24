@@ -15,3 +15,8 @@ export interface UserAuthData {
         updated_at: Date;
     }
 }
+
+export interface AuthenticatedUser {
+    token: string;
+    user: Omit<UserAuthData, 'auth'>;
+}

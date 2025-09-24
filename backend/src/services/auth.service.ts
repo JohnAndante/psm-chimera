@@ -1,5 +1,7 @@
+import bcrypt from 'bcryptjs';
 import { db } from '../factory/database.factory.js';
-import { UserAuthData } from '../types/auth.type.js';
+import { AuthenticatedUser, UserAuthData } from '../types/auth.type.js';
+import { generateToken } from '../utils/auth.js';
 
 class AuthService {
 
@@ -62,6 +64,38 @@ class AuthService {
                     reject(err);
                 });
         });
+    }
+
+    async authenticateUser(email: string, password: string): Promise<AuthenticatedUser> {
+        return this.findUserByEmail(email)
+            .then(async user => {
+                if (!user || !user.auth) {
+                    throw new Error('Credenciais inválidas');
+                }
+
+                // Verifica se usuário está ativo
+                if (!user.auth.active) {
+                    throw new Error('Usuário inativo');
+                }
+
+                // Verifica senha
+                const isPasswordValid = await bcrypt.compare(password, user.auth.password_hash);
+
+                if (!isPasswordValid) {
+                    throw new Error('Credenciais inválidas');
+                }
+
+                // Gera token
+                const token = generateToken(user);
+
+                // Remove dados sensíveis
+                const { auth, ...userWithoutAuth } = user;
+
+                return { token, user: userWithoutAuth };
+            })
+            .catch(err => {
+                throw err;
+            });
     }
 
     async findUserById(id: number) {

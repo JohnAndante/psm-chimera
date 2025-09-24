@@ -15,50 +15,25 @@ export class AuthController {
             });
         }
 
-        return authService.findUserByEmail(email)
-            .then(async user => {
-                if (!user || !user.auth) {
+        return authService.authenticateUser(email, password)
+            .then(loginData => {
+                if (!loginData) {
                     return res.status(401).json({
                         error: 'Credenciais inválidas'
                     });
                 }
 
-                // Verifica se usuário está ativo
-                if (!user.auth.active) {
-                    return res.status(401).json({
-                        error: 'Usuário inativo'
-                    });
-                }
-
-                // Verifica senha
-                const isPasswordValid = await bcrypt.compare(password, user.auth.password_hash);
-
-                if (!isPasswordValid) {
-                    return res.status(401).json({
-                        error: 'Credenciais inválidas'
-                    });
-                }
-
-                // Gera token
-                const token = generateToken({
-                    id: user.id,
-                    email: user.email,
-                    role: user.role
-                });
-
-                // Remove dados sensíveis
-                const { auth, ...userWithoutAuth } = user;
+                const { token, user } = loginData;
 
                 res.status(200).json({
                     message: 'Login realizado com sucesso',
                     token,
-                    user: userWithoutAuth
+                    user,
                 });
             })
             .catch(error => {
-                console.error('Erro ao buscar usuário:', error);
-                res.status(500).json({
-                    error: 'Erro interno do servidor'
+                res.status(401).json({
+                    error: error.message || 'Erro ao autenticar usuário'
                 });
             });
     }
