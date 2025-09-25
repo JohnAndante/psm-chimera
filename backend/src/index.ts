@@ -2,8 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import { EnvFactory } from './factory/environment.factory.js';
-import routes from './routes/index';
+import { EnvFactory } from './factory/environment.factory';
+import routes from './routes';
 
 const app = express();
 const PORT = EnvFactory.getPort();

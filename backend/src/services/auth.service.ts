@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
-import { db } from '../factory/database.factory.js';
-import { AuthenticatedUser, UserAuthData } from '../types/auth.type.js';
-import { generateToken } from '../utils/auth.js';
+import { db } from '../factory/database.factory';
+import { AuthenticatedUser, UserAuthData } from '../types/auth.type';
+import { generateToken } from '../utils/auth';
 
 class AuthService {
 

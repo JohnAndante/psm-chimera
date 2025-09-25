@@ -1,6 +1,6 @@
 import { IntegrationType } from "../../database/generated/prisma";
 import { IntegrationLite } from "../types/integration.type";
-import { db } from '../factory/database.factory.js';
+import { db } from '../factory/database.factory';
 
 class IntegrationService {
 
