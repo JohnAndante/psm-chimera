@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../utils/auth';
-import { StoreService, StoreFilters } from '../services/store.service';
+import { storeService } from '../services/store.service';
+import { StoreFilters } from '../types/store.types';
 
 export class StoreController {
 
@@ -19,7 +20,7 @@ export class StoreController {
             filters.search = search;
         }
 
-        StoreService.getAllStores(filters)
+        storeService.getAllStores(filters)
             .then((stores) => {
                 res.json({
                     message: 'Lojas listadas com sucesso',
@@ -39,7 +40,7 @@ export class StoreController {
         const { id } = req.params;
         const storeId = parseInt(id); // Validação já foi feita pelo middleware
 
-        StoreService.getStoreById(storeId)
+        storeService.getStoreById(storeId)
             .then((store) => {
                 if (!store) {
                     return res.status(404).json({
@@ -72,7 +73,7 @@ export class StoreController {
         // Validações já foram feitas pelo middleware
 
         // Primeiro verifica se a loja existe
-        StoreService.getStoreById(storeId)
+        storeService.getStoreById(storeId)
             .then((store) => {
                 if (!store) {
                     res.status(404).json({
@@ -85,7 +86,7 @@ export class StoreController {
                 const pagination = { page: pageNum, limit: limitNum };
                 const searchTerm = search && typeof search === 'string' ? search : undefined;
 
-                StoreService.getStoreProducts(storeId, pagination, searchTerm)
+                storeService.getStoreProducts(storeId, pagination, searchTerm)
                     .then(({ products, total }) => {
                         const totalPages = Math.ceil(total / limitNum);
 
@@ -127,7 +128,7 @@ export class StoreController {
         const storeData = { name, registration, document, active };
 
         // Verifica se já existe loja com o mesmo registration
-        StoreService.checkRegistrationExists(registration)
+        storeService.checkRegistrationExists(registration)
             .then((exists) => {
                 if (exists) {
                     return res.status(409).json({
@@ -136,7 +137,7 @@ export class StoreController {
                 }
 
                 // Cria a loja
-                StoreService.createStore(storeData)
+                storeService.createStore(storeData)
                     .then((store) => {
                         res.status(201).json({
                             message: 'Loja criada com sucesso',
@@ -169,7 +170,7 @@ export class StoreController {
         const updateData = { name, registration, document, active };
 
         // Verifica se loja existe
-        StoreService.getStoreById(storeId)
+        storeService.getStoreById(storeId)
             .then((existingStore) => {
                 if (!existingStore) {
                     return res.status(404).json({
@@ -179,7 +180,7 @@ export class StoreController {
 
                 // Verifica conflito de registration (se mudou)
                 if (registration && registration !== existingStore.registration) {
-                    StoreService.checkRegistrationExists(registration, storeId)
+                    storeService.checkRegistrationExists(registration, storeId)
                         .then((exists) => {
                             if (exists) {
                                 return res.status(409).json({
@@ -188,7 +189,7 @@ export class StoreController {
                             }
 
                             // Atualiza a loja
-                            StoreService.updateStore(storeId, updateData)
+                            storeService.updateStore(storeId, updateData)
                                 .then((store) => {
                                     res.json({
                                         message: 'Loja atualizada com sucesso',
@@ -210,7 +211,7 @@ export class StoreController {
                         });
                 } else {
                     // Atualiza a loja sem verificar registration
-                    StoreService.updateStore(storeId, updateData)
+                    storeService.updateStore(storeId, updateData)
                         .then((store) => {
                             res.json({
                                 message: 'Loja atualizada com sucesso',
@@ -239,7 +240,7 @@ export class StoreController {
         const storeId = parseInt(id); // Validação já foi feita pelo middleware
 
         // Verifica se loja existe
-        StoreService.getStoreById(storeId)
+        storeService.getStoreById(storeId)
             .then((existingStore) => {
                 if (!existingStore) {
                     return res.status(404).json({
@@ -248,7 +249,7 @@ export class StoreController {
                 }
 
                 // Soft delete
-                StoreService.deleteStore(storeId)
+                storeService.deleteStore(storeId)
                     .then(() => {
                         res.json({
                             message: 'Loja excluída com sucesso'
@@ -275,7 +276,7 @@ export class StoreController {
         const storeId = parseInt(id); // Validação já foi feita pelo middleware
 
         // Verifica se loja existe
-        StoreService.getStoreById(storeId)
+        storeService.getStoreById(storeId)
             .then((store) => {
                 if (!store) {
                     return res.status(404).json({

@@ -1,38 +1,11 @@
 import { db } from '../factory/database.factory';
 import { StoreTable } from '../types/database';
+import { PaginationOptions } from '../types/job.type';
+import { StoreFilters, CreateStoreData, UpdateStoreData } from '../types/store.types';
 
-export interface CreateStoreData {
-    name: string;
-    registration: string;
-    document?: string;
-    active?: boolean;
-}
+class StoreService {
 
-export interface UpdateStoreData {
-    name?: string;
-    registration?: string;
-    document?: string;
-    active?: boolean;
-}
-
-export interface StoreFilters {
-    active?: boolean;
-    search?: string;
-}
-
-export interface PaginationOptions {
-    page: number;
-    limit: number;
-}
-
-export interface StoreWithProducts extends StoreTable {
-    products?: any[];
-    product_count?: number;
-}
-
-export class StoreService {
-
-    static getAllStores(filters: StoreFilters = {}): Promise<StoreTable[]> {
+    getAllStores(filters: StoreFilters = {}): Promise<StoreTable[]> {
         return new Promise((resolve, reject) => {
             let query = db
                 .selectFrom('stores')
@@ -64,7 +37,7 @@ export class StoreService {
         });
     }
 
-    static getStoreById(id: number): Promise<StoreTable | null> {
+    getStoreById(id: number): Promise<StoreTable | null> {
         return new Promise((resolve, reject) => {
             db
                 .selectFrom('stores')
@@ -77,7 +50,7 @@ export class StoreService {
         });
     }
 
-    static getStoreProducts(storeId: number, pagination: PaginationOptions, search?: string): Promise<{
+    getStoreProducts(storeId: number, pagination: PaginationOptions, search?: string): Promise<{
         products: any[];
         total: number;
     }> {
@@ -128,7 +101,7 @@ export class StoreService {
         });
     }
 
-    static createStore(data: CreateStoreData): Promise<StoreTable> {
+    createStore(data: CreateStoreData): Promise<StoreTable> {
         return new Promise((resolve, reject) => {
             const storeData: any = {
                 name: data.name,
@@ -149,7 +122,7 @@ export class StoreService {
         });
     }
 
-    static checkRegistrationExists(registration: string, excludeId?: number): Promise<boolean> {
+    checkRegistrationExists(registration: string, excludeId?: number): Promise<boolean> {
         return new Promise((resolve, reject) => {
             let query = db
                 .selectFrom('stores')
@@ -168,7 +141,7 @@ export class StoreService {
         });
     }
 
-    static updateStore(id: number, data: UpdateStoreData): Promise<StoreTable> {
+    updateStore(id: number, data: UpdateStoreData): Promise<StoreTable> {
         return new Promise((resolve, reject) => {
             const updateData: any = {
                 updated_at: new Date()
@@ -191,7 +164,7 @@ export class StoreService {
         });
     }
 
-    static deleteStore(id: number): Promise<void> {
+    deleteStore(id: number): Promise<void> {
         return new Promise((resolve, reject) => {
             db
                 .updateTable('stores')
@@ -208,7 +181,7 @@ export class StoreService {
         });
     }
 
-    static validateStoreData(data: CreateStoreData | UpdateStoreData): string | null {
+    validateStoreData(data: CreateStoreData | UpdateStoreData): string | null {
         if ('name' in data && data.name !== undefined) {
             if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
                 return 'Nome é obrigatório';
@@ -245,3 +218,5 @@ export class StoreService {
         return null;
     }
 }
+
+export const storeService = new StoreService();
