@@ -17,8 +17,8 @@ src/
 │   ├── auth.validator.ts
 │   ├── store.validator.ts
 │   └── integration.validator.ts
-└── utils/
-    └── validation.ts   # Middleware e utilitários de validação
+└── middlewares/
+    └── validation.middleware.ts   # Middleware e utilitários de validação
 ```
 
 ## 🔧 **Validators (Entrada de Request)**
@@ -32,7 +32,7 @@ src/
 
 ```typescript
 import Joi from 'joi';
-import { validateRequest } from '../utils/validation';
+import { validate } from '../middlewares/validation.middleware';
 
 // Schemas específicos para cada endpoint
 const idParamSchema = Joi.object({
@@ -55,15 +55,15 @@ const createBodySchema = Joi.object({
 
 // Export dos middlewares
 export const ModuleValidator = {
-    create: validateRequest({
+    create: validate({
         body: createBodySchema
     }),
 
-    getById: validateRequest({
+    getById: validate({
         params: idParamSchema
     }),
 
-    getAll: validateRequest({
+    getAll: validate({
         query: getAllQuerySchema
     })
 };
@@ -76,7 +76,7 @@ export const ModuleValidator = {
 
 ## 🛠️ **Utils/Validation (Middleware)**
 
-### **Função validateRequest:**
+### **Função validate:**
 
 ```typescript
 export interface ValidationSchemas {
@@ -85,7 +85,7 @@ export interface ValidationSchemas {
     body?: Joi.ObjectSchema;
 }
 
-export function validateRequest(schemas: ValidationSchemas) {
+export function validate(schemas: ValidationSchemas) {
     return validate(schemas);
 }
 ```
@@ -171,10 +171,10 @@ const searchSchema = Joi.string().min(1).max(255).optional();
 ### **Validator:**
 ```typescript
 export const StoreValidator = {
-    getAll: validateRequest({ query: getAllQuerySchema }),
-    getById: validateRequest({ params: idParamSchema }),
-    create: validateRequest({ body: createStoreBodySchema }),
-    update: validateRequest({ params: idParamSchema, body: updateStoreBodySchema })
+    getAll: validate({ query: getAllQuerySchema }),
+    getById: validate({ params: idParamSchema }),
+    create: validate({ body: createStoreBodySchema }),
+    update: validate({ params: idParamSchema, body: updateStoreBodySchema })
 };
 ```
 

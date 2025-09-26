@@ -203,3 +203,5 @@ async findWithRelations(id: number) {
 3. **Validar parâmetros** antes de executar queries
 4. **Soft delete** sempre usando `deletedAt`
 5. **Timestamps** automáticos em create/update
+6. **Singleton export** do service: `export const storeService = new StoreService()`
+
