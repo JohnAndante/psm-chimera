@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
-import { generateToken, AuthenticatedRequest } from '../utils/auth';
+import { AuthenticatedRequest } from '../utils/auth';
 import { authService } from '../services/auth.service';
 
 export class AuthController {
