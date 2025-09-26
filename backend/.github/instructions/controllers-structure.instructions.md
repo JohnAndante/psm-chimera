@@ -102,21 +102,52 @@ res.status(500).json({
 });
 ```
 
-### **🔍 Validação de Entrada:**
+
+### **✅ Controllers Simplificados (COM Validators):**
 ```typescript
-// Sempre validar dados obrigatórios
-if (!name || !type) {
-    return res.status(400).json({
-        error: 'Nome e tipo são obrigatórios'
-    });
+static create(req: AuthenticatedRequest, res: Response) {
+    // Dados já validados pelo validator middleware!
+    const { name, type } = req.body;
+
+    EntityService.create({ name, type })
+        .then(entity => {
+            res.status(201).json({
+                message: 'Entidade criada com sucesso',
+                data: entity
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao criar entidade:', error);
+            res.status(500).json({
+                error: 'Erro interno do servidor'
+            });
+        });
 }
 
-// Validar IDs
-const entityId = parseInt(id);
-if (isNaN(entityId)) {
-    return res.status(400).json({
-        error: 'ID inválido'
-    });
+static getById(req: AuthenticatedRequest, res: Response) {
+    // ID já validado pelo validator middleware!
+    const { id } = req.params;
+    const entityId = parseInt(id);
+
+    EntityService.getById(entityId)
+        .then(entity => {
+            if (!entity) {
+                return res.status(404).json({
+                    error: 'Entidade não encontrada'
+                });
+            }
+
+            res.json({
+                message: 'Entidade encontrada com sucesso',
+                data: entity
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao buscar entidade:', error);
+            res.status(500).json({
+                error: 'Erro interno do servidor'
+            });
+        });
 }
 ```
 

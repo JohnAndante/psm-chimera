@@ -52,6 +52,33 @@ const dbUrl = process.env.DATABASE_URL;
 - **Error**: `{ error: 'Portuguese error message' }`
 - **NEVER** use `{ success: boolean, data: any }` format
 
+### Validation Pattern (CRITICAL)
+- **NEVER validate inside controllers** - use validators middleware
+- **Two-layer validation**: `validators/` (request) + `schemas/` (business)
+- **Always use Joi** for input validation with Portuguese messages
+
+```typescript
+// ✅ CORRECT Route Structure
+router.post('/',
+    requireAdmin,           // 1. Auth/Authorization
+    EntityValidator.create, // 2. Input Validation
+    EntityController.create // 3. Business Logic
+);
+
+// ✅ CORRECT Controller (No Validation)
+static create(req: AuthenticatedRequest, res: Response) {
+    const { name } = req.body; // Already validated!
+    EntityService.create({ name })
+        .then(result => res.json({ message: 'Criado com sucesso', data: result }))
+        .catch(handleError);
+}
+
+// ❌ WRONG - Manual validation in controller
+if (!name || name.length < 1) {
+    return res.status(400).json({ error: 'Nome é obrigatório' });
+}
+```
+
 ## 🛣️ File Structure Patterns
 
 ### Controllers
