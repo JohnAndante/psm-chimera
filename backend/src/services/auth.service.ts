@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { db } from '../factory/database.factory';
 import { AuthenticatedUser, UserAuthData } from '../types/auth.type';
-import { generateToken } from '../utils/auth';
+import { extractPayload, generateToken } from '../utils/auth';
 
 class AuthService {
 
@@ -164,6 +164,51 @@ class AuthService {
                 .execute()
                 .then(() => {
                     resolve(true);
+                })
+                .catch(err => {
+                    reject(err);
+                });
+        });
+    }
+
+    async refreshAuthToken(refreshToken: string): Promise<string | null> {
+        return new Promise((resolve, reject) => {
+            if (!refreshToken) {
+                return reject(new Error('Token de atualização é obrigatório'));
+            }
+
+            // Verifica se o token de atualização é válido
+            const tokenPayload = extractPayload(refreshToken);
+
+            if (!tokenPayload) {
+                return reject(new Error('Token de atualização inválido ou expirado'));
+            }
+
+            // Verificar se faz mais de 4 horas que o token foi emitido
+            const currentTime = Math.floor(Date.now() / 1000);
+            const tokenAge = currentTime - tokenPayload.iat;
+
+            if (tokenAge > 4 * 60 * 60) { // 4 horas em segundos
+                return reject(new Error('Token de atualização expirado. Faça login novamente.'));
+            }
+
+            // Extrai o id do usuário do payload
+            const userId = tokenPayload.id;
+
+            if (!userId) {
+                return reject(new Error('Token de atualização inválido'));
+            }
+
+            // Busca o usuário no banco de dados
+            this.findUserById(userId)
+                .then(user => {
+                    if (!user) {
+                        return reject(new Error('Usuário não encontrado'));
+                    }
+
+                    // Gera um novo token de acesso
+                    const newAccessToken = generateToken(user as UserAuthData);
+                    resolve(newAccessToken);
                 })
                 .catch(err => {
                     reject(err);

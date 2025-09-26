@@ -39,11 +39,41 @@ export class AuthController {
     }
 
     // POST /api/v1/auth/logout
-    static async logout(req: Request, res: Response) {
-        // Com JWT stateless, logout é apenas cliente removendo o token
+    static async logout(_req: Request, res: Response) {
         res.json({
             message: 'Logout realizado com sucesso'
         });
+    }
+
+    // POST /api/v1/auth/refresh
+    static async refresh(req: Request, res: Response) {
+        const authHeader = req.headers['authorization'];
+        const refreshToken = authHeader && authHeader.split(' ')[1] ? authHeader.split(' ')[1] : req.body.refreshToken;
+
+        if (!refreshToken) {
+            return res.status(400).json({
+                error: 'Token de atualização é obrigatório'
+            });
+        }
+
+        return authService.refreshAuthToken(refreshToken)
+            .then(newToken => {
+                if (!newToken) {
+                    return res.status(401).json({
+                        error: 'Token de atualização inválido ou expirado'
+                    });
+                }
+
+                res.json({
+                    message: 'Token atualizado com sucesso',
+                    token: newToken
+                });
+            })
+            .catch(error => {
+                res.status(500).json({
+                    error: error.message || 'Erro ao atualizar token'
+                });
+            });
     }
 
     // GET /api/v1/auth/me

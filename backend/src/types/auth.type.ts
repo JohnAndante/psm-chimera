@@ -20,3 +20,12 @@ export interface AuthenticatedUser {
     token: string;
     user: Omit<UserAuthData, 'auth'>;
 }
+
+export interface UserTokenPayload {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    iat: number;
+    exp: number;
+}
