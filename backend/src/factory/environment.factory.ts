@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { EnvironmentConfig, RequiredEnvVars, DefaultEnvValues } from '../types/environment.type.js';
+import { EnvironmentConfig, RequiredEnvVars, DefaultEnvValues } from '../types/environment.type';
 
 // Carrega as variáveis de ambiente
 dotenv.config();

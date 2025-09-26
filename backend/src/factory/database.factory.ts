@@ -1,7 +1,7 @@
 import { Kysely, PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
-import { Database } from '../types/database.js';
-import { EnvFactory } from './environment.factory.js';
+import { Database } from '../types/database';
+import { EnvFactory } from './environment.factory';
 
 // Fábrica de conexão com o banco de dados usando Kysely e PostgreSQL
 class DatabaseFactory {
