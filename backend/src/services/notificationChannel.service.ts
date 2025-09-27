@@ -1,5 +1,5 @@
 import { db } from '../factory/database.factory';
-import { 
+import {
     NotificationChannelData,
     CreateNotificationChannelData,
     UpdateNotificationChannelData,

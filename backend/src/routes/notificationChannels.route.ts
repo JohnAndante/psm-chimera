@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { NotificationChannelController } from '../controllers/NotificationChannelController';
+import { NotificationChannelController } from '../controllers/notificationChannel.controller';
 import { authenticateToken, requireAdmin } from '../utils/auth';
-import { NotificationValidator } from '../validators/notification.validator';
+import { NotificationValidator } from '../validators/notificationChannel.validator';
 
 const router = Router();
 

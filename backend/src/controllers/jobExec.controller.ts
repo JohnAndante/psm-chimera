@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { JobExecutionService } from '../services/job.exec.service';
+import { JobExecutionService } from '../services/jobExec.service';
 import { JobExecutionFilters, ExecutionStatus } from '../types/job.type';
 
 interface AuthenticatedRequest extends Request {
@@ -65,7 +65,7 @@ export class JobExecutionController {
     // Validar filtros
     const validationError = JobExecutionService.validateExecutionFilters(filters);
     if (validationError) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: validationError
       });
     }
@@ -90,16 +90,16 @@ export class JobExecutionController {
     const { id } = req.params;
 
     if (!id || typeof id !== 'string') {
-      return res.status(400).json({ 
-        error: 'ID da execução deve ser fornecido' 
+      return res.status(400).json({
+        error: 'ID da execução deve ser fornecido'
       });
     }
 
     JobExecutionService.getExecutionById(id)
       .then(execution => {
         if (!execution) {
-          return res.status(404).json({ 
-            error: 'Execução de job não encontrada' 
+          return res.status(404).json({
+            error: 'Execução de job não encontrada'
           });
         }
         res.json({
@@ -120,16 +120,16 @@ export class JobExecutionController {
     const { id } = req.params;
 
     if (!id || typeof id !== 'string') {
-      return res.status(400).json({ 
-        error: 'ID da execução deve ser fornecido' 
+      return res.status(400).json({
+        error: 'ID da execução deve ser fornecido'
       });
     }
 
     JobExecutionService.getExecutionLogs(id)
       .then(logs => {
         if (!logs) {
-          return res.status(404).json({ 
-            error: 'Execução de job não encontrada' 
+          return res.status(404).json({
+            error: 'Execução de job não encontrada'
           });
         }
         res.json({

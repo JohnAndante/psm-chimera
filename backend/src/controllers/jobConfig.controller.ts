@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { JobConfigurationService } from '../services/job.config.service';
+import { JobConfigurationService } from '../services/jobConfig.service';
 import { JobConfigurationFilters } from '../types/job.type';
 
 interface AuthenticatedRequest extends Request {
@@ -51,16 +51,16 @@ export class JobConfigurationController {
     const id = parseInt(req.params.id);
 
     if (isNaN(id)) {
-      return res.status(400).json({ 
-        error: 'ID da configuração de job deve ser um número válido' 
+      return res.status(400).json({
+        error: 'ID da configuração de job deve ser um número válido'
       });
     }
 
     JobConfigurationService.getJobById(id)
       .then(job => {
         if (!job) {
-          return res.status(404).json({ 
-            error: 'Configuração de job não encontrada' 
+          return res.status(404).json({
+            error: 'Configuração de job não encontrada'
           });
         }
         res.json({
@@ -151,8 +151,8 @@ export class JobConfigurationController {
     const id = parseInt(req.params.id);
 
     if (isNaN(id)) {
-      return res.status(400).json({ 
-        error: 'ID da configuração de job deve ser um número válido' 
+      return res.status(400).json({
+        error: 'ID da configuração de job deve ser um número válido'
       });
     }
 
@@ -297,8 +297,8 @@ export class JobConfigurationController {
     const id = parseInt(req.params.id);
 
     if (isNaN(id)) {
-      return res.status(400).json({ 
-        error: 'ID da configuração de job deve ser um número válido' 
+      return res.status(400).json({
+        error: 'ID da configuração de job deve ser um número válido'
       });
     }
 
@@ -326,8 +326,8 @@ export class JobConfigurationController {
     const id = parseInt(req.params.id);
 
     if (isNaN(id)) {
-      return res.status(400).json({ 
-        error: 'ID da configuração de job deve ser um número válido' 
+      return res.status(400).json({
+        error: 'ID da configuração de job deve ser um número válido'
       });
     }
 

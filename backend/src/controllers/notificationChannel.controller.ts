@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { NotificationChannelService } from '../services/notification.service';
+import { NotificationChannelService } from '../services/notificationChannel.service';
 import { NotificationChannelFilters, NotificationChannelType } from '../types/notification.type';
 
 interface AuthenticatedRequest extends Request {
@@ -47,16 +47,16 @@ export class NotificationChannelController {
     const id = parseInt(req.params.id);
 
     if (isNaN(id)) {
-      return res.status(400).json({ 
-        error: 'ID do canal de notificação deve ser um número válido' 
+      return res.status(400).json({
+        error: 'ID do canal de notificação deve ser um número válido'
       });
     }
 
     NotificationChannelService.getChannelById(id)
       .then(channel => {
         if (!channel) {
-          return res.status(404).json({ 
-            error: 'Canal de notificação não encontrado' 
+          return res.status(404).json({
+            error: 'Canal de notificação não encontrado'
           });
         }
         res.json({
@@ -88,7 +88,7 @@ export class NotificationChannelController {
 
         // Validar configuração específica do tipo
         const configValidation = NotificationChannelService.validateChannelConfig(
-          channelData.type, 
+          channelData.type,
           channelData.config
         );
         if (configValidation) {
@@ -125,8 +125,8 @@ export class NotificationChannelController {
     const id = parseInt(req.params.id);
 
     if (isNaN(id)) {
-      return res.status(400).json({ 
-        error: 'ID do canal de notificação deve ser um número válido' 
+      return res.status(400).json({
+        error: 'ID do canal de notificação deve ser um número válido'
       });
     }
 
@@ -148,7 +148,7 @@ export class NotificationChannelController {
             // Se tem tipo novo, usar ele; senão buscar o atual
             if (updateData.type) {
               const configValidation = NotificationChannelService.validateChannelConfig(
-                updateData.type, 
+                updateData.type,
                 updateData.config
               );
               if (configValidation) {
@@ -189,7 +189,7 @@ export class NotificationChannelController {
       // Se não está atualizando nome, seguir direto
       if (updateData.config && updateData.type) {
         const configValidation = NotificationChannelService.validateChannelConfig(
-          updateData.type, 
+          updateData.type,
           updateData.config
         );
         if (configValidation) {
@@ -225,8 +225,8 @@ export class NotificationChannelController {
     const id = parseInt(req.params.id);
 
     if (isNaN(id)) {
-      return res.status(400).json({ 
-        error: 'ID do canal de notificação deve ser um número válido' 
+      return res.status(400).json({
+        error: 'ID do canal de notificação deve ser um número válido'
       });
     }
 
@@ -271,8 +271,8 @@ export class NotificationChannelController {
     const id = parseInt(req.params.id);
 
     if (isNaN(id)) {
-      return res.status(400).json({ 
-        error: 'ID do canal de notificação deve ser um número válido' 
+      return res.status(400).json({
+        error: 'ID do canal de notificação deve ser um número válido'
       });
     }
 
