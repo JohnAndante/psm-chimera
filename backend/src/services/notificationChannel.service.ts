@@ -1,4 +1,5 @@
 import { db } from '../factory/database.factory';
+import { getTelegramService } from './telegram.service';
 import {
     NotificationChannelData,
     CreateNotificationChannelData,
@@ -244,44 +245,83 @@ class NotificationChannelService {
                         return;
                     }
 
-                    // TODO: Implementar envio real de notificações
-                    // Por enquanto, simular teste bem-sucedido
-                    let testResult: NotificationTestResult = {
-                        success: true,
-                        message: 'Teste de notificação enviado com sucesso',
-                        channel_name: channel.name,
-                        channel_type: channel.type,
-                        sent_at: new Date().toISOString()
-                    };
-
-                    // Adicionar detalhes específicos do tipo
+                    // Implementar envio real de notificações
                     switch (channel.type) {
                         case NotificationChannelType.TELEGRAM:
                             const telegramConfig = channel.config as TelegramConfig;
-                            testResult.details = {
-                                chat_id: telegramConfig?.chat_id || 'Não configurado',
-                                bot_configured: !!telegramConfig?.bot_token
-                            };
+                            const telegramService = getTelegramService(telegramConfig);
+
+                            telegramService.sendTestNotification(message)
+                                .then(result => {
+                                    const testResult: NotificationTestResult = {
+                                        success: result.success,
+                                        message: result.success ? 'Teste de notificação enviado com sucesso via Telegram' : 'Falha ao enviar notificação via Telegram',
+                                        channel_name: channel.name,
+                                        channel_type: channel.type,
+                                        sent_at: new Date().toISOString(),
+                                        details: {
+                                            chat_id: telegramConfig?.chat_id || 'Não configurado',
+                                            bot_configured: !!telegramConfig?.bot_token,
+                                            message_id: result.message_id,
+                                            error: result.error
+                                        }
+                                    };
+                                    resolve(testResult);
+                                })
+                                .catch(error => {
+                                    const testResult: NotificationTestResult = {
+                                        success: false,
+                                        message: 'Erro ao testar notificação via Telegram',
+                                        channel_name: channel.name,
+                                        channel_type: channel.type,
+                                        sent_at: new Date().toISOString(),
+                                        details: {
+                                            chat_id: telegramConfig?.chat_id || 'Não configurado',
+                                            bot_configured: !!telegramConfig?.bot_token,
+                                            error: error.message || 'Erro desconhecido'
+                                        }
+                                    };
+                                    resolve(testResult);
+                                });
                             break;
 
                         case NotificationChannelType.EMAIL:
+                            // TODO: Implementar envio real por email
                             const emailConfig = channel.config as EmailConfig;
-                            testResult.details = {
-                                smtp_host: emailConfig?.smtp_host || 'Não configurado',
-                                from_email: emailConfig?.from_email || 'Não configurado'
+                            const emailResult: NotificationTestResult = {
+                                success: false,
+                                message: 'Envio por email ainda não implementado',
+                                channel_name: channel.name,
+                                channel_type: channel.type,
+                                sent_at: new Date().toISOString(),
+                                details: {
+                                    smtp_host: emailConfig?.smtp_host || 'Não configurado',
+                                    from_email: emailConfig?.from_email || 'Não configurado'
+                                }
                             };
+                            resolve(emailResult);
                             break;
 
                         case NotificationChannelType.WEBHOOK:
+                            // TODO: Implementar envio real por webhook
                             const webhookConfig = channel.config as WebhookConfig;
-                            testResult.details = {
-                                webhook_url: webhookConfig?.webhook_url || 'Não configurado',
-                                method: webhookConfig?.method || 'POST'
+                            const webhookResult: NotificationTestResult = {
+                                success: false,
+                                message: 'Envio por webhook ainda não implementado',
+                                channel_name: channel.name,
+                                channel_type: channel.type,
+                                sent_at: new Date().toISOString(),
+                                details: {
+                                    webhook_url: webhookConfig?.webhook_url || 'Não configurado',
+                                    method: webhookConfig?.method || 'POST'
+                                }
                             };
+                            resolve(webhookResult);
                             break;
-                    }
 
-                    resolve(testResult);
+                        default:
+                            reject(new Error('Tipo de canal não suportado'));
+                    }
                 })
                 .catch(reject);
         });

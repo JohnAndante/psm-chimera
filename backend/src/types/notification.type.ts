@@ -85,5 +85,7 @@ export interface NotificationTestResult {
         from_email?: string;
         webhook_url?: string;
         method?: string;
+        message_id?: number;
+        error?: string;
     };
 }

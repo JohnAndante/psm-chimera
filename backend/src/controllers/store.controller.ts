@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../utils/auth';
 import { storeService } from '../services/store.service';
 import { StoreFilters } from '../types/store.types';
+import { JobExecutionService } from '../services/job.execution.service';
 
 export class StoreController {
 
@@ -271,44 +272,38 @@ export class StoreController {
     // POST /api/v1/stores/:id/sync
     static syncProducts(req: AuthenticatedRequest, res: Response) {
         const { id } = req.params;
+        const { notification_channel_id, force_sync = false } = req.body;
         const storeId = parseInt(id); // Validação já foi feita pelo middleware
 
-        // Verifica se loja existe
-        storeService.getStoreById(storeId)
-            .then((store) => {
-                if (!store) {
+        // Executar sincronização usando JobExecutionService
+        JobExecutionService.executeSyncJob({
+            store_id: storeId,
+            notification_channel_id: notification_channel_id ? parseInt(notification_channel_id) : undefined,
+            force_sync
+        })
+            .then(executionResult => {
+                res.json({
+                    message: 'Sincronização iniciada com sucesso',
+                    data: executionResult
+                });
+            })
+            .catch(error => {
+                console.error('Erro ao sincronizar produtos:', error);
+
+                if (error.message === 'Loja não encontrada') {
                     return res.status(404).json({
                         error: 'Loja não encontrada'
                     });
                 }
 
-                if (!store.active) {
+                if (error.message === 'Loja está inativa') {
                     return res.status(400).json({
                         error: 'Loja está inativa'
                     });
                 }
 
-                // TODO: Implementar lógica de sincronização com RP
-                // Por enquanto, simular sincronização
-
-                const syncResult = {
-                    success: true,
-                    store_id: store.id,
-                    store_name: store.name,
-                    registration: store.registration,
-                    started_at: new Date().toISOString(),
-                    status: 'in_progress'
-                };
-
-                res.json({
-                    message: 'Sincronização iniciada com sucesso',
-                    data: syncResult
-                });
-            })
-            .catch((error) => {
-                console.error('Erro ao sincronizar produtos:', error);
                 res.status(500).json({
-                    error: 'Erro interno do servidor'
+                    error: 'Erro interno do servidor ao iniciar sincronização'
                 });
             });
     }
