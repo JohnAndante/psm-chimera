@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { JobConfigurationService } from '../services/jobConfig.service';
+import { jobConfigService } from '../services/jobConfig.service';
 import { JobConfigurationFilters } from '../types/job.type';
 
 interface AuthenticatedRequest extends Request {
@@ -31,7 +31,7 @@ export class JobConfigurationController {
       filters.search = req.query.search;
     }
 
-    JobConfigurationService.getAllJobs(filters)
+    jobConfigService.getAllJobs(filters)
       .then(jobs => {
         res.json({
           message: jobs.length > 0 ? 'Configurações de jobs encontradas' : 'Nenhuma configuração de job encontrada',
@@ -56,7 +56,7 @@ export class JobConfigurationController {
       });
     }
 
-    JobConfigurationService.getJobById(id)
+    jobConfigService.getJobById(id)
       .then(job => {
         if (!job) {
           return res.status(404).json({
@@ -82,7 +82,7 @@ export class JobConfigurationController {
     const jobData = req.body;
 
     // Verificar se nome já existe
-    JobConfigurationService.checkNameExists(jobData.name)
+    jobConfigService.checkNameExists(jobData.name)
       .then(nameExists => {
         if (nameExists) {
           return res.status(409).json({
@@ -92,7 +92,7 @@ export class JobConfigurationController {
 
         // Se tem integration_id, verificar se existe
         if (jobData.integration_id) {
-          JobConfigurationService.checkIntegrationExists(jobData.integration_id)
+          jobConfigService.checkIntegrationExists(jobData.integration_id)
             .then(integrationExists => {
               if (!integrationExists) {
                 return res.status(404).json({
@@ -101,7 +101,7 @@ export class JobConfigurationController {
               }
 
               // Criar job
-              JobConfigurationService.createJob(jobData)
+              jobConfigService.createJob(jobData)
                 .then(newJob => {
                   res.status(201).json({
                     message: 'Configuração de job criada com sucesso',
@@ -123,7 +123,7 @@ export class JobConfigurationController {
             });
         } else {
           // Criar job sem integração
-          JobConfigurationService.createJob(jobData)
+          jobConfigService.createJob(jobData)
             .then(newJob => {
               res.status(201).json({
                 message: 'Configuração de job criada com sucesso',
@@ -161,7 +161,7 @@ export class JobConfigurationController {
 
     // Se está atualizando o nome, verificar se já existe
     if (updateData.name) {
-      JobConfigurationService.checkNameExists(updateData.name, id)
+      jobConfigService.checkNameExists(updateData.name, id)
         .then(nameExists => {
           if (nameExists) {
             return res.status(409).json({
@@ -171,7 +171,7 @@ export class JobConfigurationController {
 
           // Se tem integration_id, verificar se existe
           if (updateData.integration_id) {
-            JobConfigurationService.checkIntegrationExists(updateData.integration_id)
+            jobConfigService.checkIntegrationExists(updateData.integration_id)
               .then(integrationExists => {
                 if (!integrationExists) {
                   return res.status(404).json({
@@ -180,7 +180,7 @@ export class JobConfigurationController {
                 }
 
                 // Atualizar job
-                JobConfigurationService.updateJob(id, updateData)
+                jobConfigService.updateJob(id, updateData)
                   .then(updatedJob => {
                     res.json({
                       message: 'Configuração de job atualizada com sucesso',
@@ -207,7 +207,7 @@ export class JobConfigurationController {
               });
           } else {
             // Atualizar job sem verificar integração
-            JobConfigurationService.updateJob(id, updateData)
+            jobConfigService.updateJob(id, updateData)
               .then(updatedJob => {
                 res.json({
                   message: 'Configuração de job atualizada com sucesso',
@@ -236,7 +236,7 @@ export class JobConfigurationController {
     } else {
       // Se não está atualizando nome, seguir direto
       if (updateData.integration_id) {
-        JobConfigurationService.checkIntegrationExists(updateData.integration_id)
+        jobConfigService.checkIntegrationExists(updateData.integration_id)
           .then(integrationExists => {
             if (!integrationExists) {
               return res.status(404).json({
@@ -244,7 +244,7 @@ export class JobConfigurationController {
               });
             }
 
-            JobConfigurationService.updateJob(id, updateData)
+            jobConfigService.updateJob(id, updateData)
               .then(updatedJob => {
                 res.json({
                   message: 'Configuração de job atualizada com sucesso',
@@ -270,7 +270,7 @@ export class JobConfigurationController {
             });
           });
       } else {
-        JobConfigurationService.updateJob(id, updateData)
+        jobConfigService.updateJob(id, updateData)
           .then(updatedJob => {
             res.json({
               message: 'Configuração de job atualizada com sucesso',
@@ -302,7 +302,7 @@ export class JobConfigurationController {
       });
     }
 
-    JobConfigurationService.deleteJob(id)
+    jobConfigService.deleteJob(id)
       .then(() => {
         res.json({
           message: 'Configuração de job removida com sucesso'
@@ -331,7 +331,7 @@ export class JobConfigurationController {
       });
     }
 
-    JobConfigurationService.executeJob(id)
+    jobConfigService.executeJob(id)
       .then(executionResult => {
         res.json({
           message: 'Execução do job iniciada com sucesso',

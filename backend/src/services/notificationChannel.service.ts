@@ -12,9 +12,9 @@ import {
     WebhookConfig
 } from '../types/notification.type';
 
-export class NotificationChannelService {
+class NotificationChannelService {
 
-    static getAllChannels(filters: NotificationChannelFilters = {}): Promise<NotificationChannelWithJobs[]> {
+    getAllChannels(filters: NotificationChannelFilters = {}): Promise<NotificationChannelWithJobs[]> {
         return new Promise((resolve, reject) => {
             let query = db
                 .selectFrom('notification_channels')
@@ -78,7 +78,7 @@ export class NotificationChannelService {
         });
     }
 
-    static getChannelById(id: number): Promise<NotificationChannelWithJobs | null> {
+    getChannelById(id: number): Promise<NotificationChannelWithJobs | null> {
         return new Promise((resolve, reject) => {
             // Buscar canal
             const channelQuery = db
@@ -129,7 +129,7 @@ export class NotificationChannelService {
         });
     }
 
-    static createChannel(data: CreateNotificationChannelData): Promise<NotificationChannelData> {
+    createChannel(data: CreateNotificationChannelData): Promise<NotificationChannelData> {
         return new Promise((resolve, reject) => {
             const channelData = {
                 name: data.name,
@@ -152,7 +152,7 @@ export class NotificationChannelService {
         });
     }
 
-    static checkNameExists(name: string, excludeId?: number): Promise<boolean> {
+    checkNameExists(name: string, excludeId?: number): Promise<boolean> {
         return new Promise((resolve, reject) => {
             let query = db
                 .selectFrom('notification_channels')
@@ -171,7 +171,7 @@ export class NotificationChannelService {
         });
     }
 
-    static updateChannel(id: number, data: UpdateNotificationChannelData): Promise<NotificationChannelData> {
+    updateChannel(id: number, data: UpdateNotificationChannelData): Promise<NotificationChannelData> {
         return new Promise((resolve, reject) => {
             const updateData: any = {
                 updated_at: new Date()
@@ -196,7 +196,7 @@ export class NotificationChannelService {
         });
     }
 
-    static deleteChannel(id: number): Promise<void> {
+    deleteChannel(id: number): Promise<void> {
         return new Promise((resolve, reject) => {
             db
                 .updateTable('notification_channels')
@@ -213,7 +213,7 @@ export class NotificationChannelService {
         });
     }
 
-    static checkChannelHasLinkedJobs(id: number): Promise<boolean> {
+    checkChannelHasLinkedJobs(id: number): Promise<boolean> {
         return new Promise((resolve, reject) => {
             db
                 .selectFrom('job_notifications')
@@ -225,7 +225,7 @@ export class NotificationChannelService {
         });
     }
 
-    static testNotification(id: number, message: string = 'Teste de notificação do PSM Chimera'): Promise<NotificationTestResult> {
+    testNotification(id: number, message: string = 'Teste de notificação do PSM Chimera'): Promise<NotificationTestResult> {
         return new Promise((resolve, reject) => {
             db
                 .selectFrom('notification_channels')
@@ -287,7 +287,7 @@ export class NotificationChannelService {
         });
     }
 
-    static validateChannelConfig(type: NotificationChannelType, config: any): string | null {
+    validateChannelConfig(type: NotificationChannelType, config: any): string | null {
         switch (type) {
             case NotificationChannelType.TELEGRAM:
                 const telegramConfig = config as TelegramConfig;
@@ -317,7 +317,7 @@ export class NotificationChannelService {
         return null;
     }
 
-    static validateChannelData(data: CreateNotificationChannelData | UpdateNotificationChannelData): string | null {
+    validateChannelData(data: CreateNotificationChannelData | UpdateNotificationChannelData): string | null {
         if ('name' in data && data.name !== undefined) {
             if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
                 return 'Nome é obrigatório';
@@ -343,3 +343,6 @@ export class NotificationChannelService {
         return null;
     }
 }
+
+
+export const notificationChannelService = new NotificationChannelService();

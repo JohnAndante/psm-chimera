@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { JobExecutionService } from '../services/jobExec.service';
+import { jobExecutionService } from '../services/jobExec.service';
 import { JobExecutionFilters, ExecutionStatus } from '../types/job.type';
 
 interface AuthenticatedRequest extends Request {
@@ -63,14 +63,14 @@ export class JobExecutionController {
     }
 
     // Validar filtros
-    const validationError = JobExecutionService.validateExecutionFilters(filters);
+    const validationError = jobExecutionService.validateExecutionFilters(filters);
     if (validationError) {
       return res.status(400).json({
         error: validationError
       });
     }
 
-    JobExecutionService.getAllExecutions(filters)
+    jobExecutionService.getAllExecutions(filters)
       .then(executions => {
         res.json({
           message: executions.length > 0 ? 'Execuções de jobs encontradas' : 'Nenhuma execução de job encontrada',
@@ -95,7 +95,7 @@ export class JobExecutionController {
       });
     }
 
-    JobExecutionService.getExecutionById(id)
+    jobExecutionService.getExecutionById(id)
       .then(execution => {
         if (!execution) {
           return res.status(404).json({
@@ -125,7 +125,7 @@ export class JobExecutionController {
       });
     }
 
-    JobExecutionService.getExecutionLogs(id)
+    jobExecutionService.getExecutionLogs(id)
       .then(logs => {
         if (!logs) {
           return res.status(404).json({

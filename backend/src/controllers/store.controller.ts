@@ -70,8 +70,6 @@ export class StoreController {
         const pageNum = parseInt(page as string);
         const limitNum = parseInt(limit as string);
 
-        // Validações já foram feitas pelo middleware
-
         // Primeiro verifica se a loja existe
         storeService.getStoreById(storeId)
             .then((store) => {

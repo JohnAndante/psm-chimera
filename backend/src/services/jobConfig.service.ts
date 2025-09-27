@@ -1,7 +1,6 @@
 import { db } from '../factory/database.factory';
-import { 
-    JobConfigurationData, 
-    CreateJobConfigurationData, 
+import {
+    CreateJobConfigurationData,
     UpdateJobConfigurationData,
     JobConfigurationFilters,
     JobWithIntegration,
@@ -11,9 +10,9 @@ import {
     ExecutionStatus
 } from '../types/job.type';
 
-export class JobConfigurationService {
+class JobConfigurationService {
 
-    static getAllJobs(filters: JobConfigurationFilters = {}): Promise<JobWithIntegration[]> {
+    getAllJobs(filters: JobConfigurationFilters = {}): Promise<JobWithIntegration[]> {
         return new Promise((resolve, reject) => {
             let query = db
                 .selectFrom('job_configurations')
@@ -90,7 +89,7 @@ export class JobConfigurationService {
         });
     }
 
-    static getJobById(id: number): Promise<JobWithExecutions | null> {
+    getJobById(id: number): Promise<JobWithExecutions | null> {
         return new Promise((resolve, reject) => {
             // Buscar job configuration com integração
             const jobQuery = db
@@ -160,7 +159,7 @@ export class JobConfigurationService {
         });
     }
 
-    static createJob(data: CreateJobConfigurationData): Promise<JobWithIntegration> {
+    createJob(data: CreateJobConfigurationData): Promise<JobWithIntegration> {
         return new Promise((resolve, reject) => {
             const jobData = {
                 name: data.name,
@@ -203,7 +202,7 @@ export class JobConfigurationService {
         });
     }
 
-    static checkNameExists(name: string, excludeId?: number): Promise<boolean> {
+    checkNameExists(name: string, excludeId?: number): Promise<boolean> {
         return new Promise((resolve, reject) => {
             let query = db
                 .selectFrom('job_configurations')
@@ -222,7 +221,7 @@ export class JobConfigurationService {
         });
     }
 
-    static checkIntegrationExists(integrationId: number): Promise<boolean> {
+    checkIntegrationExists(integrationId: number): Promise<boolean> {
         return new Promise((resolve, reject) => {
             db
                 .selectFrom('integrations')
@@ -235,7 +234,7 @@ export class JobConfigurationService {
         });
     }
 
-    static updateJob(id: number, data: UpdateJobConfigurationData): Promise<JobWithIntegration> {
+    updateJob(id: number, data: UpdateJobConfigurationData): Promise<JobWithIntegration> {
         return new Promise((resolve, reject) => {
             const updateData: any = {
                 updated_at: new Date()
@@ -280,7 +279,7 @@ export class JobConfigurationService {
         });
     }
 
-    static deleteJob(id: number): Promise<void> {
+    deleteJob(id: number): Promise<void> {
         return new Promise((resolve, reject) => {
             db
                 .updateTable('job_configurations')
@@ -297,7 +296,7 @@ export class JobConfigurationService {
         });
     }
 
-    static executeJob(id: number): Promise<ExecutionResult> {
+    executeJob(id: number): Promise<ExecutionResult> {
         return new Promise((resolve, reject) => {
             // Primeiro buscar a configuração do job
             db
@@ -363,7 +362,7 @@ export class JobConfigurationService {
         });
     }
 
-    static validateJobData(data: CreateJobConfigurationData | UpdateJobConfigurationData): string | null {
+    validateJobData(data: CreateJobConfigurationData | UpdateJobConfigurationData): string | null {
         if ('name' in data && data.name !== undefined) {
             if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
                 return 'Nome é obrigatório';
@@ -407,3 +406,5 @@ export class JobConfigurationService {
         return null;
     }
 }
+
+export const jobConfigService = new JobConfigurationService();

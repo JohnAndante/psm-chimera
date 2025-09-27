@@ -6,9 +6,9 @@ import {
     ExecutionLogsData
 } from '../types/job.type';
 
-export class JobExecutionService {
+class JobExecutionService {
 
-    static getAllExecutions(filters: JobExecutionFilters = {}): Promise<JobExecutionWithConfig[]> {
+    getAllExecutions(filters: JobExecutionFilters = {}): Promise<JobExecutionWithConfig[]> {
         return new Promise((resolve, reject) => {
             let query = db
                 .selectFrom('job_executions')
@@ -83,7 +83,7 @@ export class JobExecutionService {
         });
     }
 
-    static getExecutionById(id: string): Promise<JobExecutionWithConfig | null> {
+    getExecutionById(id: string): Promise<JobExecutionWithConfig | null> {
         return new Promise((resolve, reject) => {
             db
                 .selectFrom('job_executions')
@@ -132,7 +132,7 @@ export class JobExecutionService {
         });
     }
 
-    static getExecutionLogs(id: string): Promise<ExecutionLogsData | null> {
+    getExecutionLogs(id: string): Promise<ExecutionLogsData | null> {
         return new Promise((resolve, reject) => {
             db
                 .selectFrom('job_executions')
@@ -170,7 +170,7 @@ export class JobExecutionService {
         });
     }
 
-    static getExecutionsByJobConfig(jobConfigId: number, limit: number = 10): Promise<JobExecutionData[]> {
+    getExecutionsByJobConfig(jobConfigId: number, limit: number = 10): Promise<JobExecutionData[]> {
         return new Promise((resolve, reject) => {
             db
                 .selectFrom('job_executions')
@@ -186,7 +186,7 @@ export class JobExecutionService {
         });
     }
 
-    static validateExecutionFilters(filters: JobExecutionFilters): string | null {
+    validateExecutionFilters(filters: JobExecutionFilters): string | null {
         if (filters.limit !== undefined) {
             if (typeof filters.limit !== 'number' || filters.limit < 1 || filters.limit > 500) {
                 return 'Limite deve ser um número entre 1 e 500';
@@ -227,3 +227,5 @@ export class JobExecutionService {
         return null;
     }
 }
+
+export const jobExecutionService = new JobExecutionService();
