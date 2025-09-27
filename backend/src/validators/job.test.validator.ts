@@ -84,6 +84,26 @@ const telegramTestConnectionQuerySchema = Joi.object({
     })
 });
 
+// Schema para habilitar modo interativo
+const enableInteractiveBodySchema = Joi.object({
+    notification_channel_id: Joi.number().integer().positive().required().messages({
+        'number.base': 'notification_channel_id deve ser um número',
+        'number.integer': 'notification_channel_id deve ser um número inteiro',
+        'number.positive': 'notification_channel_id deve ser um número positivo',
+        'any.required': 'notification_channel_id é obrigatório'
+    })
+});
+
+// Schema para parâmetro channelId
+const channelIdParamSchema = Joi.object({
+    channelId: Joi.number().integer().positive().required().messages({
+        'number.base': 'channelId deve ser um número',
+        'number.integer': 'channelId deve ser um número inteiro',
+        'number.positive': 'channelId deve ser um número positivo',
+        'any.required': 'channelId é obrigatório'
+    })
+});
+
 export const JobTestValidator = {
     // POST /api/v1/jobs/execute
     executeJob: validateRequest({
@@ -103,6 +123,16 @@ export const JobTestValidator = {
     // GET /api/v1/jobs/telegram/test-connection
     testTelegramConnection: validateRequest({
         query: telegramTestConnectionQuerySchema
+    }),
+
+    // POST /api/v1/jobs/test/enable-interactive
+    enableInteractive: validateRequest({
+        body: enableInteractiveBodySchema
+    }),
+
+    // GET /api/v1/jobs/test/interactive-status/:channelId
+    getInteractiveStatus: validateRequest({
+        params: channelIdParamSchema
     })
 };
 

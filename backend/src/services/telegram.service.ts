@@ -1,5 +1,5 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { TelegramConfig } from '../types/notification.type';
+import { TelegramConfig, TelegramAllowedUser } from '../types/notification.type';
 
 export interface TelegramMessage {
     text: string;
@@ -64,7 +64,9 @@ export class TelegramService {
                 details: {
                     bot_username: me.username,
                     bot_name: me.first_name,
-                    chat_id: this.config!.chat_id
+                    chat_id: this.config!.chat_id,
+                    allowed_users_count: this.config!.allowed_users?.length || 0,
+                    interactive_enabled: this.config!.enable_interactive || false
                 }
             };
         } catch (error: any) {
@@ -77,6 +79,202 @@ export class TelegramService {
         }
     }
 
+
+
+    /**
+     * Verifica se um chat_id tem permissão para interagir com o bot
+     */
+    isUserAllowed(chatId: number): boolean {
+        if (!this.config) {
+            return false;
+        }
+
+        const allowedUsers = this.config.allowed_users || [];
+
+        // Se não tem nenhum usuário permitido, bloqueia todos
+        if (allowedUsers.length === 0) {
+            console.log(`[TELEGRAM] Usuário ${chatId} bloqueado: nenhum usuário permitido`);
+            return false;
+        }
+
+        // Verifica se o chat_id está na lista de permitidos
+        const isAllowed = allowedUsers.some(user => user.chat_id === chatId);
+
+        if (!isAllowed) {
+            console.log(`[TELEGRAM] Usuário ${chatId} não autorizado`);
+        }
+
+        return isAllowed;
+    }
+
+    /**
+     * Obtém informações do usuário permitido pelo chat_id
+     */
+    getAllowedUser(chatId: number): TelegramAllowedUser | null {
+        if (!this.config?.allowed_users) {
+            return null;
+        }
+
+        return this.config.allowed_users.find(user => user.chat_id === chatId) || null;
+    }
+
+    /**
+     * Lista todos os usuários permitidos
+     */
+    getAllowedUsers(): TelegramAllowedUser[] {
+        return this.config?.allowed_users || [];
+    }
+
+    /**
+     * Habilita modo interativo (polling) para receber mensagens
+     */
+    enableInteractiveMode(): void {
+        if (!this.isConfigured()) {
+            console.error('[TELEGRAM] Bot não configurado para modo interativo');
+            return;
+        }
+
+        if (!this.config!.enable_interactive) {
+            console.log('[TELEGRAM] Modo interativo desabilitado na configuração');
+            return;
+        }
+
+        // Recriar bot com polling habilitado
+        this.bot?.stopPolling();
+        this.bot = new TelegramBot(this.config!.bot_token, { polling: true });
+
+        // Configura handlers para mensagens
+        this.setupMessageHandlers();
+
+        console.log('[TELEGRAM] Modo interativo habilitado - bot aguardando mensagens');
+    }
+
+    /**
+     * Configura handlers para mensagens recebidas
+     */
+    private setupMessageHandlers(): void {
+        if (!this.bot) return;
+
+        // Handler para todas as mensagens
+        this.bot.on('message', (msg) => {
+            this.handleIncomingMessage(msg);
+        });
+
+        // Handler para comandos
+        this.bot.onText(/\/(.+)/, (msg, match) => {
+            if (match) {
+                this.handleCommand(msg, match[1]);
+            }
+        });
+    }
+
+    /**
+     * Processa mensagens recebidas
+     */
+    private handleIncomingMessage(msg: any): void {
+        const chatId = msg.chat.id;
+        const userId = msg.from?.id;
+        const username = msg.from?.username || msg.from?.first_name || 'Desconhecido';
+
+        console.log(`[TELEGRAM] Mensagem recebida de ${username} (${chatId}): ${msg.text}`);
+
+        // Verifica permissões
+        if (!this.isUserAllowed(chatId)) {
+            // Envia mensagem de acesso negado
+            this.bot?.sendMessage(chatId,
+                '🚫 *Acesso Negado*\n\n' +
+                'Você não tem permissão para interagir com este bot.\n' +
+                'Entre em contato com o administrador do sistema.',
+                { parse_mode: 'Markdown' }
+            );
+            return;
+        }
+
+        const allowedUser = this.getAllowedUser(chatId);
+        console.log(`[TELEGRAM] Mensagem autorizada de ${allowedUser?.name || username}`);
+
+        // Aqui pode processar comandos específicos
+        if (msg.text === '/status') {
+            this.sendSystemStatus(chatId);
+        } else if (msg.text === '/help') {
+            this.sendHelp(chatId);
+        }
+    }
+
+    /**
+     * Processa comandos específicos
+     */
+    private handleCommand(msg: any, command: string): void {
+        const chatId = msg.chat.id;
+
+        if (!this.isUserAllowed(chatId)) {
+            return; // Já tratado no handleIncomingMessage
+        }
+
+        console.log(`[TELEGRAM] Comando recebido: /${command}`);
+
+        switch (command) {
+            case 'start':
+                this.sendWelcome(chatId);
+                break;
+            case 'status':
+                this.sendSystemStatus(chatId);
+                break;
+            case 'help':
+                this.sendHelp(chatId);
+                break;
+            default:
+                this.bot?.sendMessage(chatId, `Comando /${command} não reconhecido. Use /help para ver comandos disponíveis.`);
+        }
+    }
+
+    /**
+     * Envia mensagem de boas-vindas
+     */
+    private sendWelcome(chatId: number): void {
+        const allowedUser = this.getAllowedUser(chatId);
+        const userName = allowedUser?.name || 'Usuário';
+
+        this.bot?.sendMessage(chatId,
+            `👋 *Olá, ${userName}!*\n\n` +
+            '🤖 Bem-vindo ao PSM Chimera Bot\n' +
+            '📊 Este bot envia notificações sobre jobs e sincronizações\n\n' +
+            'Use /help para ver comandos disponíveis.',
+            { parse_mode: 'Markdown' }
+        );
+    }
+
+    /**
+     * Envia status do sistema
+     */
+    private sendSystemStatus(chatId: number): void {
+        this.bot?.sendMessage(chatId,
+            '📊 *Status do Sistema*\n\n' +
+            '✅ Bot Online\n' +
+            `👥 Usuários Permitidos: ${this.config?.allowed_users?.length || 0}\n` +
+            `💬 Chat Principal: ${this.config?.chat_id}\n` +
+            `⏰ Última Verificação: ${new Date().toLocaleString('pt-BR')}`,
+            { parse_mode: 'Markdown' }
+        );
+    }
+
+    /**
+     * Envia lista de comandos
+     */
+    private sendHelp(chatId: number): void {
+        this.bot?.sendMessage(chatId,
+            '🆘 *Comandos Disponíveis*\n\n' +
+            '/start - Mensagem de boas-vindas\n' +
+            '/status - Status do sistema\n' +
+            '/help - Esta mensagem\n\n' +
+            '📝 Este bot também envia notificações automáticas sobre:\n' +
+            '• Execução de jobs\n' +
+            '• Sincronização de produtos\n' +
+            '• Status de operações',
+            { parse_mode: 'Markdown' }
+        );
+    }
+
     /**
      * Envia mensagem simples
      */
@@ -87,13 +285,16 @@ export class TelegramService {
     /**
      * Envia mensagem formatada
      */
-    async sendFormattedMessage(message: TelegramMessage): Promise<TelegramSendResult> {
+    async sendFormattedMessage(message: TelegramMessage, customChatId?: string): Promise<TelegramSendResult> {
         if (!this.isConfigured()) {
             return {
                 success: false,
                 error: 'Bot não configurado'
             };
         }
+
+        // Use chat_id customizado se fornecido, senão use o configurado
+        const targetChatId = customChatId || this.config!.chat_id;
 
         try {
             const options: any = {};
@@ -111,7 +312,7 @@ export class TelegramService {
             }
 
             const result = await this.bot!.sendMessage(
-                this.config!.chat_id,
+                targetChatId,
                 message.text,
                 options
             );
@@ -232,17 +433,27 @@ export class TelegramService {
     /**
      * Envia notificação de teste
      */
-    async sendTestNotification(message: string = 'Teste de notificação do PSM Chimera v2'): Promise<TelegramSendResult> {
+    async sendTestNotification(message: string = 'Teste de notificação do PSM Chimera v2', customChatId?: string): Promise<TelegramSendResult> {
+        const targetChatId = customChatId || this.config?.chat_id;
+
+        if (!targetChatId) {
+            return {
+                success: false,
+                error: 'Nenhum chat_id configurado ou fornecido'
+            };
+        }
+
         const testMessage = {
             text: `🧪 *Teste de Notificação*\n\n` +
                 `📝 *Mensagem:* ${message}\n` +
                 `⏰ *Horário:* ${new Date().toLocaleString('pt-BR')}\n` +
-                `🤖 *Bot:* PSM Chimera v2`,
+                `🤖 *Bot:* PSM Chimera v2` +
+                (customChatId ? `\n🎯 *Chat ID:* ${customChatId}` : ''),
             parse_mode: 'Markdown' as const,
             disable_notification: true
         };
 
-        return this.sendFormattedMessage(testMessage);
+        return this.sendFormattedMessage(testMessage, targetChatId);
     }
 
     /**

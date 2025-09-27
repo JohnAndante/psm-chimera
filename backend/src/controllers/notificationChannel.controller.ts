@@ -1,10 +1,7 @@
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from '../utils/auth';
 import { notificationChannelService } from '../services/notificationChannel.service';
 import { NotificationChannelData, NotificationChannelFilters, NotificationChannelType } from '../types/notification.type';
-
-interface AuthenticatedRequest extends Request {
-  user?: any;
-}
 
 export class NotificationChannelController {
   // GET /api/v1/notifications/channels
@@ -29,9 +26,9 @@ export class NotificationChannelController {
 
     notificationChannelService.getAllChannels(filters)
       .then(channels => {
-        res.json({
-          message: channels.length > 0 ? 'Canais de notificação encontrados' : 'Nenhum canal de notificação encontrado',
-          data: channels
+        res.status(200).json({
+          message: 'Canais de notificação recuperados com sucesso',
+          channels: channels
         });
       })
       .catch(error => {
@@ -59,9 +56,9 @@ export class NotificationChannelController {
             error: 'Canal de notificação não encontrado'
           });
         }
-        res.json({
-          message: 'Canal de notificação encontrado',
-          data: channel
+        res.status(200).json({
+          message: 'Canal de notificação recuperado com sucesso',
+          channel: channel
         });
       })
       .catch(error => {
@@ -86,23 +83,12 @@ export class NotificationChannelController {
           });
         }
 
-        // Validar configuração específica do tipo
-        const configValidation = notificationChannelService.validateChannelConfig(
-          channelData.type,
-          channelData.config
-        );
-        if (configValidation) {
-          return res.status(400).json({
-            error: `Configuração inválida: ${configValidation}`
-          });
-        }
-
         // Criar canal
         notificationChannelService.createChannel(channelData)
           .then(newChannel => {
             res.status(201).json({
               message: 'Canal de notificação criado com sucesso',
-              data: newChannel
+              channel: newChannel
             });
           })
           .catch(error => {
@@ -151,47 +137,11 @@ export class NotificationChannelController {
           }
         }
 
-        // Se tem configuração nova, validar
-        if (updateData.config) {
-          const typeToValidate = updateData.type || (existingChannel as NotificationChannelData).type;
-
-          const configValidation = notificationChannelService.validateChannelConfig(
-            typeToValidate,
-            updateData.config
-          );
-
-          if (configValidation) {
-            return res.status(400).json({
-              error: `Configuração inválida: ${configValidation}`
-            });
-          }
-        }
-
         // Atualizar canal
         const updatedChannel = await notificationChannelService.updateChannel(id, updateData);
-        return res.json({
+        return res.status(200).json({
           message: 'Canal de notificação atualizado com sucesso',
-          data: updatedChannel
-        });
-      })
-      .catch(error => {
-        if (error.message && error.message.includes('not found')) {
-          return res.status(404).json({
-            error: 'Canal de notificação não encontrado'
-          });
-        }
-        console.error('Erro ao atualizar canal de notificação:', error);
-        res.status(500).json({
-          error: 'Erro interno do servidor ao atualizar canal de notificação'
-        });
-      });
-
-
-    notificationChannelService.updateChannel(id, updateData)
-      .then(updatedChannel => {
-        res.json({
-          message: 'Canal de notificação atualizado com sucesso',
-          data: updatedChannel
+          channel: updatedChannel
         });
       })
       .catch(error => {
@@ -273,13 +223,13 @@ export class NotificationChannelController {
     }
 
     // Dados já foram validados pelo middleware NotificationValidator
-    const { message } = req.body;
+    const { message, chat_id } = req.body;
 
-    notificationChannelService.testNotification(id, message)
+    notificationChannelService.testNotification(id, message, chat_id)
       .then(testResult => {
-        res.json({
+        res.status(200).json({
           message: 'Teste de notificação realizado com sucesso',
-          data: testResult
+          testResult: testResult
         });
       })
       .catch(error => {

@@ -226,7 +226,7 @@ class NotificationChannelService {
         });
     }
 
-    testNotification(id: number, message: string = 'Teste de notificação do PSM Chimera'): Promise<NotificationTestResult> {
+    testNotification(id: number, message: string = 'Teste de notificação do PSM Chimera', customChatId?: string): Promise<NotificationTestResult> {
         return new Promise((resolve, reject) => {
             db
                 .selectFrom('notification_channels')
@@ -251,7 +251,10 @@ class NotificationChannelService {
                             const telegramConfig = channel.config as TelegramConfig;
                             const telegramService = getTelegramService(telegramConfig);
 
-                            telegramService.sendTestNotification(message)
+                            // Use chat_id customizado se fornecido, senão use o do canal
+                            const targetChatId = customChatId || telegramConfig.chat_id;
+
+                            telegramService.sendTestNotification(message, targetChatId)
                                 .then(result => {
                                     const testResult: NotificationTestResult = {
                                         success: result.success,
@@ -260,7 +263,9 @@ class NotificationChannelService {
                                         channel_type: channel.type,
                                         sent_at: new Date().toISOString(),
                                         details: {
-                                            chat_id: telegramConfig?.chat_id || 'Não configurado',
+                                            chat_id: targetChatId,
+                                            original_chat_id: telegramConfig?.chat_id || 'Não configurado',
+                                            custom_chat_used: !!customChatId,
                                             bot_configured: !!telegramConfig?.bot_token,
                                             message_id: result.message_id,
                                             error: result.error
@@ -269,6 +274,7 @@ class NotificationChannelService {
                                     resolve(testResult);
                                 })
                                 .catch(error => {
+                                    const targetChatId = customChatId || telegramConfig.chat_id;
                                     const testResult: NotificationTestResult = {
                                         success: false,
                                         message: 'Erro ao testar notificação via Telegram',
@@ -276,7 +282,9 @@ class NotificationChannelService {
                                         channel_type: channel.type,
                                         sent_at: new Date().toISOString(),
                                         details: {
-                                            chat_id: telegramConfig?.chat_id || 'Não configurado',
+                                            chat_id: targetChatId,
+                                            original_chat_id: telegramConfig?.chat_id || 'Não configurado',
+                                            custom_chat_used: !!customChatId,
                                             bot_configured: !!telegramConfig?.bot_token,
                                             error: error.message || 'Erro desconhecido'
                                         }
@@ -325,62 +333,6 @@ class NotificationChannelService {
                 })
                 .catch(reject);
         });
-    }
-
-    validateChannelConfig(type: NotificationChannelType, config: any): string | null {
-        switch (type) {
-            case NotificationChannelType.TELEGRAM:
-                const telegramConfig = config as TelegramConfig;
-                if (!telegramConfig.bot_token || !telegramConfig.chat_id) {
-                    return 'bot_token e chat_id são obrigatórios para canais Telegram';
-                }
-                break;
-
-            case NotificationChannelType.EMAIL:
-                const emailConfig = config as EmailConfig;
-                if (!emailConfig.smtp_host || !emailConfig.smtp_user || !emailConfig.from_email) {
-                    return 'smtp_host, smtp_user e from_email são obrigatórios para canais Email';
-                }
-                break;
-
-            case NotificationChannelType.WEBHOOK:
-                const webhookConfig = config as WebhookConfig;
-                if (!webhookConfig.webhook_url) {
-                    return 'webhook_url é obrigatório para canais Webhook';
-                }
-                break;
-
-            default:
-                return 'Tipo de canal não suportado';
-        }
-
-        return null;
-    }
-
-    validateChannelData(data: CreateNotificationChannelData | UpdateNotificationChannelData): string | null {
-        if ('name' in data && data.name !== undefined) {
-            if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
-                return 'Nome é obrigatório';
-            }
-            if (data.name.length > 255) {
-                return 'Nome deve ter no máximo 255 caracteres';
-            }
-        }
-
-        if ('type' in data && data.type !== undefined) {
-            const validTypes = Object.values(NotificationChannelType);
-            if (!validTypes.includes(data.type)) {
-                return 'Tipo de canal inválido';
-            }
-        }
-
-        if ('active' in data && data.active !== undefined) {
-            if (typeof data.active !== 'boolean') {
-                return 'Status ativo deve ser verdadeiro ou falso';
-            }
-        }
-
-        return null;
     }
 }
 

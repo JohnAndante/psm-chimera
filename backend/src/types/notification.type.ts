@@ -36,9 +36,17 @@ export interface NotificationChannelFilters {
 }
 
 // Configurações específicas por tipo de canal
+export interface TelegramAllowedUser {
+    name: string;
+    chat_id: number;
+}
+
 export interface TelegramConfig {
     bot_token: string;
     chat_id: string;
+    allowed_users?: TelegramAllowedUser[];  // Se vazio, não aceita mensagens de ninguém
+    enable_interactive?: boolean;  // Se deve aceitar comandos interativos
+    webhook_url?: string;  // URL para webhook (opcional)
 }
 
 export interface EmailConfig {
@@ -80,6 +88,8 @@ export interface NotificationTestResult {
     sent_at: string;
     details?: {
         chat_id?: string;
+        original_chat_id?: string;
+        custom_chat_used?: boolean;
         bot_configured?: boolean;
         smtp_host?: string;
         from_email?: string;

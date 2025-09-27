@@ -8,7 +8,6 @@ import storeRoutes from './stores.route';
 import jobConfigRoutes from './jobsConfig.route';
 import jobExecRoutes from './jobsExec.route';
 import notificationChannelRoutes from './notificationChannels.route';
-import jobTestRoutes from './job.test.route';
 
 // Prefixo /api/v1
 
@@ -18,6 +17,5 @@ router.use('/stores', storeRoutes);
 router.use('/jobs/configurations', jobConfigRoutes);
 router.use('/jobs/executions', jobExecRoutes);
 router.use('/notifications/channels', notificationChannelRoutes);
-router.use('/jobs/test', jobTestRoutes);
 
 export default router;
