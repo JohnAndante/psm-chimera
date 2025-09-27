@@ -38,44 +38,52 @@ async function main() {
     console.log('[SEED] Creating base integration data')
 
     // RP base integration
-    const existingRP = await prisma.integration.findFirst({
-        where: { name: 'RP' }
-    });
-
-    if (!existingRP) {
-        await prisma.integration.create({
-            data: {
-                name: 'RP Webservice',
-                type: 'RP',
-                active: true,
-                base_url: 'https://rp-api.example.com.br',
-                config: {
-                    timeout: 30000,
-                    retries: 3
-                }
+    await prisma.integration.upsert({
+        where: { name: 'RP Webservice' },
+        update: {
+            type: 'RP',
+            active: true,
+            base_url: 'https://rp-api.example.com.br',
+            config: {
+                timeout: 30000,
+                retries: 3
             }
-        });
-    }
+        },
+        create: {
+            name: 'RP Webservice',
+            type: 'RP',
+            active: true,
+            base_url: 'https://rp-api.example.com.br',
+            config: {
+                timeout: 30000,
+                retries: 3
+            }
+        }
+    });
 
     // Crescevendas base integration
-    const existingCrescevendas = await prisma.integration.findFirst({
-        where: { name: 'Crescevendas' }
-    });
-
-    if (!existingCrescevendas) {
-        await prisma.integration.create({
-            data: {
-                name: 'Crescevendas',
-                type: 'CRESCEVENDAS',
-                active: false,
-                base_url: 'https://api.crescevendas.com.br',
-                config: {
-                    timeout: 30000,
-                    retries: 3
-                }
+    await prisma.integration.upsert({
+        where: { name: 'Crescevendas' },
+        update: {
+            type: 'CRESCEVENDAS',
+            active: false,
+            base_url: 'https://api.crescevendas.com.br',
+            config: {
+                timeout: 30000,
+                retries: 3
             }
-        });
-    }
+        },
+        create: {
+            name: 'Crescevendas',
+            type: 'CRESCEVENDAS',
+            active: false,
+            base_url: 'https://api.crescevendas.com.br',
+            config: {
+                timeout: 30000,
+                retries: 3
+            }
+        }
+    });
 
     // Create default notification channels
     console.log('[SEED] Creating default notification channels')

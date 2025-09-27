@@ -26,6 +26,16 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        service: 'PSM Chimera Backend',
+        version: '2.0.0'
+    });
+});
+
 // API Routes
 app.use('/api/v1', routes);
 

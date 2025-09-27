@@ -1,5 +1,4 @@
 services:
-
   # ======================================================
   # 🗄️ BANCO DE DADOS POSTGRESQL
   # ======================================================
@@ -40,6 +39,42 @@ services:
         condition: service_healthy
     networks:
       - psm-network
+    command:
+      [
+        "sh",
+        "-c",
+        "npm run db:generate && npm run db:migrate && npm run db:seed && echo 'Database setup completed successfully'",
+      ]
+
+  # ======================================================
+  # 🖥️ SERVIDOR BACKEND API
+  # ======================================================
+  backend:
+    build:
+      context: .
+      target: server
+    container_name: psm-chimera-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:masterkey@postgres:5432/psm_chimera
+      JWT_SECRET: ${JWT_SECRET:-psm-chimera-secret-key-production}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      database-setup:
+        condition: service_completed_successfully
+    networks:
+      - psm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 # ======================================================
 # 🌐 NETWORKS
@@ -54,6 +89,3 @@ networks:
 volumes:
   postgres_data:
     driver: local
-
-
-
