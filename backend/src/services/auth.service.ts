@@ -215,6 +215,20 @@ class AuthService {
                 });
         });
     }
+
+    isPasswordValid(password: string, hashedPassword: string): boolean {
+        return bcrypt.compareSync(password, hashedPassword);
+    }
+
+    hashPassword(password: string): string {
+        if (!password) {
+            throw new Error('Password is required for hashing');
+        }
+
+        const saltRounds = 12;
+        const salt = bcrypt.genSaltSync(saltRounds);
+        return bcrypt.hashSync(password, salt);
+    }
 }
 
 export const authService = new AuthService();

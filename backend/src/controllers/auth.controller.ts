@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../utils/auth';
 import { authService } from '../services/auth.service';
@@ -135,7 +134,7 @@ export class AuthController {
                 }
 
                 // Verifica senha atual
-                const isCurrentPasswordValid = await bcrypt.compare(currentPassword, (auth as any).password_hash);
+                const isCurrentPasswordValid = authService.isPasswordValid(currentPassword, (auth as any).password_hash);
 
                 if (!isCurrentPasswordValid) {
                     return res.status(401).json({
@@ -144,8 +143,8 @@ export class AuthController {
                 }
 
                 // Gera hash da nova senha
-                const saltRounds = 12;
-                const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
+                const newPasswordHash = authService.hashPassword(newPassword);
+
 
                 // Atualiza senha
                 await authService.updateUserPassword(userId, newPasswordHash);
