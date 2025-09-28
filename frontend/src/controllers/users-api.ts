@@ -46,6 +46,32 @@ class UsersApi {
                 });
         });
     }
+
+    changePassword(userId: string, newPassword: string) {
+        return new Promise<void>((resolve, reject) => {
+            this.axiosInstance.put(`v1/users/${userId}/change-password`, { password: newPassword })
+                .then(() => {
+                    resolve();
+                })
+                .catch(error => {
+                    const axiosError = error as AxiosError;
+                    reject({ statusCode: axiosError.response?.status || 500, message: axiosError.message || 'Erro desconhecido' });
+                });
+        });
+    }
+
+    update(userId: string, userData: { name: string; email: string; role: "ADMIN" | "USER" }) {
+        return new Promise<void>((resolve, reject) => {
+            this.axiosInstance.put(`v1/users/${userId}`, userData)
+                .then(() => {
+                    resolve();
+                })
+                .catch(error => {
+                    const axiosError = error as AxiosError;
+                    reject({ statusCode: axiosError.response?.status || 500, message: axiosError.message || 'Erro desconhecido' });
+                });
+        });
+    }
 }
 
 export const usersApi = new UsersApi();

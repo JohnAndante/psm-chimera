@@ -1,6 +1,6 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
-import { Eye, Plus, SquarePen } from "lucide-react";
+import { KeyRound, Plus, SquarePen } from "lucide-react";
 import { PageCard } from "@/components/layout/page-card";
 import { useEffect, useState, useCallback } from "react";
 import { usersApi } from "@/controllers/users-api";
@@ -10,9 +10,11 @@ import { DataTable } from "@/components/data-table";
 import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
-import type { UsersFilterState, UsersApiFilters } from "./types";
-import { UsersActiveFilters } from "./components/users-active-filters";
-import { UsersFilterControls } from "./components/users-filter-controls";
+import type { UsersFilterState, UsersApiFilters } from "../types";
+import { UsersActiveFilters } from "./users-active-filters";
+import { UsersFilterControls } from "./users-filter-controls";
+import { ChangePasswordModal } from "./change-password-modal";
+import { EditUserModal, type EditUserFormData } from "./edit-user-modal";
 
 export default function UsersPage() {
     const [users, setUsers] = useState<BaseUser[]>([]);
@@ -23,6 +25,15 @@ export default function UsersPage() {
         active: "ALL"
     });
     const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
+    const [changePasswordModal, setChangePasswordModal] = useState<{ isOpen: boolean; user: BaseUser | null }>({
+        isOpen: false,
+        user: null
+    });
+    const [editUserModal, setEditUserModal] = useState<{ isOpen: boolean; user: BaseUser | null }>({
+        isOpen: false,
+        user: null
+    });
+    const [isModalLoading, setIsModalLoading] = useState(false);
     const { toast } = useToast();
 
     // Função para carregar usuários com filtros
@@ -97,6 +108,60 @@ export default function UsersPage() {
         });
     };
 
+    const handleChangePassword = (user: BaseUser) => {
+        setChangePasswordModal({ isOpen: true, user });
+    };
+
+    const handleEditUser = (user: BaseUser) => {
+        setEditUserModal({ isOpen: true, user });
+    };
+
+    const handlePasswordSubmit = async (password: string) => {
+        if (!changePasswordModal.user) return;
+
+        setIsModalLoading(true);
+        try {
+            await usersApi.changePassword(changePasswordModal.user.id, password);
+            console.log('Changing password for user:', changePasswordModal.user.id, 'New password:', password);
+
+            toast.success("Senha alterada", {
+                description: `Senha do usuário ${changePasswordModal.user.name} foi alterada com sucesso.`
+            });
+
+            setChangePasswordModal({ isOpen: false, user: null });
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error("Erro ao alterar senha", {
+                description: errorMessage
+            });
+        } finally {
+            setIsModalLoading(false);
+        }
+    };
+
+    const handleUserEdit = async (userData: EditUserFormData) => {
+        if (!editUserModal.user) return;
+
+        setIsModalLoading(true);
+        try {
+            await usersApi.update(editUserModal.user.id, userData);
+
+            toast.success("Usuário atualizado", {
+                description: `Dados do usuário ${userData.name} foram atualizados com sucesso.`
+            });
+
+            setEditUserModal({ isOpen: false, user: null });
+            loadUsers(filters);
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+            toast.error("Erro ao atualizar usuário", {
+                description: errorMessage
+            });
+        } finally {
+            setIsModalLoading(false);
+        }
+    };
+
     const getRoleLabel = (role: "ADMIN" | "USER") => {
         const colors = {
             ADMIN: "bg-red-500/20 text-red-500",
@@ -115,30 +180,36 @@ export default function UsersPage() {
         );
     }
 
-    const getActionButtons = (userId: string) => (
+    const getActionButtons = (user: BaseUser) => (
         <>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                        <Link to={`/usuarios/${userId}/editar`}>
-                            <SquarePen size={16} />
-                        </Link>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="cursor-pointer"
+                        onClick={() => handleChangePassword(user)}
+                    >
+                        <KeyRound size={16} />
                     </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                    Editar Usuário
+                    Alterar senha
                 </TooltipContent>
             </Tooltip>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                        <Link to={`/usuarios/${userId}`}>
-                            <Eye size={16} />
-                        </Link>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="cursor-pointer"
+                        onClick={() => handleEditUser(user)}
+                    >
+                        <SquarePen size={16} />
                     </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                    Ver Usuário
+                    Editar Usuário
                 </TooltipContent>
             </Tooltip>
         </>
@@ -159,6 +230,7 @@ export default function UsersPage() {
                     onApplyFilters={handleApplyFilters}
                     onRemoveFilter={handleRemoveFilter}
                     isExpanded={isFiltersExpanded}
+                    isLoading={isLoading}
                 />
                 <DataTable
                     columns={[
@@ -212,7 +284,7 @@ export default function UsersPage() {
                             header: 'Ações',
                             accessorKey: 'id',
                             cell: ({ row }) => (
-                                getActionButtons(row.original.id)
+                                getActionButtons(row.original)
                             )
                         }
                     ]}
@@ -242,6 +314,22 @@ export default function UsersPage() {
             extra={newUserButton}
         >
             {getUsersList()}
+
+            <ChangePasswordModal
+                isOpen={changePasswordModal.isOpen}
+                onClose={() => setChangePasswordModal({ isOpen: false, user: null })}
+                onSubmit={handlePasswordSubmit}
+                user={changePasswordModal.user}
+                isLoading={isModalLoading}
+            />
+
+            <EditUserModal
+                isOpen={editUserModal.isOpen}
+                onClose={() => setEditUserModal({ isOpen: false, user: null })}
+                onSubmit={handleUserEdit}
+                user={editUserModal.user}
+                isLoading={isModalLoading}
+            />
         </PageContainer>
     );
 }

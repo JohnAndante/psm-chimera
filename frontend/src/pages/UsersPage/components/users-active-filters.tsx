@@ -14,6 +14,7 @@ interface UsersActiveFiltersProps {
     onApplyFilters: () => void;
     onRemoveFilter: (key: keyof UsersFilterState, value: string) => void;
     isExpanded: boolean;
+    isLoading?: boolean;
 }
 
 export function UsersActiveFilters({
@@ -21,7 +22,8 @@ export function UsersActiveFilters({
     onFilterChange,
     onApplyFilters,
     onRemoveFilter,
-    isExpanded
+    isExpanded,
+    isLoading = false
 }: UsersActiveFiltersProps) {
     const form = useForm({
         defaultValues: {
@@ -132,6 +134,12 @@ export function UsersActiveFilters({
                                                     field.onChange(e);
                                                     onFilterChange("search", e.target.value);
                                                 }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                        onApplyFilters();
+                                                    }
+                                                }}
                                             />
                                         </FormControl>
                                     </FormItem>
@@ -197,7 +205,7 @@ export function UsersActiveFilters({
                             {/* Botão de submit */}
                             <FormItem>
                                 <Label className="invisible">Aplicar Filtros</Label>
-                                <Button type="submit" variant="default" className="w-full">
+                                <Button type="submit" variant="default" className="w-full" loading={isLoading}>
                                     Aplicar Filtros
                                 </Button>
                             </FormItem>

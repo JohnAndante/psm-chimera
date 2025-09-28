@@ -5,7 +5,7 @@ import { useAuth } from "@/stores/auth"
 import LoginPage from "@/pages/LoginPage"
 import DashboardPage from "@/pages/DashboardPage"
 import AgentesPage from "@/pages/AgentesPage"
-import UsersPage from "@/pages/UsersPage"
+import UsersPage from "@/pages/UsersPage/components/users-list"
 
 function ProtectedRoute() {
     const { isAuthenticated } = useAuth()
