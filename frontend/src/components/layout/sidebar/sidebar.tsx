@@ -25,7 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/stores/auth"
 import { cn } from "@/lib/utils"
 import { useTheme } from "@/components/theme-provider"
-import { useSidebarToggle } from "@/hooks/use-sidebar-toggle"
+import { useSidebar } from "@/components/ui/sidebar"
 import { LogoPSM } from "@/components/smart-svgs/logo-psm"
 
 export function Sidebar() {
@@ -33,7 +33,8 @@ export function Sidebar() {
     const navigate = useNavigate()
     const { theme, setTheme } = useTheme()
     const { user: currentUser, logout, setProfileModalOpen } = useAuth()
-    const { isCollapsed, toggleSidebar } = useSidebarToggle()
+    const { state, toggleSidebar } = useSidebar()
+    const isCollapsed = state === "collapsed"
 
     const isActive = (item: SidebarItem) => {
         if (!item.href) return false
@@ -101,8 +102,8 @@ export function Sidebar() {
                 <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton asChild isActive={isActive(item)}>
                         <Link to={item.href} className={cn(
-                            "flex items-center gap-4 px-4 py-2 rounded-lg hover:bg-muted/50",
-                            isCollapsed ? "" : "justify-start"
+                            "flex items-center justify-start gap-4 px-4 py-2 rounded-lg hover:bg-muted/50",
+                            isCollapsed ? "ml-2" : ""
                         )}>
                             <Icon />
                             {!isCollapsed && <span>{item.title}</span>}
@@ -120,15 +121,17 @@ export function Sidebar() {
             <SidebarPrimitive
                 className={cn(
                     "select-none transition-all duration-300 ease-in-out flex flex-col h-screen",
-                    isCollapsed ? "w-16" : "w-60"
+                    // isCollapsed ? "w-16" : "w-60"
+                    "w-[var(--sidebar-width)] group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)]"
                 )}
+                collapsible="icon"
             >
                 {/* Header do Sidebar */}
                 <SidebarHeader>
                     <SidebarContent className="border-border w-full flex-shrink-0 overflow-hidden">
                         <div className={cn(
-                            "flex items-center justify-center h-12 mx-2 gap-2 w-max cursor-pointer",
-                            isCollapsed ? "" : "justify-start"
+                            "flex items-center h-12 mx-2 gap-2 w-max cursor-pointer justify-start",
+                            isCollapsed ? "" : ""
                         )}>
                             <LogoPSM size={32} />
                             {!isCollapsed && (
@@ -154,31 +157,27 @@ export function Sidebar() {
                 </div>
 
                 {/* Footer do Sidebar */}
-
-                <SidebarFooter className="border-t border-border w-full flex-shrink-0">
+                <SidebarFooter className="border-t border-border flex-shrink-0">
                     <SidebarContent>
                         {/* Botão de Toggle */}
-                        <SidebarMenuItem>
-                            <SidebarMenuButton asChild>
-                                <SidebarMenuButton
-                                    onClick={toggleSidebar}
-                                    className={cn(
-                                        "flex items-center gap-5 px-4 py-2 rounded-lg hover:bg-muted/50 cursor-pointer",
-                                        isCollapsed ? "" : "justify-start w-full"
-                                    )}
-                                >
-                                    {isCollapsed ? (
-                                        <PanelLeftOpen className="h-4 w-4" />
-                                    ) : (
-                                        <>
-                                            <PanelLeftClose className="h-4 w-4" />
-                                            <span>Recolher</span>
-                                        </>
-                                    )}
-                                    <span className="sr-only">
-                                        {isCollapsed ? "Expandir sidebar" : "Recolher sidebar"}
-                                    </span>
-                                </SidebarMenuButton>
+                        <SidebarMenuItem key="toggle">
+                            <SidebarMenuButton
+                                onClick={toggleSidebar}
+                                className={cn(
+                                    "flex items-center justify-start gap-5 px-4 py-2 rounded-lg hover:bg-muted/50",
+                                    isCollapsed ? "ml-2" : "")}
+                            >
+                                {isCollapsed ? (
+                                    <PanelLeftOpen className="h-4 w-4" />
+                                ) : (
+                                    <>
+                                        <PanelLeftClose className="h-4 w-4" />
+                                        <span>Recolher</span>
+                                    </>
+                                )}
+                                <span className="sr-only">
+                                    {isCollapsed ? "Expandir sidebar" : "Recolher sidebar"}
+                                </span>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
 
@@ -186,93 +185,91 @@ export function Sidebar() {
                         <hr className="my-1 border-border" />
 
                         {/* Menu do Usuário */}
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <SidebarMenuButton
-                                    className={cn(
-                                        "w-full justify-start gap-3 h-12 pl-1.5 pb-2 rounded-lg hover:bg-muted/50 cursor-pointer"
-                                    )}
-                                >
-                                    <Avatar className="w-8 h-8">
-                                        <AvatarImage src={currentUser?.avatar || ''} />
-                                        <AvatarFallback className="text-white bg-primary font-medium">
-                                            {getUserInitials(currentUser?.name || '')}
-                                        </AvatarFallback>
-                                    </Avatar>
+                        <SidebarMenuItem key="user-menu">
+                            <SidebarMenuButton asChild>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger className="flex items-center w-full hover:bg-muted/50 rounded-lg">
+                                        <Avatar className="h-8 w-8 ml-2">
+                                            <AvatarImage src={currentUser?.avatar || ''} />
+                                            <AvatarFallback className="text-white bg-primary font-medium text-xs">
+                                                {getUserInitials(currentUser?.name || '')}
+                                            </AvatarFallback>
+                                        </Avatar>
 
-                                    {!isCollapsed && (
-                                        <div className="flex-1 min-w-0 text-left">
-                                            <p className="text-md text-foreground truncate">
+                                        {!isCollapsed && (
+                                            <div className="grid flex-1 text-left text-sm leading-tight ml-3">
+                                                <span className="truncate font-semibold">
+                                                    {currentUser?.name || ''}
+                                                </span>
+                                                <span className="truncate text-xs text-muted-foreground">
+                                                    {currentUser?.role === 'admin' ? 'Administrador' : 'Usuário'}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </DropdownMenuTrigger>
+
+                                    <DropdownMenuContent
+                                        align="end"
+                                        side="right"
+                                        className="w-56 bg-popover border-border"
+                                        sideOffset={8}
+                                    >
+                                        {/* User Info Header */}
+                                        <div className="px-3 py-3">
+                                            <p className="text-md font-semibold text-popover-foreground">
                                                 {currentUser?.name || ''}
                                             </p>
-                                            <p className="text-xs text-muted-foreground truncate">
+                                            <p className="text-xs text-muted-foreground">
                                                 {currentUser?.role === 'admin' ? 'Administrador' : 'Usuário'}
                                             </p>
                                         </div>
-                                    )}
-                                </SidebarMenuButton>
-                            </DropdownMenuTrigger>
 
-                            <DropdownMenuContent
-                                align="end"
-                                side="right"
-                                className="w-56 bg-popover border-border"
-                                sideOffset={8}
-                            >
-                                {/* User Info Header */}
-                                <div className="px-3 py-3">
-                                    <p className="text-md font-semibold text-popover-foreground">
-                                        {currentUser?.name || ''}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {currentUser?.role === 'admin' ? 'Administrador' : 'Usuário'}
-                                    </p>
-                                </div>
+                                        <DropdownMenuSeparator className="bg-border" />
 
-                                <DropdownMenuSeparator className="bg-border" />
+                                        {/* Profile Menu Item */}
+                                        <DropdownMenuItem
+                                            onClick={() => setProfileModalOpen(true)}
+                                        >
+                                            <User className="w-4 h-4 mr-2" />
+                                            <span>Perfil</span>
+                                        </DropdownMenuItem>
 
-                                {/* Profile Menu Item */}
-                                <DropdownMenuItem
-                                    onClick={() => setProfileModalOpen(true)}
-                                >
-                                    <User className="w-4 h-4 mr-2" />
-                                    <span>Perfil</span>
-                                </DropdownMenuItem>
+                                        {/* Dark Mode Toggle */}
+                                        <DropdownMenuItem
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                setTheme(theme === 'dark' ? 'light' : 'dark');
+                                            }}
+                                        >
+                                            {theme === 'dark' ? (
+                                                <>
+                                                    <Sun className="w-4 h-4 mr-2" />
+                                                    <span>Modo Claro</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Moon className="w-4 h-4 mr-2" />
+                                                    <span>Modo Escuro</span>
+                                                </>
+                                            )}
+                                        </DropdownMenuItem>
 
-                                {/* Dark Mode Toggle */}
-                                <DropdownMenuItem
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        setTheme(theme === 'dark' ? 'light' : 'dark');
-                                    }}
-                                >
-                                    {theme === 'dark' ? (
-                                        <>
-                                            <Sun className="w-4 h-4 mr-2" />
-                                            <span>Modo Claro</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Moon className="w-4 h-4 mr-2" />
-                                            <span>Modo Escuro</span>
-                                        </>
-                                    )}
-                                </DropdownMenuItem>
+                                        <DropdownMenuSeparator className="bg-border" />
 
-                                <DropdownMenuSeparator className="bg-border" />
-
-                                {/* Logout Menu Item */}
-                                <DropdownMenuItem
-                                    onClick={handleLogout}
-                                >
-                                    <LogOut className="w-4 h-4 mr-2" />
-                                    <span>Sair</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                                        {/* Logout Menu Item */}
+                                        <DropdownMenuItem
+                                            onClick={handleLogout}
+                                        >
+                                            <LogOut className="w-4 h-4 mr-2" />
+                                            <span>Sair</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
                     </SidebarContent>
                 </SidebarFooter>
-            </SidebarPrimitive>
+            </SidebarPrimitive >
         </>
     )
 }
