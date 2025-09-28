@@ -1,12 +1,10 @@
 import { db } from '../factory/database.factory';
 import bcrypt from 'bcryptjs';
 import {
-    UserData,
     CreateUserData,
     UpdateUserData,
     UserFilters,
     UserWithAuth,
-    ChangePasswordData
 } from '../types/user.type';
 import { AuthTable, UserTable } from '../types/database';
 
