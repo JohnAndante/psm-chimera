@@ -14,7 +14,7 @@ class EnvironmentFactory {
      * Valores padrão para variáveis opcionais
      */
     private static readonly defaults: DefaultEnvValues = {
-        PORT: '3000',
+        SERVER_PORT: '3000',
         NODE_ENV: 'development',
         JWT_EXPIRES_IN: '7d',
         LOG_LEVEL: 'info'
@@ -55,7 +55,7 @@ class EnvironmentFactory {
             DATABASE_URL: process.env.DATABASE_URL!,
 
             // Server
-            PORT: process.env.PORT || EnvironmentFactory.defaults.PORT,
+            SERVER_PORT: process.env.SERVER_PORT || EnvironmentFactory.defaults.SERVER_PORT,
             NODE_ENV: (process.env.NODE_ENV as any) || EnvironmentFactory.defaults.NODE_ENV,
             FRONTEND_URL: process.env.FRONTEND_URL,
 
@@ -133,7 +133,7 @@ class EnvironmentFactory {
      * Obtém a porta do servidor como número
      */
     public static getPort(): number {
-        return parseInt(EnvironmentFactory.get('PORT') || '3000', 10);
+        return parseInt(EnvironmentFactory.get('SERVER_PORT') || '3000', 10);
     }
 }
 

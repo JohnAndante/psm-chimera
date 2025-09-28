@@ -59,7 +59,8 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://postgres:masterkey@postgres:5432/psm_chimera
       JWT_SECRET: ${JWT_SECRET:-psm-chimera-secret-key-production}
-      PORT: 3000
+      SERVER_PORT: 3000
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5100}
     ports:
       - "3000:3000"
     depends_on:

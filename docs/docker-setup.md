@@ -218,7 +218,7 @@ DATABASE_URL=postgresql://postgres:masterkey@localhost:5432/psm_chimera
 
 # Node Environment
 NODE_ENV=production
-PORT=3000
+SERVER_PORT=3000
 ```
 
 ### Variáveis Docker Compose

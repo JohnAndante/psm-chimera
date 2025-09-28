@@ -6,13 +6,50 @@ import { EnvFactory } from './factory/environment.factory';
 import routes from './routes';
 
 const app = express();
-const PORT = EnvFactory.getPort();
+const SERVER_PORT = EnvFactory.getPort();
 
 // Security middleware
 app.use(helmet());
+
+// CORS Configuration - Allow multiple origins for development
+const allowedOrigins = [
+    'http://localhost:3000',    // Backend (se for servir assets)
+    'http://localhost:3001',    // Frontend comum
+    'http://localhost:5100',    // Frontend Vite (padrão do projeto)
+    'http://localhost:5173',    // Frontend Vite (padrão Vite)
+    'http://localhost:4173',    // Frontend Vite Preview
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
+    'http://127.0.0.1:5100',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:4173',
+    EnvFactory.get('FRONTEND_URL') // URL específica do .env
+].filter(Boolean); // Remove valores undefined
+
 app.use(cors({
-    origin: EnvFactory.get('FRONTEND_URL') || 'http://localhost:3001',
-    credentials: true
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        if (EnvFactory.isDevelopment()) {
+            // Em desenvolvimento, permite qualquer localhost/127.0.0.1
+            if (origin.startsWith('http://localhost:') ||
+                origin.startsWith('http://127.0.0.1:') ||
+                allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+        } else {
+            // Em produção, apenas origins específicas
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+        }
+
+        callback(new Error('Não permitido pelo CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Rate limiting
@@ -48,10 +85,10 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 PSM Chimera Backend rodando na porta ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    console.log(`🔗 API Base: http://localhost:${PORT}/api/v1`);
+app.listen(SERVER_PORT, () => {
+    console.log(`🚀 PSM Chimera Backend rodando na porta ${SERVER_PORT}`);
+    console.log(`📊 Health check: http://localhost:${SERVER_PORT}/health`);
+    console.log(`🔗 API Base: http://localhost:${SERVER_PORT}/api/v1`);
 });
 
 export default app;

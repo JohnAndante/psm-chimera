@@ -42,7 +42,7 @@ EnvFactory.isTest()                 // boolean
 DATABASE_URL: string;
 
 // Opcionais com defaults
-PORT?: string;                      // default: '3000'
+SERVER_PORT?: string;                      // default: '3000'
 NODE_ENV?: 'development' | 'production' | 'test';  // default: 'development'
 
 // Auth
