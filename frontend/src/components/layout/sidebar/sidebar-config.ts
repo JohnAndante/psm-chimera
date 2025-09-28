@@ -1,5 +1,4 @@
-// import { LayoutDashboard, AlarmClock, Bot, Users, ShieldUser } from "lucide-react"
-import { LayoutDashboard, AlarmClock, Bot } from "lucide-react"
+import { LayoutDashboard, Bot } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 export interface SidebarItem {
@@ -18,13 +17,6 @@ export const sidebarItems: SidebarItem[] = [
         title: "Dashboard",
         icon: LayoutDashboard,
         href: "/",
-        exact: true
-    },
-    {
-        id: "rotinas",
-        title: "Rotinas",
-        icon: AlarmClock,
-        href: "/rotinas",
         exact: true
     },
     {

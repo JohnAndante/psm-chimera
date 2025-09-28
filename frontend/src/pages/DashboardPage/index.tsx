@@ -1,6 +1,6 @@
 import { PageContainer } from "@/components/layout/page-container";
+import { PageCard } from "@/components/layout/page-card";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -42,16 +42,15 @@ export default function DashboardPage() {
             ]}
             extra={headerActions}
         >
-            <div>
-                <h2 className="text-lg font-medium">Tela Inicial</h2>
+            <PageCard
+                cardTitle="Tela Inicial"
+            >
                 <p className="text-sm text-muted-foreground">
                     Bem-vindo ao Painel de Controle.
                     <br />
                     Aqui você pode gerenciar as funcionalidades do sistema de forma eficiente.
                 </p>
-
-                <Separator className="my-4" />
-            </div>
+            </PageCard>
         </PageContainer>
     )
 }

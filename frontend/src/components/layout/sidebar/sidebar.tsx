@@ -190,8 +190,7 @@ export function Sidebar() {
                             <DropdownMenuTrigger asChild>
                                 <SidebarMenuButton
                                     className={cn(
-                                        "w-full justify-start gap-3 h-12 px-3 pt-0 pl-1.5 rounded-lg hover:bg-muted/50",
-                                        "focus-visible:ring-2 focus-visible:ring-ring cursor-pointer",
+                                        "w-full justify-start gap-3 h-12 pl-1.5 pb-2 rounded-lg hover:bg-muted/50 cursor-pointer"
                                     )}
                                 >
                                     <Avatar className="w-8 h-8">

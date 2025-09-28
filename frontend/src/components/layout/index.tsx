@@ -13,19 +13,20 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
+
     return (
         <ThemeProvider>
             <SidebarProvider>
 
                 {/* Container principal com sidebar e conteúdo */}
-                <div className="flex h-screen w-full pt-16">
+                <div className="flex h-screen w-full">
                     {/* Sidebar */}
                     <Sidebar />
 
                     {/* Conteúdo principal */}
                     <main className="flex-1 w-full">
                         <motion.div
-                            className="h-full p-6"
+                            className="h-full"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.5 }}
