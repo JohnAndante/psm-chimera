@@ -1,4 +1,4 @@
-import { LayoutDashboard, Bot } from "lucide-react"
+import { LayoutDashboard, Bot, ShieldUser } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 export interface SidebarItem {
@@ -33,13 +33,13 @@ export const sidebarItems: SidebarItem[] = [
     //     href: "/contatos",
     //     exact: true
     // },
-    // {
-    //     id: "usuarios",
-    //     title: "Usuários",
-    //     icon: ShieldUser,
-    //     href: "/usuarios",
-    //     exact: true
-    // }
+    {
+        id: "usuarios",
+        title: "Usuários",
+        icon: ShieldUser,
+        href: "/usuarios",
+        exact: true
+    },
     // {
     //     id: "components",
     //     title: "Componentes",

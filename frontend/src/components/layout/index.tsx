@@ -7,12 +7,14 @@ import { Sidebar } from "@/components/layout/sidebar/sidebar"
 
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
+import { useSidebarToggle } from "@/hooks/use-sidebar-toggle"
 
 interface LayoutProps {
     children: React.ReactNode
 }
 
 export function Layout({ children }: LayoutProps) {
+    const { isCollapsed } = useSidebarToggle()
 
     return (
         <ThemeProvider>
@@ -22,9 +24,10 @@ export function Layout({ children }: LayoutProps) {
                 <div className="flex h-screen w-full">
                     {/* Sidebar */}
                     <Sidebar />
+                    <ProfileModal />
 
                     {/* Conteúdo principal */}
-                    <main className="flex-1 w-full">
+                    <main className={`flex-1 w-full ${isCollapsed ? "" : "mr-2"}`}>
                         <motion.div
                             className="h-full"
                             initial={{ opacity: 0 }}
@@ -38,7 +41,6 @@ export function Layout({ children }: LayoutProps) {
                     </main>
                 </div>
 
-                <ProfileModal />
                 <Toaster />
             </SidebarProvider>
         </ThemeProvider>

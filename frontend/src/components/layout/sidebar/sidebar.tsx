@@ -133,7 +133,7 @@ export function Sidebar() {
                             "flex items-center h-12 mx-2 gap-2 w-max cursor-pointer justify-start",
                             isCollapsed ? "" : ""
                         )}>
-                            <LogoPSM size={32} />
+                            <LogoPSM size={32} primaryColor={theme === 'dark' ? 'default' : 'darkBlue'} />
                             {!isCollapsed && (
                                 <span className="text-md font-bold whitespace-nowrap">
                                     PSM Chimera

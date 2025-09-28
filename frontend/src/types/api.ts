@@ -16,4 +16,5 @@ export interface ApiResponse<T = any> {
     data?: T;
     error?: ApiError;
     status: number;
+    metadata?: Record<string, any>;
 }

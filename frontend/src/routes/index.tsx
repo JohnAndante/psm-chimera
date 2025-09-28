@@ -5,6 +5,7 @@ import { useAuth } from "@/stores/auth"
 import LoginPage from "@/pages/LoginPage"
 import DashboardPage from "@/pages/DashboardPage"
 import AgentesPage from "@/pages/AgentesPage"
+import UsersPage from "@/pages/UsersPage"
 
 function ProtectedRoute() {
     const { isAuthenticated } = useAuth()
@@ -38,6 +39,12 @@ export default function AppRoutes() {
                 <Route path="/agentes/novo" element={<AgentesPage />} />
                 <Route path="/agentes/:id" element={<AgentesPage />} />
                 <Route path="/agentes/:id/editar" element={<AgentesPage />} />
+
+                {/* Rotas de Usuários */}
+                <Route path="/usuarios" element={<UsersPage />} />
+                <Route path="/usuarios/novo" element={<UsersPage />} />
+                <Route path="/usuarios/:id" element={<UsersPage />} />
+                <Route path="/usuarios/:id/editar" element={<UsersPage />} />
             </Route>
             <Route path="*" element={<RedirectToDashboard />} />
         </Routes>

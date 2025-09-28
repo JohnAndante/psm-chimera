@@ -34,14 +34,14 @@ export function PageContainer({
         <>
             <Card
                 className={cn(
-                    "mx-auto flex w-full min-w-0 flex-1 flex-col gap-4 p-4 rounded-none border-t-0 rounded-b-2xl",
+                    "mx-auto flex w-full min-w-0 flex-1 flex-col p-4 rounded-none border-t-0 rounded-b-2xl gap-2",
                     isCollapsed
                         ? "max-w-7xl xl:max-w-8xl lg:max-w-7xl md:max-w-6xl sm:max-w-5xl"
                         : "max-w-2xl xl:max-w-6xl lg:max-w-5xl md:max-w-4xl sm:max-w-3xl",
                     className,
                 )}
             >
-                <CardHeader>
+                <CardHeader className="pb-0 mb-0">
                     {/* Breadcrumbs */}
                     {breadcrumbs && breadcrumbs.length > 0 && (
                         <Breadcrumb>
@@ -75,7 +75,7 @@ export function PageContainer({
                 <CardContent>
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between min-h-20">
                         <div>
-                            <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+                            <h1 className="text-xl font-bold tracking-tight">{title}</h1>
                             {subtitle && (
                                 <p className="text-sm text-muted-foreground mt-2">{subtitle}</p>
                             )}
