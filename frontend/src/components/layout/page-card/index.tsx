@@ -28,9 +28,11 @@ export function PageCard({
             )}
 
             {/* Conteúdo */}
-            <CardContent>
-                {children}
-            </CardContent>
+            {children && (
+                <CardContent>
+                    {children}
+                </CardContent>
+            )}
         </Card>
     )
 }

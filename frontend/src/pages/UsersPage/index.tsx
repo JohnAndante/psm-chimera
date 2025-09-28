@@ -2,7 +2,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
 import { Eye, Plus, SquarePen } from "lucide-react";
 import { PageCard } from "@/components/layout/page-card";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { usersApi } from "@/controllers/users-api";
 import type { BaseUser } from "@/types/user-api";
 import { useToast } from "@/hooks/use-toast";
@@ -10,16 +10,41 @@ import { DataTable } from "@/components/data-table";
 import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
+import type { UsersFilterState, UsersApiFilters } from "./types";
+import { UsersActiveFilters } from "./components/users-active-filters";
+import { UsersFilterControls } from "./components/users-filter-controls";
 
 export default function UsersPage() {
     const [users, setUsers] = useState<BaseUser[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [filters, setFilters] = useState<UsersFilterState>({
+        search: "",
+        role: "ALL",
+        active: "ALL"
+    });
+    const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
     const { toast } = useToast();
 
-    useEffect(() => {
+    // Função para carregar usuários com filtros
+    const loadUsers = useCallback((currentFilters: UsersFilterState) => {
         setIsLoading(true);
 
-        usersApi.list()
+        // Converter filtros do frontend para o formato da API
+        const apiFilters: UsersApiFilters = {};
+
+        if (currentFilters.search && currentFilters.search.trim()) {
+            apiFilters.search = currentFilters.search.trim();
+        }
+
+        if (currentFilters.role !== "ALL") {
+            apiFilters.role = currentFilters.role;
+        }
+
+        if (currentFilters.active !== "ALL") {
+            apiFilters.active = currentFilters.active === "true";
+        }
+
+        usersApi.list(Object.keys(apiFilters).length > 0 ? apiFilters : undefined)
             .then(response => {
                 setUsers(response.users ?? []);
             })
@@ -33,15 +58,44 @@ export default function UsersPage() {
             });
     }, []);
 
-    const getUsersFilter = () => {
-        return (
-            <PageCard cardTitle="Filtros">
-                <div className="text-center text-muted-foreground">
-                    Filtros em construção...
-                </div>
-            </PageCard>
-        )
-    }
+    useEffect(() => {
+        loadUsers({
+            search: "",
+            role: "ALL",
+            active: "ALL"
+        });
+    }, [loadUsers]);
+
+    const handleFilterChange = (key: keyof UsersFilterState, value: string) => {
+        const newFilters = { ...filters, [key]: value };
+        setFilters(newFilters);
+    };
+
+    const handleApplyFilters = () => {
+        loadUsers(filters);
+    };
+
+    const handleRemoveFilter = (key: keyof UsersFilterState, value: string) => {
+        const newFilters = { ...filters, [key]: value };
+        setFilters(newFilters);
+        loadUsers(newFilters); // Pesquisa imediatamente quando remove filtro
+    };
+
+    const getActiveFiltersCount = () => {
+        let count = 0;
+        if (filters.search) count++;
+        if (filters.role !== "ALL") count++;
+        if (filters.active !== "ALL") count++;
+        return count;
+    };
+
+    const handleClearFilters = () => {
+        setFilters({
+            search: "",
+            role: "ALL",
+            active: "ALL"
+        });
+    };
 
     const getRoleLabel = (role: "ADMIN" | "USER") => {
         const colors = {
@@ -61,9 +115,51 @@ export default function UsersPage() {
         );
     }
 
+    const getActionButtons = (userId: string) => (
+        <>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                        <Link to={`/usuarios/${userId}/editar`}>
+                            <SquarePen size={16} />
+                        </Link>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    Editar Usuário
+                </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                        <Link to={`/usuarios/${userId}`}>
+                            <Eye size={16} />
+                        </Link>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    Ver Usuário
+                </TooltipContent>
+            </Tooltip>
+        </>
+    )
+
     const getUsersList = () => {
         return (
-            <PageCard cardTitle="Lista de Usuários" className="mt-4">
+            <PageCard cardTitle="Lista de Usuários" cardExtra={(
+                <UsersFilterControls
+                    activeFiltersCount={getActiveFiltersCount()}
+                    onClearFilters={handleClearFilters}
+                    onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
+                />
+            )}>
+                <UsersActiveFilters
+                    filters={filters}
+                    onFilterChange={handleFilterChange}
+                    onApplyFilters={handleApplyFilters}
+                    onRemoveFilter={handleRemoveFilter}
+                    isExpanded={isFiltersExpanded}
+                />
                 <DataTable
                     columns={[
                         {
@@ -116,32 +212,7 @@ export default function UsersPage() {
                             header: 'Ações',
                             accessorKey: 'id',
                             cell: ({ row }) => (
-                                <>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button variant="ghost" size="sm">
-                                                <Link to={`/usuarios/${row.id}/editar`}>
-                                                    <SquarePen size={16} />
-                                                </Link>
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            Editar Usuário
-                                        </TooltipContent>
-                                    </Tooltip>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button variant="ghost" size="sm">
-                                                <Link to={`/usuarios/${row.id}`}>
-                                                    <Eye size={16} />
-                                                </Link>
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            Ver Usuário
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </>
+                                getActionButtons(row.original.id)
                             )
                         }
                     ]}
@@ -170,7 +241,6 @@ export default function UsersPage() {
             breadcrumbs={breadcrumbs}
             extra={newUserButton}
         >
-            {getUsersFilter()}
             {getUsersList()}
         </PageContainer>
     );

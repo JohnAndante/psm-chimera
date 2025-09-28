@@ -3,6 +3,7 @@ import type { AxiosInstance } from 'axios';
 
 import { createApiInstance } from './base-api';
 import type { ListUsersResponse } from '@/types/user-api';
+import type { UsersApiFilters } from '@/pages/UsersPage/types';
 
 // ===========================
 // Users API Class
@@ -15,9 +16,25 @@ class UsersApi {
         this.axiosInstance = createApiInstance();
     }
 
-    list() {
+    list(filters?: UsersApiFilters) {
         return new Promise<ListUsersResponse>((resolve, reject) => {
-            this.axiosInstance.get('v1/users')
+            const params = new URLSearchParams();
+
+            if (filters?.search && filters.search.trim()) {
+                params.append('search', filters.search.trim());
+            }
+
+            if (filters?.role) {
+                params.append('role', filters.role);
+            }
+
+            if (filters?.active !== undefined) {
+                params.append('active', filters.active.toString());
+            }
+
+            const url = params.toString() ? `v1/users?${params.toString()}` : 'v1/users';
+
+            this.axiosInstance.get(url)
                 .then(response => {
                     const { message, users } = response.data;
 
