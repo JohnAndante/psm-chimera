@@ -1,9 +1,9 @@
-import { AxiosError } from 'axios';
 import type { AxiosInstance } from 'axios';
 
 import { createApiInstance } from './base-api';
 import type { ListUsersResponse } from '@/types/user-api';
 import type { UsersApiFilters } from '@/pages/UsersPage/types';
+import { processApiError } from '@/utils/api-error';
 
 // ===========================
 // Users API Class
@@ -41,8 +41,7 @@ class UsersApi {
                     resolve({ message, users });
                 })
                 .catch(error => {
-                    const axiosError = error as AxiosError;
-                    reject({ statusCode: axiosError.response?.status || 500, message: axiosError.message || 'Erro desconhecido' });
+                    reject(processApiError(error));
                 });
         });
     }
@@ -54,8 +53,7 @@ class UsersApi {
                     resolve();
                 })
                 .catch(error => {
-                    const axiosError = error as AxiosError;
-                    reject({ statusCode: axiosError.response?.status || 500, message: axiosError.message || 'Erro desconhecido' });
+                    reject(processApiError(error));
                 });
         });
     }
@@ -67,8 +65,31 @@ class UsersApi {
                     resolve();
                 })
                 .catch(error => {
-                    const axiosError = error as AxiosError;
-                    reject({ statusCode: axiosError.response?.status || 500, message: axiosError.message || 'Erro desconhecido' });
+                    reject(processApiError(error));
+                });
+        });
+    }
+
+    create(userData: { name: string; email: string; role: "ADMIN" | "USER"; password: string }) {
+        return new Promise<void>((resolve, reject) => {
+            this.axiosInstance.post('v1/users', userData)
+                .then(() => {
+                    resolve();
+                })
+                .catch(error => {
+                    reject(processApiError(error));
+                });
+        });
+    }
+
+    delete(userId: string) {
+        return new Promise<void>((resolve, reject) => {
+            this.axiosInstance.delete(`v1/users/${userId}`)
+                .then(() => {
+                    resolve();
+                })
+                .catch(error => {
+                    reject(processApiError(error));
                 });
         });
     }

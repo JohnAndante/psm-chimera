@@ -1,6 +1,6 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
-import { KeyRound, Plus, SquarePen } from "lucide-react";
+import { KeyRound, Plus, SquarePen, Trash2 } from "lucide-react";
 import { PageCard } from "@/components/layout/page-card";
 import { useEffect, useState, useCallback } from "react";
 import { usersApi } from "@/controllers/users-api";
@@ -14,7 +14,9 @@ import type { UsersFilterState, UsersApiFilters } from "../types";
 import { UsersActiveFilters } from "./users-active-filters";
 import { UsersFilterControls } from "./users-filter-controls";
 import { ChangePasswordModal } from "./change-password-modal";
-import { EditUserModal, type EditUserFormData } from "./edit-user-modal";
+import { EditUserModal } from "./edit-user-modal";
+import { CreateUserModal } from "./create-user-modal";
+import { DeleteUserModal } from "./delete-user-modal";
 
 export default function UsersPage() {
     const [users, setUsers] = useState<BaseUser[]>([]);
@@ -33,7 +35,11 @@ export default function UsersPage() {
         isOpen: false,
         user: null
     });
-    const [isModalLoading, setIsModalLoading] = useState(false);
+    const [createUserModal, setCreateUserModal] = useState(false);
+    const [deleteUserModal, setDeleteUserModal] = useState<{ isOpen: boolean; user: BaseUser | null }>({
+        isOpen: false,
+        user: null
+    });
     const { toast } = useToast();
 
     // Função para carregar usuários com filtros
@@ -116,51 +122,16 @@ export default function UsersPage() {
         setEditUserModal({ isOpen: true, user });
     };
 
-    const handlePasswordSubmit = async (password: string) => {
-        if (!changePasswordModal.user) return;
-
-        setIsModalLoading(true);
-        try {
-            await usersApi.changePassword(changePasswordModal.user.id, password);
-            console.log('Changing password for user:', changePasswordModal.user.id, 'New password:', password);
-
-            toast.success("Senha alterada", {
-                description: `Senha do usuário ${changePasswordModal.user.name} foi alterada com sucesso.`
-            });
-
-            setChangePasswordModal({ isOpen: false, user: null });
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
-            toast.error("Erro ao alterar senha", {
-                description: errorMessage
-            });
-        } finally {
-            setIsModalLoading(false);
-        }
+    const handleDeleteUser = (user: BaseUser) => {
+        setDeleteUserModal({ isOpen: true, user });
     };
 
-    const handleUserEdit = async (userData: EditUserFormData) => {
-        if (!editUserModal.user) return;
-
-        setIsModalLoading(true);
-        try {
-            await usersApi.update(editUserModal.user.id, userData);
-
-            toast.success("Usuário atualizado", {
-                description: `Dados do usuário ${userData.name} foram atualizados com sucesso.`
-            });
-
-            setEditUserModal({ isOpen: false, user: null });
-            loadUsers(filters);
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
-            toast.error("Erro ao atualizar usuário", {
-                description: errorMessage
-            });
-        } finally {
-            setIsModalLoading(false);
-        }
+    // Função para recarregar a lista após sucesso nas modais
+    const handleModalSuccess = () => {
+        loadUsers(filters);
     };
+
+
 
     const getRoleLabel = (role: "ADMIN" | "USER") => {
         const colors = {
@@ -210,6 +181,21 @@ export default function UsersPage() {
                 </TooltipTrigger>
                 <TooltipContent>
                     Editar Usuário
+                </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDeleteUser(user)}
+                    >
+                        <Trash2 size={16} />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    Deletar Usuário
                 </TooltipContent>
             </Tooltip>
         </>
@@ -301,7 +287,12 @@ export default function UsersPage() {
     ];
 
     const newUserButton = (
-        <Button variant="default" size="sm" className="flex items-center gap-2">
+        <Button
+            variant="default"
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={() => setCreateUserModal(true)}
+        >
             <Plus size={16} />
             Novo Usuário
         </Button>
@@ -318,17 +309,28 @@ export default function UsersPage() {
             <ChangePasswordModal
                 isOpen={changePasswordModal.isOpen}
                 onClose={() => setChangePasswordModal({ isOpen: false, user: null })}
-                onSubmit={handlePasswordSubmit}
                 user={changePasswordModal.user}
-                isLoading={isModalLoading}
+                onSuccess={handleModalSuccess}
             />
 
             <EditUserModal
                 isOpen={editUserModal.isOpen}
                 onClose={() => setEditUserModal({ isOpen: false, user: null })}
-                onSubmit={handleUserEdit}
                 user={editUserModal.user}
-                isLoading={isModalLoading}
+                onSuccess={handleModalSuccess}
+            />
+
+            <CreateUserModal
+                isOpen={createUserModal}
+                onClose={() => setCreateUserModal(false)}
+                onSuccess={handleModalSuccess}
+            />
+
+            <DeleteUserModal
+                isOpen={deleteUserModal.isOpen}
+                onClose={() => setDeleteUserModal({ isOpen: false, user: null })}
+                user={deleteUserModal.user}
+                onSuccess={handleModalSuccess}
             />
         </PageContainer>
     );

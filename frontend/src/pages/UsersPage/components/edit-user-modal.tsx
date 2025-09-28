@@ -7,13 +7,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { SquarePen } from "lucide-react";
 import type { BaseUser } from "@/types/user-api";
+import { usersApi } from "@/controllers/users-api";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface EditUserModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (userData: EditUserFormData) => void;
     user: BaseUser | null;
-    isLoading?: boolean;
+    onSuccess?: () => void;
 }
 
 export interface EditUserFormData {
@@ -25,10 +27,11 @@ export interface EditUserFormData {
 export function EditUserModal({
     isOpen,
     onClose,
-    onSubmit,
     user,
-    isLoading = false
+    onSuccess
 }: EditUserModalProps) {
+    const [isLoading, setIsLoading] = useState(false);
+    const { toast } = useToast();
     const form = useForm<EditUserFormData>({
         defaultValues: {
             name: user?.name || "",
@@ -49,8 +52,45 @@ export function EditUserModal({
         }
     }, [isOpen, user, reset]);
 
-    const handleFormSubmit = (data: EditUserFormData) => {
-        onSubmit(data);
+    const handleFormSubmit = async (data: EditUserFormData) => {
+        if (!user) return;
+
+        setIsLoading(true);
+        await usersApi.update(user.id, data)
+            .then(() => {
+                toast.success("Usuário atualizado", {
+                    description: `Dados do usuário ${data.name} foram atualizados com sucesso.`
+                });
+
+                handleClose();
+                onSuccess?.();
+            })
+            .catch((error: unknown) => {
+                // Tratativa específica para email já cadastrado
+                if (error && typeof error === 'object' && 'message' in error) {
+                    const errorMessage = error.message as string;
+                    if (errorMessage.toLowerCase().includes('email') && errorMessage.toLowerCase().includes('exist')) {
+                        form.setError("email", {
+                            type: "manual",
+                            message: "Este email já está cadastrado"
+                        });
+                        toast.error("Email já cadastrado", {
+                            description: "Este email já está sendo usado por outro usuário"
+                        });
+                    } else {
+                        toast.error("Erro ao atualizar usuário", {
+                            description: errorMessage
+                        });
+                    }
+                } else {
+                    toast.error("Erro ao atualizar usuário", {
+                        description: "Erro desconhecido"
+                    });
+                }
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     };
 
     const handleClose = () => {

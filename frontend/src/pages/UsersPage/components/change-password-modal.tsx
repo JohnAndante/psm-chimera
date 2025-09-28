@@ -8,13 +8,14 @@ import { generateRandomPassword } from "@/utils/password";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import type { BaseUser } from "@/types/user-api";
+import { usersApi } from "@/controllers/users-api";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChangePasswordModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (password: string) => void;
     user: BaseUser | null;
-    isLoading?: boolean;
+    onSuccess?: () => void;
 }
 
 interface PasswordFormData {
@@ -25,12 +26,13 @@ interface PasswordFormData {
 export function ChangePasswordModal({
     isOpen,
     onClose,
-    onSubmit,
     user,
-    isLoading = false
+    onSuccess
 }: ChangePasswordModalProps) {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const { toast } = useToast();
 
     const form = useForm<PasswordFormData>({
         defaultValues: {
@@ -58,7 +60,9 @@ export function ChangePasswordModal({
         setValue("confirmPassword", newPassword);
     };
 
-    const handleFormSubmit = (data: PasswordFormData) => {
+    const handleFormSubmit = async (data: PasswordFormData) => {
+        if (!user) return;
+
         if (data.password !== data.confirmPassword) {
             form.setError("confirmPassword", {
                 type: "manual",
@@ -66,7 +70,27 @@ export function ChangePasswordModal({
             });
             return;
         }
-        onSubmit(data.password);
+
+        setIsLoading(true);
+        usersApi.changePassword(user.id, data.password)
+            .then(() => {
+
+                toast.success("Senha alterada", {
+                    description: `Senha do usuário ${user.email} foi alterada com sucesso.`
+                });
+
+                handleClose();
+                onSuccess?.();
+            })
+            .catch((error: unknown) => {
+                const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+                toast.error("Erro ao alterar senha", {
+                    description: errorMessage
+                });
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     };
 
     const handleClose = () => {
