@@ -4,12 +4,12 @@ import { KeyRound, Plus, SquarePen, Trash2 } from "lucide-react";
 import { PageCard } from "@/components/layout/page-card";
 import { useEffect, useState, useCallback } from "react";
 import { usersApi } from "@/controllers/users-api";
-import type { BaseUser } from "@/types/user-api";
 import { useToast } from "@/hooks/use-toast";
 import { DataTable } from "@/components/data-table";
 import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
+import type { BaseUser } from "@/types/user-api";
 import type { UsersFilterState, UsersApiFilters } from "../types";
 import { UsersActiveFilters } from "./users-active-filters";
 import { UsersFilterControls } from "./users-filter-controls";
@@ -21,32 +21,24 @@ import { DeleteUserModal } from "./delete-user-modal";
 export default function UsersPage() {
     const [users, setUsers] = useState<BaseUser[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+
     const [filters, setFilters] = useState<UsersFilterState>({
         search: "",
         role: "ALL",
         active: "ALL"
     });
     const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
-    const [changePasswordModal, setChangePasswordModal] = useState<{ isOpen: boolean; user: BaseUser | null }>({
-        isOpen: false,
-        user: null
-    });
-    const [editUserModal, setEditUserModal] = useState<{ isOpen: boolean; user: BaseUser | null }>({
-        isOpen: false,
-        user: null
-    });
+
     const [createUserModal, setCreateUserModal] = useState(false);
-    const [deleteUserModal, setDeleteUserModal] = useState<{ isOpen: boolean; user: BaseUser | null }>({
-        isOpen: false,
-        user: null
-    });
+    const [editUserModal, setEditUserModal] = useState<{ isOpen: boolean; user: BaseUser | null }>({ isOpen: false, user: null });
+    const [deleteUserModal, setDeleteUserModal] = useState<{ isOpen: boolean; user: BaseUser | null }>({ isOpen: false, user: null });
+    const [changePasswordModal, setChangePasswordModal] = useState<{ isOpen: boolean; user: BaseUser | null }>({ isOpen: false, user: null });
+
     const { toast } = useToast();
 
-    // Função para carregar usuários com filtros
     const loadUsers = useCallback((currentFilters: UsersFilterState) => {
         setIsLoading(true);
 
-        // Converter filtros do frontend para o formato da API
         const apiFilters: UsersApiFilters = {};
 
         if (currentFilters.search && currentFilters.search.trim()) {
@@ -95,7 +87,7 @@ export default function UsersPage() {
     const handleRemoveFilter = (key: keyof UsersFilterState, value: string) => {
         const newFilters = { ...filters, [key]: value };
         setFilters(newFilters);
-        loadUsers(newFilters); // Pesquisa imediatamente quando remove filtro
+        loadUsers(newFilters);
     };
 
     const getActiveFiltersCount = () => {
@@ -126,12 +118,9 @@ export default function UsersPage() {
         setDeleteUserModal({ isOpen: true, user });
     };
 
-    // Função para recarregar a lista após sucesso nas modais
     const handleModalSuccess = () => {
         loadUsers(filters);
     };
-
-
 
     const getRoleLabel = (role: "ADMIN" | "USER") => {
         const colors = {
@@ -276,6 +265,7 @@ export default function UsersPage() {
                     ]}
                     data={users}
                     isLoading={isLoading}
+                    showPagination={true}
                 />
             </PageCard>
         )
@@ -301,6 +291,7 @@ export default function UsersPage() {
     return (
         <PageContainer
             title="Usuários"
+            subtitle="Gerencie os usuários do sistema"
             breadcrumbs={breadcrumbs}
             extra={newUserButton}
         >

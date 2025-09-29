@@ -55,7 +55,7 @@ export const useAuth = create<AuthState>((set) => ({
 
     logout: () => {
         removeAuthData()
-        set({ token: null, user: null })
+        set({ token: null, user: null, profileModalOpen: false })
     },
 
     loadFromStorage: () => {

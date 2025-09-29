@@ -18,7 +18,6 @@ import {
 import { cn } from "@/lib/utils"
 import { ChevronLeftIcon, ChevronRightIcon, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Separator } from "../ui/separator"
 
 interface DataTableProps<TData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
     columns: ColumnDef<TData, TValue>[]
@@ -102,7 +101,7 @@ export function DataTable<TData, TValue>({
 
             {showPagination && !isLoading && (
                 <>
-                    <div className="flex items-center justify-between space-x-2">
+                    <div className="flex items-center justify-between space-x-2 mt-4 px-2">
                         <div className="text-sm">
                             Total de {table.getRowModel().rows.length} registros
                         </div>
@@ -129,8 +128,6 @@ export function DataTable<TData, TValue>({
                             </Button>
                         </div>
                     </div>
-
-                    <Separator className="my-4" />
                 </>
             )}
 

@@ -25,11 +25,12 @@ const Toaster = ({
       }}
       toastOptions={{
         descriptionClassName: "flex items-center text-muted color-foreground",
-        className: "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
+        className: "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg font-sans",
         style: {
           background: 'var(--card)',
           color: 'var(--card-foreground)',
-          border: 'none'
+          border: 'none',
+          fontFamily: 'Outfit, sans-serif'
         },
       }}
       {...props}

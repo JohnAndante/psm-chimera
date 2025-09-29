@@ -20,20 +20,6 @@ export const sidebarItems: SidebarItem[] = [
         exact: true
     },
     {
-        id: "agentes",
-        title: "Agentes",
-        icon: Bot,
-        href: "/agentes",
-        exact: true
-    },
-    // {
-    //     id: "contatos",
-    //     title: "Contatos",
-    //     icon: Users,
-    //     href: "/contatos",
-    //     exact: true
-    // },
-    {
         id: "usuarios",
         title: "Usuários",
         icon: ShieldUser,

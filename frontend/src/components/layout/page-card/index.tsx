@@ -14,7 +14,7 @@ export function PageCard({
 }) {
     return (
         <Card className={cn(
-            "px-4 py-6",
+            "px-4 py-6 gap-2",
             className,
         )}>
             {/* Título do card */}

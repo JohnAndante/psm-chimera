@@ -165,3 +165,11 @@ html {
 .gradient-primary {
   background: var(--gradient-primary);
 }
+
+/* Força a fonte Outfit nos toasts */
+[data-sonner-toaster],
+[data-sonner-toast],
+.sonner-toast,
+.toast {
+  font-family: 'Outfit', ui-sans-serif, system-ui, sans-serif !important;
+}

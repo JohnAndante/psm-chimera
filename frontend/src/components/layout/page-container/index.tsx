@@ -34,7 +34,7 @@ export function PageContainer({
         <>
             <Card
                 className={cn(
-                    "mx-auto flex w-full min-w-0 flex-1 flex-col p-4 rounded-none border-t-0 rounded-b-2xl gap-2",
+                    "mx-auto flex w-full min-w-0 flex-1 flex-col px-4 pb-2 rounded-none border-t-0 rounded-b-2xl gap-0",
                     isCollapsed
                         ? "max-w-7xl xl:max-w-8xl lg:max-w-7xl md:max-w-6xl sm:max-w-5xl"
                         : "max-w-2xl xl:max-w-6xl lg:max-w-5xl md:max-w-4xl sm:max-w-3xl",
