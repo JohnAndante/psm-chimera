@@ -4,3 +4,4 @@
 export { LoginHeader } from './login-header';
 export { LoginFooter } from './login-footer';
 export { ErrorAlert } from './error-alert';
+export { AbstractBackground } from './abstract-background';
