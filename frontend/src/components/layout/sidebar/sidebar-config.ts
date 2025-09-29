@@ -1,4 +1,4 @@
-import { LayoutDashboard, Bot, ShieldUser } from "lucide-react"
+import { LayoutDashboard, ShieldUser } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 export interface SidebarItem {

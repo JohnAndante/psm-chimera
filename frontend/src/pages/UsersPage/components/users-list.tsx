@@ -6,7 +6,6 @@ import { useEffect, useState, useCallback } from "react";
 import { usersApi } from "@/controllers/users-api";
 import { useToast } from "@/hooks/use-toast";
 import { DataTable } from "@/components/data-table";
-import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import type { BaseUser } from "@/types/user-api";
@@ -17,6 +16,8 @@ import { ChangePasswordModal } from "./change-password-modal";
 import { EditUserModal } from "./edit-user-modal";
 import { CreateUserModal } from "./create-user-modal";
 import { DeleteUserModal } from "./delete-user-modal";
+import { isAdmin } from "@/utils/permissions";
+import { useAuth } from "@/stores/auth";
 
 export default function UsersPage() {
     const [users, setUsers] = useState<BaseUser[]>([]);
@@ -35,6 +36,7 @@ export default function UsersPage() {
     const [changePasswordModal, setChangePasswordModal] = useState<{ isOpen: boolean; user: BaseUser | null }>({ isOpen: false, user: null });
 
     const { toast } = useToast();
+    const { user: currentUser } = useAuth();
 
     const loadUsers = useCallback((currentFilters: UsersFilterState) => {
         setIsLoading(true);
@@ -213,11 +215,6 @@ export default function UsersPage() {
                             id: 'name',
                             header: 'Nome',
                             accessorKey: 'name',
-                            cell: ({ row }) => (
-                                <Link to={`/usuarios/${row.id}`} className="text-blue-600 hover:underline">
-                                    {row.original.name}
-                                </Link>
-                            ),
                         },
                         {
                             id: 'email',
@@ -259,7 +256,7 @@ export default function UsersPage() {
                             header: 'Ações',
                             accessorKey: 'id',
                             cell: ({ row }) => (
-                                getActionButtons(row.original)
+                                isAdmin(currentUser) ? getActionButtons(row.original) : '-'
                             )
                         }
                     ]}
@@ -293,7 +290,7 @@ export default function UsersPage() {
             title="Usuários"
             subtitle="Gerencie os usuários do sistema"
             breadcrumbs={breadcrumbs}
-            extra={newUserButton}
+            extra={isAdmin(currentUser) ? newUserButton : null}
         >
             {getUsersList()}
 

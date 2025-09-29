@@ -15,7 +15,7 @@ export default function DashboardPage() {
 
     const headerActions = (
         <div className="flex items-center gap-2">
-            {periodButtons.map(period => (
+            {/* {periodButtons.map(period => (
                 <Button
                     key={period.key}
                     variant="ghost"
@@ -29,7 +29,7 @@ export default function DashboardPage() {
                 >
                     {period.label}
                 </Button>
-            ))}
+            ))} */}
         </div>
     )
 
