@@ -1,4 +1,4 @@
-import { LayoutDashboard, ShieldUser } from "lucide-react"
+import { LayoutDashboard, Bell, ShieldUser } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 export interface SidebarItem {
@@ -24,6 +24,13 @@ export const sidebarItems: SidebarItem[] = [
         title: "Usuários",
         icon: ShieldUser,
         href: "/usuarios",
+        exact: true
+    },
+    {
+        id: "canais-notificacao",
+        title: "Canais de Notificação",
+        icon: Bell,
+        href: "/canais-notificacao",
         exact: true
     },
     // {

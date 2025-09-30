@@ -6,6 +6,8 @@ import LoginPage from "@/pages/LoginPage"
 import DashboardPage from "@/pages/DashboardPage"
 import AgentesPage from "@/pages/AgentesPage"
 import UsersPage from "@/pages/UsersPage/components/users-list"
+import NotificationChannelsPage from "@/pages/NotificationChannelsPage"
+import { CreateChannelPage, EditChannelPage, ChannelDetailsPage } from "@/pages/NotificationChannelsPage/components"
 
 function ProtectedRoute() {
     const { isAuthenticated } = useAuth()
@@ -45,6 +47,12 @@ export default function AppRoutes() {
                 <Route path="/usuarios/novo" element={<UsersPage />} />
                 <Route path="/usuarios/:id" element={<UsersPage />} />
                 <Route path="/usuarios/:id/editar" element={<UsersPage />} />
+
+                {/* Rotas de Canais de Notificação */}
+                <Route path="/canais-notificacao" element={<NotificationChannelsPage />} />
+                <Route path="/canais-notificacao/novo" element={<CreateChannelPage />} />
+                <Route path="/canais-notificacao/:id" element={<ChannelDetailsPage />} />
+                <Route path="/canais-notificacao/:id/editar" element={<EditChannelPage />} />
             </Route>
             <Route path="*" element={<RedirectToDashboard />} />
         </Routes>
