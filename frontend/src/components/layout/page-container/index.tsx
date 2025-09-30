@@ -5,6 +5,7 @@ import {
     Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { useSidebarToggle } from "@/hooks/use-sidebar-toggle"
+import { AnimatedWrapper } from "@/components/animated-wrapper";
 
 interface Crumb {
     label: string
@@ -41,48 +42,53 @@ export function PageContainer({
                     className,
                 )}
             >
-                <CardHeader className="pb-0 mb-0">
-                    {/* Breadcrumbs */}
-                    {breadcrumbs && breadcrumbs.length > 0 && (
-                        <Breadcrumb>
-                            <BreadcrumbList>
-                                {breadcrumbs.map((bc, index) => {
-                                    const isLast = index === breadcrumbs.length - 1
+                <AnimatedWrapper preset="fadeIn" duration={0.3} className="w-full">
+                    <CardHeader className="pb-0 mb-0">
+                        {/* Breadcrumbs */}
+                        {breadcrumbs && breadcrumbs.length > 0 && (
+                            <Breadcrumb>
+                                <BreadcrumbList>
+                                    {breadcrumbs.map((bc, index) => {
+                                        const isLast = index === breadcrumbs.length - 1
 
-                                    return (
-                                        <BreadcrumbItem key={index}>
-                                            {bc.to ? (
-                                                <BreadcrumbLink asChild>
-                                                    <Link to={bc.to} className={`hover:underline ${isLast ? "text-foreground" : "text-muted-foreground"}`}>
+                                        return (
+                                            <BreadcrumbItem key={index}>
+                                                {bc.to ? (
+                                                    <BreadcrumbLink asChild>
+                                                        <Link to={bc.to} className={`hover:underline ${isLast ? "text-foreground" : "text-muted-foreground"}`}>
+                                                            {bc.label}
+                                                        </Link>
+                                                    </BreadcrumbLink>
+                                                ) : (
+                                                    <BreadcrumbPage className={`${isLast ? "text-foreground" : "text-muted-foreground"}`}>
                                                         {bc.label}
-                                                    </Link>
-                                                </BreadcrumbLink>
-                                            ) : (
-                                                <BreadcrumbPage className={`${isLast ? "text-foreground" : "text-muted-foreground"}`}>
-                                                    {bc.label}
-                                                </BreadcrumbPage>
-                                            )}
+                                                    </BreadcrumbPage>
+                                                )}
 
-                                            {!isLast && <BreadcrumbSeparator />}
-                                        </BreadcrumbItem>
-                                    )
-                                })}
-                            </BreadcrumbList>
-                        </Breadcrumb>
-                    )}
-                </CardHeader>
+                                                {!isLast && <BreadcrumbSeparator />}
+                                            </BreadcrumbItem>
+                                        )
+                                    })}
+                                </BreadcrumbList>
+                            </Breadcrumb>
+                        )}
+                    </CardHeader>
+                </AnimatedWrapper>
 
-                <CardContent>
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between min-h-20">
-                        <div>
-                            <h1 className="text-xl font-bold tracking-tight">{title}</h1>
-                            {subtitle && (
-                                <p className="text-sm text-muted-foreground mt-2">{subtitle}</p>
-                            )}
+                {/* Título e Ações Extras */}
+                <AnimatedWrapper preset="fadeIn" duration={0.3} className="w-full">
+                    <CardContent>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between min-h-20">
+                            <div>
+                                <h1 className="text-xl font-bold tracking-tight">{title}</h1>
+                                {subtitle && (
+                                    <p className="text-sm text-muted-foreground mt-2">{subtitle}</p>
+                                )}
+                            </div>
+                            {extra && <div className="mt-2 sm:mt-0">{extra}</div>}
                         </div>
-                        {extra && <div className="mt-2 sm:mt-0">{extra}</div>}
-                    </div>
-                </CardContent>
+                    </CardContent>
+                </AnimatedWrapper>
             </Card>
 
 

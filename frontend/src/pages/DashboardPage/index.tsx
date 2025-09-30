@@ -1,17 +1,7 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { PageCard } from "@/components/layout/page-card";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 export default function DashboardPage() {
-    const [selectedPeriod, setSelectedPeriod] = useState<"hoje" | "7d" | "30d">("hoje")
-
-    const periodButtons = [
-        { key: 'hoje', label: 'Hoje' },
-        { key: '7d', label: '7 dias' },
-        { key: '30d', label: '30 dias' }
-    ] as const
 
     const headerActions = (
         <div className="flex items-center gap-2">

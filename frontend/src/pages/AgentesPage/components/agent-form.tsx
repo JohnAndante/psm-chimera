@@ -61,7 +61,7 @@ export function AgentForm({
             <div className="mx-auto max-w-4xl">
                 <Card>
                     <CardContent className="px-6">
-                        <div className="space-y-6">
+                        <div className="space-y-4">
                             {/* Ícone discreto do bot */}
                             <div className="flex items-center gap-2 text-muted-foreground">
                                 <Bot className="h-4 w-4" />
@@ -130,7 +130,7 @@ export function AgentForm({
         <div className="mx-auto max-w-4xl">
             <Card>
                 <CardContent className="px-6">
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         {/* Erro da API */}
                         {submitError && (
                             <AgentErrorAlert error={submitError} />
@@ -138,7 +138,7 @@ export function AgentForm({
 
                         {/* Formulário */}
                         <Form {...form}>
-                            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+                            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
                                 {/* Ícone discreto do bot */}
                                 <div className="flex items-center gap-2 text-muted-foreground">
                                     <Bot className="h-4 w-4" />

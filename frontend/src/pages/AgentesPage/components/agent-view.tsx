@@ -41,7 +41,7 @@ export function AgentView({ agent, isLoading = false }: AgentViewProps) {
     // Se estiver carregando ou não tiver agente, mostra skeletons
     if (isLoading || !agent) {
         return (
-            <div className="space-y-6">
+            <div className="space-y-4">
                 <div className="grid gap-6 md:grid-cols-2">
                     {/* Card: Informações Básicas - Skeleton */}
                     <Card>
@@ -157,7 +157,7 @@ export function AgentView({ agent, isLoading = false }: AgentViewProps) {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             <div className="grid gap-6 md:grid-cols-2">
                 {/* Card: Informações Básicas */}
                 <Card>
