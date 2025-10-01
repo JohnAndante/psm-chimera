@@ -59,13 +59,14 @@ export const entityService = new EntityService();
 
 ### **🚫 NÃO FAZER:**
 - ❌ Usar Prisma diretamente - Use `db` (Kysely)
-- ❌ `try/catch` - Use `.then()/.catch()`
-- ❌ `async/await` nas funções principais
+- ❌ `try/catch` - SEMPRE use `.then()/.catch()`
+- ❌ `async/await` nas funções principais - Use promise chains
 - ❌ Mensagens de erro em inglês
 
 ### **✅ FAZER:**
-- ✅ **SEMPRE** usar `db` (Kysely) de `../factory/database.factory`
-- ✅ Retornar `Promise` com `.then()/.catch()`
+- ✅ **OBRIGATÓRIO**: usar `db` (Kysely) de `../factory/database.factory`
+- ✅ **OBRIGATÓRIO**: Retornar `Promise` com `.then()/.catch()`  
+- ✅ **OBRIGATÓRIO**: Promise chains ao invés de async/await
 - ✅ Validação de parâmetros obrigatórios
 - ✅ Mensagens de erro em português
 - ✅ Export como singleton: `export const entityService = new EntityService()`

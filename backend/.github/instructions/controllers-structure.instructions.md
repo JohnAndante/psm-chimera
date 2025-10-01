@@ -38,16 +38,18 @@ export class EntityController {
 ```
 
 ### **🚫 NÃO FAZER:**
-- ❌ `try/catch` - Use `.then()/.catch()`
+- ❌ `try/catch` - SEMPRE use `.then()/.catch()`
+- ❌ `async/await` no controller principal - Use promise chains
 - ❌ Definir `AuthenticatedRequest` localmente
 - ❌ Mensagens em inglês
 - ❌ Response format `{ success: true, data: ... }`
 
 ### **✅ FAZER:**
-- ✅ `.then()/.catch()` pattern
+- ✅ **OBRIGATÓRIO**: `.then()/.catch()` pattern para todas as operações
+- ✅ **OBRIGATÓRIO**: Promise chains ao invés de async/await
 - ✅ Import `AuthenticatedRequest` de `../utils/auth`
 - ✅ Mensagens em português
-- ✅ Response format `{ message: '...', data: ... }`
+- ✅ Response format `{ message: '...', entities/entity: ... }`
 - ✅ `console.error` para logs de erro
 - ✅ Status codes apropriados (200, 201, 400, 401, 404, 409, 500)
 
