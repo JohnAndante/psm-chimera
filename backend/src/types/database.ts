@@ -124,13 +124,16 @@ export interface JobNotificationTable {
 
 export interface SyncExecutionTable {
     id: string;
-    integration_id: number;
+    sync_config_id: number | null;
     status: ExecutionStatus;
     started_at: Date;
     finished_at: Date | null;
-    logs: string | null;
-    metrics: unknown | null;
-    error_details: unknown | null;
+    stores_processed: unknown; // JSON
+    summary: unknown; // JSON
+    comparison_results: unknown | null; // JSON
+    execution_logs: string | null;
+    error_details: unknown | null; // JSON
+    created_at: Date;
 }
 
 export interface SyncConfigurationTable {
@@ -139,8 +142,10 @@ export interface SyncConfigurationTable {
     description: string | null;
     source_integration_id: number;
     target_integration_id: number;
-    cron_pattern: string;
-    config: unknown | null;
+    notification_channel_id: number | null;
+    store_ids: unknown; // JSON array
+    schedule: unknown | null; // JSON object
+    options: unknown; // JSON object
     active: boolean;
     created_at: Date;
     updated_at: Date;
