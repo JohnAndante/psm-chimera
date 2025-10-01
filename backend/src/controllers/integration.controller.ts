@@ -279,30 +279,29 @@ export class IntegrationController {
                     });
                 }
 
-                try {
-                    // Test connection to get current status
-                    const testResult: any = await integrationService.testConnection(integration);
-
-                    res.json({
-                        integration_id: integration.id,
-                        name: integration.name,
-                        type: integration.type,
-                        active: integration.active,
-                        connection_status: testResult?.success ? 'connected' : 'disconnected',
-                        last_test: new Date().toISOString(),
-                        test_result: testResult
+                return integrationService.testConnection(integration)
+                    .then((testResult: any) => {
+                        return res.json({
+                            integration_id: integration.id,
+                            name: integration.name,
+                            type: integration.type,
+                            active: integration.active,
+                            connection_status: testResult?.success ? 'connected' : 'disconnected',
+                            last_test: new Date().toISOString(),
+                            test_result: testResult
+                        });
+                    })
+                    .catch((error) => {
+                        return res.json({
+                            integration_id: integration.id,
+                            name: integration.name,
+                            type: integration.type,
+                            active: integration.active,
+                            connection_status: 'error',
+                            last_test: new Date().toISOString(),
+                            error: error instanceof Error ? error.message : 'Erro desconhecido'
+                        });
                     });
-                } catch (error) {
-                    res.json({
-                        integration_id: integration.id,
-                        name: integration.name,
-                        type: integration.type,
-                        active: integration.active,
-                        connection_status: 'error',
-                        last_test: new Date().toISOString(),
-                        error: error instanceof Error ? error.message : 'Erro desconhecido'
-                    });
-                }
             })
             .catch(error => {
                 console.error('Erro ao verificar status da integração:', error);
@@ -352,7 +351,7 @@ export class IntegrationController {
         const { id } = req.params;
 
         return integrationService.findById(parseInt(id))
-            .then(async integration => {
+            .then(integration => {
                 if (!integration) {
                     return res.status(404).json({
                         error: 'Integração não encontrada'
@@ -363,33 +362,43 @@ export class IntegrationController {
 
                 // If activating, test connection first
                 if (newStatus) {
-                    try {
-                        const testResult: any = await integrationService.testConnection(integration);
-                        if (!testResult?.success) {
+                    return integrationService.testConnection(integration)
+                        .then((testResult: any) => {
+                            if (!testResult?.success) {
+                                return res.status(400).json({
+                                    error: 'Não é possível ativar integração: falha no teste de conexão',
+                                    test_result: testResult
+                                });
+                            }
+                            // Test passed, proceed with activation
+                            return integrationService.update(parseInt(id), { active: newStatus })
+                                .then(updatedIntegration => {
+                                    return res.json({
+                                        message: `Integração ${newStatus ? 'ativada' : 'desativada'} com sucesso`,
+                                        integration: updatedIntegration
+                                    });
+                                });
+                        })
+                        .catch((error) => {
                             return res.status(400).json({
-                                error: 'Não é possível ativar integração: falha no teste de conexão',
-                                test_result: testResult
+                                error: 'Não é possível ativar integração: erro no teste de conexão',
+                                details: error instanceof Error ? error.message : 'Erro desconhecido'
                             });
-                        }
-                    } catch (error) {
-                        return res.status(400).json({
-                            error: 'Não é possível ativar integração: erro no teste de conexão',
-                            details: error instanceof Error ? error.message : 'Erro desconhecido'
                         });
-                    }
+                } else {
+                    // Deactivating, no need to test
+                    return integrationService.update(parseInt(id), { active: newStatus })
+                        .then(updatedIntegration => {
+                            return res.json({
+                                message: `Integração ${newStatus ? 'ativada' : 'desativada'} com sucesso`,
+                                integration: updatedIntegration
+                            });
+                        });
                 }
-
-                return integrationService.update(parseInt(id), { active: newStatus })
-                    .then(updatedIntegration => {
-                        res.json({
-                            message: `Integração ${newStatus ? 'ativada' : 'desativada'} com sucesso`,
-                            integration: updatedIntegration
-                        });
-                    });
             })
             .catch(error => {
                 console.error('Erro ao alterar status da integração:', error);
-                res.status(500).json({
+                return res.status(500).json({
                     error: 'Erro interno do servidor'
                 });
             });

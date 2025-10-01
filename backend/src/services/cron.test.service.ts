@@ -4,11 +4,11 @@ import { db } from '../factory/database.factory';
 import { SyncJobService } from './sync.job.service';
 import { logService } from './log.service';
 import { randomUUID } from 'crypto';
-import { CronTestResults, CronTestConfig, TestSyncConfig } from '../types/cron.test.type';
+import { CronTestResults, CronTestConfig, TestSyncConfig } from '../types/cron.test.type.js';
 
 /**
  * Cron Test Service
- * 
+ *
  * Gerencia testes automatizados do sistema cron:
  * - Execução de testes periódicos
  * - Criação de dados de teste
@@ -24,7 +24,7 @@ export class CronTestService {
     private testStoreId = '';
     private testSyncConfigId = '';
 
-    private constructor() {}
+    private constructor() { }
 
     static getInstance(): CronTestService {
         if (!CronTestService.instance) {
@@ -470,7 +470,7 @@ export class CronTestService {
 
         const ensureTestConfig = () => {
             if (!this.testSyncConfigId) {
-                return this.createTestSyncConfig().then(() => {});
+                return this.createTestSyncConfig().then(() => { });
             }
             return Promise.resolve();
         };
@@ -486,7 +486,7 @@ export class CronTestService {
             .then((syncConfig) => {
                 if (!syncConfig) {
                     console.log('⚠️ Configuração de teste não encontrada, criando nova...');
-                    return this.createTestSyncConfig().then(() => {});
+                    return this.createTestSyncConfig().then(() => { });
                 }
 
                 console.log(`🚀 Executando sincronização config ${syncConfig.id}: ${syncConfig.name}`);

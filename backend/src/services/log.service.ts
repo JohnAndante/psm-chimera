@@ -322,7 +322,7 @@ export class LogService {
                     .where('timestamp', '<', cutoffDate)
                     .execute();
 
-                databaseRecordsRemoved = Number(result.numDeletedRows || 0);
+                databaseRecordsRemoved = result.reduce((total, res) => total + Number(res.numDeletedRows || 0), 0);
             }
 
             const totalCleaned = filesRemoved + databaseRecordsRemoved;
