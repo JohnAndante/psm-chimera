@@ -48,20 +48,20 @@ export class IntegrationController {
 
     // POST /api/v1/integrations
     static async create(req: AuthenticatedRequest, res: Response) {
-        const { name, type, base_url, email, password, config } = req.body;
+        const { name, type, config } = req.body;
 
-        if (!name || !type) {
+        if (!name || !type || !config) {
             return res.status(400).json({
-                error: 'Nome e tipo são obrigatórios'
+                error: 'Nome, tipo e configuração são obrigatórios'
             });
         }
 
-        // Verificar se o tipo é válido
-        const validTypes = ['RP', 'CRESCEVENDAS', 'TELEGRAM', 'EMAIL', 'WEBHOOK'];
+        // Verificar se o tipo é válido (apenas RP e CresceVendas)
+        const validTypes = ['RP', 'CRESCEVENDAS'];
 
         if (!validTypes.includes(type)) {
             return res.status(400).json({
-                error: 'Tipo de integração inválido'
+                error: 'Tipo de integração deve ser RP ou CRESCEVENDAS'
             });
         }
 
@@ -77,9 +77,6 @@ export class IntegrationController {
                 return integrationService.create({
                     name,
                     type,
-                    base_url,
-                    email,
-                    password,
                     config
                 })
                     .then(integration => {
@@ -100,7 +97,7 @@ export class IntegrationController {
     // PUT /api/v1/integrations/:id
     static async update(req: AuthenticatedRequest, res: Response) {
         const { id } = req.params;
-        const { name, type, base_url, email, password, config, active } = req.body;
+        const { name, type, config, active } = req.body;
 
         // Verifica se integração existe
         return integrationService.findById(parseInt(id))
@@ -124,9 +121,6 @@ export class IntegrationController {
                             return integrationService.update(parseInt(id), {
                                 name,
                                 type,
-                                base_url,
-                                email,
-                                password,
                                 config,
                                 active
                             })
@@ -141,9 +135,6 @@ export class IntegrationController {
                     return integrationService.update(parseInt(id), {
                         name,
                         type,
-                        base_url,
-                        email,
-                        password,
                         config,
                         active
                     })
@@ -211,6 +202,196 @@ export class IntegrationController {
             })
             .catch(error => {
                 console.error('Erro ao testar integração:', error);
+                res.status(500).json({
+                    error: 'Erro interno do servidor'
+                });
+            });
+    }
+
+    // POST /api/v1/integrations/validate-config
+    static async validateConfig(req: AuthenticatedRequest, res: Response) {
+        const { type, config } = req.body;
+
+        if (!type || !config) {
+            return res.status(400).json({
+                error: 'Tipo e configuração são obrigatórios'
+            });
+        }
+
+        try {
+            const validTypes = ['RP', 'CRESCEVENDAS', 'TELEGRAM', 'EMAIL', 'WEBHOOK'];
+
+            if (!validTypes.includes(type)) {
+                return res.status(400).json({
+                    error: 'Tipo de integração inválido'
+                });
+            }
+
+            let validationResult;
+
+            switch (type) {
+                case 'RP': {
+                    const { RPIntegrationService } = await import('../services/rp.integration.service.js');
+                    validationResult = RPIntegrationService.validateConfig(config);
+                    break;
+                }
+
+                case 'CRESCEVENDAS': {
+                    const { CresceVendasIntegrationService } = await import('../services/crescevendas.integration.service.js');
+                    validationResult = CresceVendasIntegrationService.validateConfig(config);
+                    break;
+                }
+
+                default:
+                    validationResult = {
+                        valid: false,
+                        errors: [`Validação para tipo '${type}' não implementada ainda`]
+                    };
+            }
+
+            if (validationResult.valid) {
+                res.json({
+                    message: 'Configuração válida',
+                    valid: true
+                });
+            } else {
+                res.status(400).json({
+                    message: 'Configuração inválida',
+                    valid: false,
+                    errors: validationResult.errors
+                });
+            }
+
+        } catch (error) {
+            console.error('Erro ao validar configuração:', error);
+            res.status(500).json({
+                error: 'Erro interno do servidor'
+            });
+        }
+    }
+
+    // GET /api/v1/integrations/:id/status
+    static async getStatus(req: AuthenticatedRequest, res: Response) {
+        const { id } = req.params;
+
+        return integrationService.findById(parseInt(id))
+            .then(async integration => {
+                if (!integration) {
+                    return res.status(404).json({
+                        error: 'Integração não encontrada'
+                    });
+                }
+
+                try {
+                    // Test connection to get current status
+                    const testResult: any = await integrationService.testConnection(integration);
+
+                    res.json({
+                        integration_id: integration.id,
+                        name: integration.name,
+                        type: integration.type,
+                        active: integration.active,
+                        connection_status: testResult?.success ? 'connected' : 'disconnected',
+                        last_test: new Date().toISOString(),
+                        test_result: testResult
+                    });
+                } catch (error) {
+                    res.json({
+                        integration_id: integration.id,
+                        name: integration.name,
+                        type: integration.type,
+                        active: integration.active,
+                        connection_status: 'error',
+                        last_test: new Date().toISOString(),
+                        error: error instanceof Error ? error.message : 'Erro desconhecido'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao verificar status da integração:', error);
+                res.status(500).json({
+                    error: 'Erro interno do servidor'
+                });
+            });
+    }
+
+    // GET /api/v1/integrations/types
+    static async getIntegrationTypes(req: AuthenticatedRequest, res: Response) {
+        const types = [
+            {
+                value: 'RP',
+                label: 'RP Sistema de Retaguarda',
+                description: 'Integração com o sistema RP para buscar produtos com desconto',
+                configuration_fields: [
+                    { name: 'auth_method', type: 'select', options: ['TOKEN', 'LOGIN'], required: true },
+                    { name: 'base_url', type: 'url', required: true },
+                    { name: 'username', type: 'text', required: false },
+                    { name: 'password', type: 'password', required: false },
+                    { name: 'static_token', type: 'text', required: false },
+                    { name: 'products_endpoint', type: 'text', required: true }
+                ]
+            },
+            {
+                value: 'CRESCEVENDAS',
+                label: 'CresceVendas API',
+                description: 'Integração com CresceVendas para enviar campanhas de desconto',
+                configuration_fields: [
+                    { name: 'base_url', type: 'url', required: true },
+                    { name: 'auth_headers', type: 'object', required: true },
+                    { name: 'send_products_endpoint', type: 'text', required: false },
+                    { name: 'get_products_endpoint', type: 'text', required: false }
+                ]
+            }
+        ];
+
+        res.json({
+            message: 'Tipos de integração disponíveis',
+            types
+        });
+    }
+
+    // POST /api/v1/integrations/:id/toggle
+    static async toggle(req: AuthenticatedRequest, res: Response) {
+        const { id } = req.params;
+
+        return integrationService.findById(parseInt(id))
+            .then(async integration => {
+                if (!integration) {
+                    return res.status(404).json({
+                        error: 'Integração não encontrada'
+                    });
+                }
+
+                const newStatus = !integration.active;
+
+                // If activating, test connection first
+                if (newStatus) {
+                    try {
+                        const testResult: any = await integrationService.testConnection(integration);
+                        if (!testResult?.success) {
+                            return res.status(400).json({
+                                error: 'Não é possível ativar integração: falha no teste de conexão',
+                                test_result: testResult
+                            });
+                        }
+                    } catch (error) {
+                        return res.status(400).json({
+                            error: 'Não é possível ativar integração: erro no teste de conexão',
+                            details: error instanceof Error ? error.message : 'Erro desconhecido'
+                        });
+                    }
+                }
+
+                return integrationService.update(parseInt(id), { active: newStatus })
+                    .then(updatedIntegration => {
+                        res.json({
+                            message: `Integração ${newStatus ? 'ativada' : 'desativada'} com sucesso`,
+                            integration: updatedIntegration
+                        });
+                    });
+            })
+            .catch(error => {
+                console.error('Erro ao alterar status da integração:', error);
                 res.status(500).json({
                     error: 'Erro interno do servidor'
                 });
