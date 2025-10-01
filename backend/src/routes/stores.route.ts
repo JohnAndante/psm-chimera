@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { StoreController } from '../controllers/store.controller';
 import { authenticateToken, requireAdmin } from '../utils/auth';
 import { StoreValidator } from '../validators/store.validator';
-import { StoreSyncValidator } from '../validators/job.test.validator';
 
 const router = Router();
 
@@ -28,6 +27,5 @@ router.put('/:id', requireAdmin, StoreValidator.update, StoreController.update);
 router.delete('/:id', requireAdmin, StoreValidator.delete, StoreController.delete);
 
 // POST /api/v1/stores/:id/sync
-router.post('/:id/sync', requireAdmin, StoreSyncValidator.syncProducts, StoreController.syncProducts);
 
 export default router;

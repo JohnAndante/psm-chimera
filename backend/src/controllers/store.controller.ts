@@ -2,7 +2,6 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../utils/auth';
 import { storeService } from '../services/store.service';
 import { StoreFilters } from '../types/store.types';
-import { JobExecutionService } from '../services/job.execution.service';
 
 export class StoreController {
 
@@ -275,19 +274,13 @@ export class StoreController {
         const { notification_channel_id, force_sync = false } = req.body;
         const storeId = parseInt(id); // Validação já foi feita pelo middleware
 
-        // Executar sincronização usando JobExecutionService
-        JobExecutionService.executeSyncJob({
-            store_id: storeId,
             notification_channel_id: notification_channel_id ? parseInt(notification_channel_id) : undefined,
-            force_sync
         })
-            .then(executionResult => {
                 res.json({
                     message: 'Sincronização iniciada com sucesso',
                     data: executionResult
                 });
             })
-            .catch(error => {
                 console.error('Erro ao sincronizar produtos:', error);
 
                 if (error.message === 'Loja não encontrada') {

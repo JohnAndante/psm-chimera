@@ -1,6 +1,5 @@
 import { db } from '../factory/database.factory';
 import { StoreTable } from '../types/database';
-import { PaginationOptions } from '../types/job.type';
 import { StoreFilters, CreateStoreData, UpdateStoreData } from '../types/store.types';
 
 class StoreService {
