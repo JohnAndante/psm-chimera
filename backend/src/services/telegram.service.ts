@@ -1,5 +1,6 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { TelegramConfig, TelegramAllowedUser } from '../types/notification.type';
+import { NotificationTemplateService, SyncResult, CompareResult, SyncSummary } from './notification.template.service';
 
 export interface TelegramMessage {
     text: string;
@@ -463,6 +464,112 @@ export class TelegramService {
         if (typeof error === 'string') return error;
         if (error.message) return error.message;
         return 'Erro desconhecido';
+    }
+
+    // ===== Métodos específicos para notificações de sync =====
+
+    /**
+     * Envia notificação de início de sincronização
+     */
+    async notifySyncStart(storeCount: number, configName?: string): Promise<TelegramSendResult> {
+        const message = NotificationTemplateService.getSyncStartTemplate(storeCount, configName);
+        return this.sendFormattedMessage({
+            text: message,
+            parse_mode: 'Markdown'
+        });
+    }
+
+    /**
+     * Envia notificação de sincronização bem-sucedida
+     */
+    async notifySyncSuccess(results: SyncResult[], summary: SyncSummary): Promise<TelegramSendResult> {
+        const message = NotificationTemplateService.getSyncSuccessTemplate(results, summary);
+        const truncatedMessage = NotificationTemplateService.truncateMessage(message);
+
+        return this.sendFormattedMessage({
+            text: truncatedMessage,
+            parse_mode: 'Markdown'
+        });
+    }
+
+    /**
+     * Envia notificação de erro na sincronização
+     */
+    async notifySyncError(error: string, configName?: string): Promise<TelegramSendResult> {
+        const message = NotificationTemplateService.getSyncErrorTemplate(error, configName);
+
+        return this.sendFormattedMessage({
+            text: message,
+            parse_mode: 'Markdown'
+        });
+    }
+
+    /**
+     * Envia notificação com resultados de comparação
+     */
+    async notifyComparisonResult(comparison: CompareResult[]): Promise<TelegramSendResult> {
+        const message = NotificationTemplateService.getCompareResultTemplate(comparison);
+        const truncatedMessage = NotificationTemplateService.truncateMessage(message);
+
+        return this.sendFormattedMessage({
+            text: truncatedMessage,
+            parse_mode: 'Markdown'
+        });
+    }
+
+    /**
+     * Envia notificação de falha em job agendado
+     */
+    async notifyScheduledJobFailure(jobName: string, error: string): Promise<TelegramSendResult> {
+        const message = NotificationTemplateService.getScheduledJobFailureTemplate(jobName, error);
+
+        return this.sendFormattedMessage({
+            text: message,
+            parse_mode: 'Markdown'
+        });
+    }
+
+    /**
+     * Envia notificação de sucesso em job agendado
+     */
+    async notifyScheduledJobSuccess(jobName: string, summary: SyncSummary): Promise<TelegramSendResult> {
+        const message = NotificationTemplateService.getScheduledJobSuccessTemplate(jobName, summary);
+
+        return this.sendFormattedMessage({
+            text: message,
+            parse_mode: 'Markdown'
+        });
+    }
+
+    /**
+     * Envia notificação de status do sistema
+     */
+    async notifySystemStatus(systemHealth: {
+        database_connected: boolean;
+        rp_integrations: number;
+        crescevendas_integrations: number;
+        active_configs: number;
+        last_sync?: Date;
+    }): Promise<TelegramSendResult> {
+        const message = NotificationTemplateService.getSystemStatusTemplate(systemHealth);
+
+        return this.sendFormattedMessage({
+            text: message,
+            parse_mode: 'Markdown'
+        });
+    }
+
+    /**
+     * Envia notificação personalizada com template
+     */
+    async notifyCustom(template: string, variables: Record<string, any>): Promise<TelegramSendResult> {
+        const message = NotificationTemplateService.getCustomTemplate(template, variables);
+        const truncatedMessage = NotificationTemplateService.truncateMessage(message);
+
+        return this.sendFormattedMessage({
+            text: truncatedMessage,
+            parse_mode: 'Markdown'
+        });
     }
 
     /**
