@@ -4,18 +4,25 @@ import { useAuth } from "@/stores/auth"
 
 import LoginPage from "@/pages/LoginPage"
 import DashboardPage from "@/pages/DashboardPage"
-import AgentesPage from "@/pages/AgentesPage"
 import UsersPage from "@/pages/UsersPage/components/users-list"
 import NotificationChannelsPage from "@/pages/NotificationChannelsPage"
 import { CreateChannelPage, EditChannelPage, ChannelDetailsPage } from "@/pages/NotificationChannelsPage/components"
+import IntegrationsPage from "@/pages/IntegrationsPage"
+import { CreateIntegrationPage, EditIntegrationPage, IntegrationDetailsPage } from "@/pages/IntegrationsPage/components"
+import SyncPage from "@/pages/SyncPage"
+import { CreateSyncConfigPage } from "@/pages/SyncPage/components"
+import CronTestPage from "@/pages/CronTestPage"
 
 function ProtectedRoute() {
-    const { isAuthenticated } = useAuth()
+    const { isAuthenticated, validateToken } = useAuth()
 
     // Se não estiver autenticado, redireciona para login
     if (!isAuthenticated()) {
         return <Navigate to="/login" replace />
     }
+
+    // Valida o token no backend
+    validateToken()
 
     return (
         <Layout>
@@ -36,12 +43,6 @@ export default function AppRoutes() {
             <Route path="/" element={<ProtectedRoute />}>
                 <Route index element={<DashboardPage />} />
 
-                {/* Rotas de Agentes */}
-                <Route path="/agentes" element={<AgentesPage />} />
-                <Route path="/agentes/novo" element={<AgentesPage />} />
-                <Route path="/agentes/:id" element={<AgentesPage />} />
-                <Route path="/agentes/:id/editar" element={<AgentesPage />} />
-
                 {/* Rotas de Usuários */}
                 <Route path="/usuarios" element={<UsersPage />} />
                 <Route path="/usuarios/novo" element={<UsersPage />} />
@@ -53,6 +54,19 @@ export default function AppRoutes() {
                 <Route path="/canais-notificacao/novo" element={<CreateChannelPage />} />
                 <Route path="/canais-notificacao/:id" element={<ChannelDetailsPage />} />
                 <Route path="/canais-notificacao/:id/editar" element={<EditChannelPage />} />
+
+                {/* Rotas de Integrações */}
+                <Route path="/integracoes" element={<IntegrationsPage />} />
+                <Route path="/integracoes/novo" element={<CreateIntegrationPage />} />
+                <Route path="/integracoes/:id" element={<IntegrationDetailsPage />} />
+                <Route path="/integracoes/:id/editar" element={<EditIntegrationPage />} />
+
+                {/* Rotas de Sincronizações */}
+                <Route path="/sincronizacoes" element={<SyncPage />} />
+                <Route path="/sincronizacoes/novo" element={<CreateSyncConfigPage />} />
+
+                {/* Rota de Teste do Cron */}
+                <Route path="/teste-cron" element={<CronTestPage />} />
             </Route>
             <Route path="*" element={<RedirectToDashboard />} />
         </Routes>

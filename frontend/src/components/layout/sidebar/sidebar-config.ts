@@ -1,4 +1,4 @@
-import { LayoutDashboard, Bell, ShieldUser } from "lucide-react"
+import { LayoutDashboard, Bell, ShieldUser, Link2, RefreshCw, TestTube } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 export interface SidebarItem {
@@ -31,6 +31,27 @@ export const sidebarItems: SidebarItem[] = [
         title: "Canais de Notificação",
         icon: Bell,
         href: "/canais-notificacao",
+        exact: true
+    },
+    {
+        id: "integracoes",
+        title: "Integrações",
+        icon: Link2,
+        href: "/integracoes",
+        exact: true
+    },
+    {
+        id: "sincronizacoes",
+        title: "Sincronizações",
+        icon: RefreshCw,
+        href: "/sincronizacoes",
+        exact: true
+    },
+    {
+        id: "teste-cron",
+        title: "Teste Cron",
+        icon: TestTube,
+        href: "/teste-cron",
         exact: true
     },
     // {
