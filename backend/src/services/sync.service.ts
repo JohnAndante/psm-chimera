@@ -654,6 +654,20 @@ class SyncService {
             } : null
         };
     }
+
+    /**
+     * Soft delete de uma configuração de sincronização
+     */
+    async deleteSyncConfiguration(id: number): Promise<void> {
+        await db.updateTable('sync_configurations')
+            .set({
+                deleted_at: new Date(),
+                updated_at: new Date()
+            })
+            .where('id', '=', id)
+            .where('deleted_at', 'is', null)
+            .execute();
+    }
 }
 
 export const syncService = new SyncService();

@@ -2,9 +2,6 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../utils/auth.js';
 import { syncService } from '../services/sync.service.js';
 import { integrationService } from '../services/integration.service.js';
-import { PrismaClient } from '../../database/generated/prisma';
-
-const db = new PrismaClient();
 
 export class SyncController {
 
@@ -224,27 +221,23 @@ export class SyncController {
             });
         }
 
-        // Verificar se existe
+        // Verificar se existe e deletar usando o service
         syncService.getSyncConfigurationById(Number(id))
-            .then(async (existingConfig: any) => {
+            .then((existingConfig: any) => {
                 if (!existingConfig) {
                     return res.status(404).json({
                         error: 'Configuração não encontrada'
                     });
                 }
 
-                // Soft delete
-                await db.syncConfiguration.update({
-                    where: { id: Number(id) },
-                    data: {
-                        deleted_at: new Date()
-                    }
-                });
-
-                res.status(200).json({
-                    success: true,
-                    message: 'Configuração removida com sucesso'
-                });
+                // Delegar soft delete para o service
+                return syncService.deleteSyncConfiguration(Number(id))
+                    .then(() => {
+                        return res.status(200).json({
+                            success: true,
+                            message: 'Configuração removida com sucesso'
+                        });
+                    });
             })
             .catch(error => {
                 console.error('Erro ao remover configuração:', error);
