@@ -1,8 +1,8 @@
 # 📋 Sistema de Logs Unificado - Design Document
 
-**Data:** 30 de setembro de 2025  
-**Versão:** 1.0.0  
-**Projeto:** PSM Chimera  
+**Data:** 30 de setembro de 2025
+**Versão:** 1.0.0
+**Projeto:** PSM Chimera
 
 ---
 
@@ -78,9 +78,9 @@ model LogEntry {
   metadata    Json?    // Dados extras: store_id, job_id, execution_id, etc.
   session_id  String?  // Para agrupar logs de uma mesma execução
   source      String   @default("api") // "api", "cron", "manual"
-  
+
   created_at  DateTime @default(now())
-  
+
   @@index([timestamp])
   @@index([category])
   @@index([level])
@@ -134,10 +134,10 @@ export class LogService {
     sessionId?: string
   ): Promise<void> {
     const timestamp = new Date();
-    
+
     // 1. Escrever no arquivo (compatibilidade Telegram)
     await this.writeToFile(timestamp, level, category, message);
-    
+
     // 2. Escrever no banco (acesso frontend)
     await this.writeToDatabase(level, category, message, metadata, sessionId);
   }
@@ -152,7 +152,7 @@ export class LogService {
     const timeStr = this.formatTimestamp(timestamp);
     const levelIcon = this.getLevelIcon(level);
     const formattedMessage = `${timeStr} ${levelIcon} [${category}] ${message}\n`;
-    
+
     await fs.appendFile(logPath, formattedMessage);
   }
 
@@ -200,7 +200,7 @@ export class LogService {
 
     // Limpar arquivos
     const filesRemoved = await this.cleanupLogFiles();
-    
+
     // Limpar banco
     const dbResult = await this.db
       .deleteFrom('log_entries')
@@ -208,7 +208,7 @@ export class LogService {
       .execute();
 
     await this.info('SYSTEM', `Limpeza concluída: ${filesRemoved} arquivos, ${dbResult.numDeletedRows} registros do banco`);
-    
+
     return filesRemoved + Number(dbResult.numDeletedRows);
   }
 
@@ -219,19 +219,19 @@ export class LogService {
     if (filters.startDate) {
       query = query.where('timestamp', '>=', filters.startDate);
     }
-    
+
     if (filters.endDate) {
       query = query.where('timestamp', '<=', filters.endDate);
     }
-    
+
     if (filters.level) {
       query = query.where('level', '=', filters.level);
     }
-    
+
     if (filters.category) {
       query = query.where('category', '=', filters.category);
     }
-    
+
     if (filters.sessionId) {
       query = query.where('session_id', '=', filters.sessionId);
     }
@@ -288,7 +288,7 @@ export class LogController {
     try {
       const { sessionId } = req.params;
       const logService = LogService.getInstance();
-      
+
       const logs = await logService.getLogs({ sessionId });
 
       return res.json({
@@ -333,7 +333,7 @@ export class LogController {
     });
 
     const logService = LogService.getInstance();
-    
+
     const callback = (log: LogEntry) => {
       res.write(`data: ${JSON.stringify(log)}\n\n`);
     };
@@ -357,7 +357,7 @@ export class TelegramService {
   async sendLogFile(chatId: number, date?: string): Promise<void> {
     const logDate = date || new Date().toISOString().slice(0, 10);
     const logPath = `./src/logs/log-${logDate}.txt`;
-    
+
     if (fs.existsSync(logPath)) {
       await this.bot.sendDocument(chatId, logPath, {
         caption: `📋 Log do dia ${logDate}`,
@@ -370,11 +370,11 @@ export class TelegramService {
   async sendRecentLogs(chatId: number, lines: number = 50): Promise<void> {
     const today = new Date().toISOString().slice(0, 10);
     const logPath = `./src/logs/log-${today}.txt`;
-    
+
     if (fs.existsSync(logPath)) {
       const content = fs.readFileSync(logPath, 'utf8');
       const recentLines = content.split('\n').slice(-lines).join('\n');
-      
+
       await this.sendMessage(chatId, `📋 *Últimas ${lines} linhas do log:*\n\`\`\`\n${recentLines}\n\`\`\``, {
         parse_mode: 'Markdown',
       });
@@ -421,7 +421,7 @@ export interface LogFilters {
 export class LogAPIController {
   static async getLogs(filters: LogFilters): Promise<LogEntry[]> {
     const params = new URLSearchParams();
-    
+
     if (filters.startDate) params.append('startDate', filters.startDate.toISOString());
     if (filters.endDate) params.append('endDate', filters.endDate.toISOString());
     if (filters.level) params.append('level', filters.level);
@@ -431,20 +431,20 @@ export class LogAPIController {
 
     const response = await fetch(`/api/v1/logs?${params.toString()}`);
     const data = await response.json();
-    
+
     return data.data;
   }
 
   static async getLogsBySession(sessionId: string): Promise<LogEntry[]> {
     const response = await fetch(`/api/v1/logs/session/${sessionId}`);
     const data = await response.json();
-    
+
     return data.data;
   }
 
   static async streamLogs(onLog: (log: LogEntry) => void): Promise<EventSource> {
     const eventSource = new EventSource('/api/v1/logs/stream');
-    
+
     eventSource.onmessage = (event) => {
       const log = JSON.parse(event.data);
       onLog(log);
@@ -497,7 +497,7 @@ export function LogsPage() {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">📋 Logs do Sistema</h1>
-        
+
         <div className="flex gap-2">
           <Button
             variant={realTime ? "destructive" : "default"}
@@ -505,7 +505,7 @@ export function LogsPage() {
           >
             {realTime ? "🔴 Parar" : "🟢 Tempo Real"}
           </Button>
-          
+
           <Button onClick={loadLogs} disabled={loading}>
             {loading ? "⏳ Carregando..." : "🔄 Atualizar"}
           </Button>
@@ -513,15 +513,15 @@ export function LogsPage() {
       </div>
 
       {/* Filtros */}
-      <LogFilters 
-        filters={filters} 
+      <LogFilters
+        filters={filters}
         onFiltersChange={setFilters}
         onApply={loadLogs}
       />
 
       {/* Lista de Logs */}
-      <LogViewer 
-        logs={logs} 
+      <LogViewer
+        logs={logs}
         loading={loading}
         realTime={realTime}
       />
@@ -543,13 +543,13 @@ export function LogViewer({ logs, loading, realTime }: LogViewerProps) {
           <span>Tempo Real Ativo</span>
         </div>
       )}
-      
+
       {loading && <div className="text-yellow-400">⏳ Carregando logs...</div>}
-      
+
       {logs.map((log) => (
         <LogEntry key={log.id} log={log} />
       ))}
-      
+
       {logs.length === 0 && !loading && (
         <div className="text-gray-500">Nenhum log encontrado</div>
       )}
@@ -590,7 +590,7 @@ export function LogEntry({ log }: { log: LogEntry }) {
       <span className="ml-2 text-gray-300">
         {log.message}
       </span>
-      
+
       {log.metadata && Object.keys(log.metadata).length > 0 && (
         <LogMetadata metadata={log.metadata} />
       )}
@@ -612,7 +612,7 @@ export class SyncJobService {
 
   async executeSyncJob(config: SyncJobConfig): Promise<JobExecutionResult> {
     const sessionId = randomUUID();
-    
+
     await this.logService.info('SYNC', `Iniciando sincronização job ${config.id}`, {
       config_id: config.id,
       stores_count: config.stores.length
@@ -620,7 +620,7 @@ export class SyncJobService {
 
     try {
       // Lógica de sincronização...
-      
+
       await this.logService.success('SYNC', `Sincronização concluída com sucesso`, {
         products_synced: result.totalProducts,
         stores_processed: result.storesProcessed,
@@ -633,7 +633,7 @@ export class SyncJobService {
         error: error.stack,
         config_id: config.id
       }, sessionId);
-      
+
       throw error;
     }
   }
@@ -650,11 +650,11 @@ export class LegacyLogAdapter {
   // Converte logs do server-node-fill para novo formato
   async importLegacyLogs(date: string): Promise<void> {
     const logPath = `./server-node-fill/src/logs/log-${date}.txt`;
-    
+
     if (fs.existsSync(logPath)) {
       const content = fs.readFileSync(logPath, 'utf8');
       const lines = content.split('\n').filter(line => line.trim());
-      
+
       for (const line of lines) {
         const parsed = this.parseLegacyLogLine(line);
         if (parsed) {
@@ -674,14 +674,14 @@ export class LegacyLogAdapter {
     // Parse do formato: "14:32:45 🚀 [SYNC] Mensagem..."
     const regex = /(\d{2}:\d{2}:\d{2})\s+([🚀📊✅📤❌⚠️])\s+\[(\w+)\]\s+(.+)/;
     const match = line.match(regex);
-    
+
     if (match) {
       const [, time, icon, category, message] = match;
       const level = this.iconToLevel(icon);
-      
+
       return { time, level, category, message };
     }
-    
+
     return null;
   }
 }
