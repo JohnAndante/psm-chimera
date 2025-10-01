@@ -278,48 +278,49 @@ class IntegrationService {
     }
 
     async testConnection(integration: any) {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             try {
                 if (!integration.active) {
                     return reject(new Error('Integração está inativa'));
                 }
 
-                // TODO: Implementar testes específicos para cada tipo de integração
-                let testResult = {
-                    success: true,
-                    message: 'Teste de conexão bem-sucedido',
-                    details: {}
-                };
+                let testResult;
 
                 switch (integration.type) {
-                    case 'RP':
-                        testResult.details = {
-                            endpoint: integration.base_url,
-                            authentication: 'Token-based',
-                            status: 'Conectado'
-                        };
+                    case 'RP': {
+                        const { RPIntegrationService } = await import('./rp.integration.service.js');
+                        const rpService = new RPIntegrationService(integration.config);
+                        testResult = await rpService.testConnection();
                         break;
+                    }
 
-                    case 'CRESCEVENDAS':
-                        testResult.details = {
-                            endpoint: integration.base_url,
-                            authentication: 'Header-based',
-                            status: 'Conectado'
-                        };
+                    case 'CRESCEVENDAS': {
+                        const { CresceVendasIntegrationService } = await import('./crescevendas.integration.service.js');
+                        const cvService = new CresceVendasIntegrationService(integration.config);
+                        testResult = await cvService.testConnection();
                         break;
+                    }
 
                     case 'TELEGRAM':
-                        testResult.details = {
-                            bot_token: 'Configurado',
-                            status: 'Ativo'
+                        testResult = {
+                            success: true,
+                            message: 'Teste de integração Telegram não implementado ainda',
+                            data: {
+                                bot_token: 'Configurado',
+                                status: 'Ativo'
+                            }
                         };
                         break;
 
                     case 'EMAIL':
                         const emailConfig = integration.config as any;
-                        testResult.details = {
-                            smtp_host: emailConfig?.smtp_host || 'Não configurado',
-                            status: 'Configurado'
+                        testResult = {
+                            success: true,
+                            message: 'Teste de integração Email não implementado ainda',
+                            data: {
+                                smtp_host: emailConfig?.smtp_host || 'Não configurado',
+                                status: 'Configurado'
+                            }
                         };
                         break;
 
@@ -327,7 +328,7 @@ class IntegrationService {
                         testResult = {
                             success: false,
                             message: 'Tipo de integração não suportado para teste',
-                            details: {}
+                            error: `Tipo '${integration.type}' não reconhecido`
                         };
                 }
 
