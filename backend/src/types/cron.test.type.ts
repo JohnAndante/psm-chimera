@@ -1,6 +1,6 @@
 /**
  * Cron Test Types
- * 
+ *
  * Tipos para funcionalidades de teste do sistema cron
  */
 

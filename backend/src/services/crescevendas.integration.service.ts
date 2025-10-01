@@ -1,10 +1,10 @@
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import { 
-    CresceVendasConfig, 
-    IntegrationTestResult,
-    CresceVendasProduct,
-    CresceVendasBatchUploadRequest,
-    CresceVendasDiscountResponse 
+import {
+  CresceVendasConfig,
+  IntegrationTestResult,
+  CresceVendasProduct,
+  CresceVendasBatchUploadRequest,
+  CresceVendasDiscountResponse
 } from '../types/integration.type.js';
 
 export class CresceVendasIntegrationService {

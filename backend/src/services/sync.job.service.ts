@@ -2,12 +2,12 @@ import { PrismaClient, ExecutionStatus } from '../../database/generated/prisma';
 import { RPIntegrationService } from './rp.integration.service';
 import { CresceVendasIntegrationService } from './crescevendas.integration.service';
 import { TelegramService } from './telegram.service';
-import { 
-    SyncExecutionRequest, 
-    SyncExecutionResult, 
+import {
+    SyncExecutionRequest,
+    SyncExecutionResult,
     ComparisonResult,
     JobExecutionResult,
-    StoreResult 
+    StoreResult
 } from '../types/sync.type';
 import { randomUUID } from 'crypto';
 

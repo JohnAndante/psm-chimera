@@ -1,12 +1,12 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { 
-    TelegramConfig, 
+import {
+    TelegramConfig,
     TelegramAllowedUser,
     TelegramMessage,
     TelegramSendResult,
-    SyncResult, 
-    CompareResult, 
-    SyncSummary 
+    SyncResult,
+    CompareResult,
+    SyncSummary
 } from '../types/notification.type';
 import { NotificationTemplateService } from './notification.template.service';
 import { logService } from './log.service';

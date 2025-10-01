@@ -364,14 +364,14 @@ export class SyncController {
             })
             .catch(error => {
                 console.error('Erro ao executar sincronização:', error);
-                
+
                 if (error.message.includes('não encontrada') || error.message.includes('inativas') || error.message.includes('deve ser do tipo')) {
                     const status = error.message.includes('não encontrada') ? 404 : 400;
                     return res.status(status).json({
                         error: error.message
                     });
                 }
-                
+
                 res.status(500).json({
                     error: 'Erro interno do servidor',
                     details: error.message
