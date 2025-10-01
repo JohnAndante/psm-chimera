@@ -122,6 +122,31 @@ export interface JobNotificationTable {
     updated_at: Date;
 }
 
+export interface SyncExecutionTable {
+    id: string;
+    integration_id: number;
+    status: ExecutionStatus;
+    started_at: Date;
+    finished_at: Date | null;
+    logs: string | null;
+    metrics: unknown | null;
+    error_details: unknown | null;
+}
+
+export interface SyncConfigurationTable {
+    id: number;
+    name: string;
+    description: string | null;
+    source_integration_id: number;
+    target_integration_id: number;
+    cron_pattern: string;
+    config: unknown | null;
+    active: boolean;
+    created_at: Date;
+    updated_at: Date;
+    deleted_at: Date | null;
+}
+
 export interface Database {
     users: UserTable;
     authentications: AuthTable;
@@ -133,4 +158,6 @@ export interface Database {
     job_configurations: JobConfigurationTable;
     job_executions: JobExecutionTable;
     job_notifications: JobNotificationTable;
+    sync_executions: SyncExecutionTable;
+    sync_configurations: SyncConfigurationTable;
 }
