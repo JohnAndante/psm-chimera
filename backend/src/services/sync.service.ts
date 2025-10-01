@@ -1,11 +1,11 @@
 import { db } from '../factory/database.factory.js';
 import { RPIntegrationService } from './rp.integration.service.js';
 import { CresceVendasIntegrationService } from './crescevendas.integration.service.js';
-import { ProductService } from './product.service.js';
+import { productService } from './product.service.js';
 import { integrationService } from './integration.service.js';
 import { notificationChannelService } from './notificationChannel.service.js';
 import { getTelegramService } from './telegram.service.js';
-import { SyncResult, SyncSummary } from './notification.template.service.js';
+import { SyncResult, SyncSummary } from '../types/notification.type.js';
 import {
     SyncExecutionRequest,
     SyncExecutionResult,
@@ -16,12 +16,12 @@ import {
 } from '../types/sync.type.js';
 import { NotificationChannelType, TelegramConfig } from '../types/notification.type.js';
 
-export class SyncService {
+class SyncService {
 
     /**
      * Executa sincronização RP → CresceVendas
      */
-    static async executeSync(request: SyncExecutionRequest): Promise<SyncExecutionResult> {
+    async executeSync(request: SyncExecutionRequest): Promise<SyncExecutionResult> {
         const executionId = `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const startTime = Date.now();
 
@@ -73,15 +73,15 @@ export class SyncService {
                     console.log(`[SYNC] Encontrados ${rpProducts.length} produtos na RP`);
 
                     // Converter produtos RP para formato interno
-                    const internalProducts = ProductService.parseRPProducts(rpProducts, store.id);
+                    const internalProducts = productService.parseRPProducts(rpProducts, store.id);
 
                     // Salvar no cache local (tabela products)
-                    await ProductService.upsertProducts(store.id, internalProducts);
+                    await productService.upsertProducts(store.id, internalProducts);
                     console.log(`[SYNC] ${internalProducts.length} produtos salvos no cache local`);
 
                     // ETAPA 2: Buscar produtos do cache e enviar para CresceVendas
-                    const cachedProducts = await ProductService.getByStoreId(store.id, { active_only: true });
-                    const cvProducts = ProductService.formatForCresceVendas(cachedProducts);
+                    const cachedProducts = await productService.getByStoreId(store.id, { active_only: true });
+                    const cvProducts = productService.formatForCresceVendas(cachedProducts);
 
                     const cvResult = await cvService.sendProducts(store.registration, cvProducts);
 
@@ -182,7 +182,7 @@ export class SyncService {
     /**
      * Busca lojas para sincronizar
      */
-    private static async getStoresToSync(storeIds?: number[]): Promise<any[]> {
+    private async getStoresToSync(storeIds?: number[]): Promise<any[]> {
         let query = db.selectFrom('stores')
             .select(['id', 'name', 'registration'])
             .where('active', '=', true)
@@ -200,7 +200,7 @@ export class SyncService {
     /**
      * Executa comparação entre RP e CresceVendas
      */
-    private static async executeComparison(
+    private async executeComparison(
         rpService: RPIntegrationService,
         cvService: CresceVendasIntegrationService,
         stores: any[],
@@ -214,7 +214,7 @@ export class SyncService {
             try {
                 // Buscar dados de ambas as fontes
                 const [cachedProducts, cvProducts] = await Promise.all([
-                    ProductService.getByStoreId(store.id, { active_only: true }),
+                    productService.getByStoreId(store.id, { active_only: true }),
                     cvService.getActiveProducts(store.registration)
                 ]);
 
@@ -298,7 +298,7 @@ export class SyncService {
     /**
      * Salva resultado da execução
      */
-    private static async saveExecutionResult(result: SyncExecutionResult): Promise<void> {
+    private async saveExecutionResult(result: SyncExecutionResult): Promise<void> {
         try {
             await db.insertInto('sync_executions')
                 .values({
@@ -321,7 +321,7 @@ export class SyncService {
     /**
      * Envia notificação de início
      */
-    private static async sendStartNotification(
+    private async sendStartNotification(
         channelId: number,
         storeCount: number,
         executionId: string
@@ -343,7 +343,7 @@ export class SyncService {
     /**
      * Envia notificação de conclusão
      */
-    private static async sendCompletionNotification(
+    async sendCompletionNotification(
         channelId: number,
         result: SyncExecutionResult
     ): Promise<void> {
@@ -393,7 +393,7 @@ export class SyncService {
     /**
      * Lista execuções de sync
      */
-    static async getExecutions(limit: number = 50): Promise<any[]> {
+    async getExecutions(limit: number = 50): Promise<any[]> {
         return await db.selectFrom('sync_executions')
             .selectAll()
             .orderBy('started_at', 'desc')
@@ -404,10 +404,256 @@ export class SyncService {
     /**
      * Busca execução por ID
      */
-    static async getExecutionById(executionId: string): Promise<any | null> {
+    async getExecutionById(executionId: string): Promise<any | null> {
         return await db.selectFrom('sync_executions')
             .selectAll()
             .where('id', '=', executionId)
             .executeTakeFirst();
     }
+
+    /**
+     * Cria uma nova configuração de sync
+     */
+    async createSyncConfiguration(data: any): Promise<any> {
+        const result = await db.insertInto('sync_configurations')
+            .values({
+                name: data.name,
+                description: data.description || null,
+                source_integration_id: data.source_integration_id,
+                target_integration_id: data.target_integration_id,
+                notification_channel_id: data.notification_channel_id || null,
+                store_ids: JSON.stringify(data.store_ids || []),
+                schedule: JSON.stringify(data.schedule || {}),
+                options: JSON.stringify(data.options || {}),
+                active: data.active !== undefined ? data.active : true
+            } as any)
+            .returning(['id'])
+            .executeTakeFirst();
+
+        if (result?.id) {
+            return this.getSyncConfigurationById(result.id);
+        }
+
+        throw new Error('Falha ao criar configuração de sync');
+    }
+
+    /**
+     * Atualiza uma configuração de sync
+     */
+    async update(data: any): Promise<any> {
+        const { id, ...updateData } = data;
+
+        const result = await db.updateTable('sync_configurations')
+            .set({
+                ...updateData,
+                updated_at: new Date()
+            })
+            .where('id', '=', id)
+            .where('deleted_at', 'is', null)
+            .returning(['id'])
+            .executeTakeFirst();
+
+        if (result?.id) {
+            return this.getSyncConfigurationById(result.id);
+        }
+
+        throw new Error('Configuração não encontrada ou falha na atualização');
+    }
+
+    /**
+     * Lista todas as configurações de sync com relacionamentos
+     */
+    async getAllSyncConfigurations(): Promise<any[]> {
+        return await db.selectFrom('sync_configurations as sc')
+            .leftJoin('integrations as si', 'sc.source_integration_id', 'si.id')
+            .leftJoin('integrations as ti', 'sc.target_integration_id', 'ti.id')
+            .leftJoin('notification_channels as nc', 'sc.notification_channel_id', 'nc.id')
+            .select([
+                // Campos da sync_configuration
+                'sc.id',
+                'sc.name',
+                'sc.description',
+                'sc.source_integration_id',
+                'sc.target_integration_id',
+                'sc.notification_channel_id',
+                'sc.store_ids',
+                'sc.schedule',
+                'sc.options',
+                'sc.active',
+                'sc.created_at',
+                'sc.updated_at',
+                'sc.deleted_at',
+
+                // Campos da source_integration
+                'si.id as source_integration_id_full',
+                'si.name as source_integration_name',
+                'si.type as source_integration_type',
+                'si.base_url as source_integration_base_url',
+                'si.email as source_integration_email',
+                'si.password as source_integration_password',
+                'si.config as source_integration_config',
+                'si.active as source_integration_active',
+                'si.created_at as source_integration_created_at',
+                'si.updated_at as source_integration_updated_at',
+                'si.deleted_at as source_integration_deleted_at',
+
+                // Campos da target_integration
+                'ti.id as target_integration_id_full',
+                'ti.name as target_integration_name',
+                'ti.type as target_integration_type',
+                'ti.base_url as target_integration_base_url',
+                'ti.email as target_integration_email',
+                'ti.password as target_integration_password',
+                'ti.config as target_integration_config',
+                'ti.active as target_integration_active',
+                'ti.created_at as target_integration_created_at',
+                'ti.updated_at as target_integration_updated_at',
+                'ti.deleted_at as target_integration_deleted_at',
+
+                // Campos da notification_channel
+                'nc.id as notification_channel_id_full',
+                'nc.name as notification_channel_name',
+                'nc.type as notification_channel_type',
+                'nc.config as notification_channel_config',
+                'nc.active as notification_channel_active',
+                'nc.created_at as notification_channel_created_at',
+                'nc.updated_at as notification_channel_updated_at',
+                'nc.deleted_at as notification_channel_deleted_at'
+            ])
+            .where('sc.deleted_at', 'is', null)
+            .execute()
+            .then(rows => rows.map(row => this.transformSyncConfigRow(row)));
+    }
+
+    /**
+     * Busca uma configuração de sync específica por ID
+     */
+    async getSyncConfigurationById(id: number): Promise<any | null> {
+        const result = await db.selectFrom('sync_configurations as sc')
+            .leftJoin('integrations as si', 'sc.source_integration_id', 'si.id')
+            .leftJoin('integrations as ti', 'sc.target_integration_id', 'ti.id')
+            .leftJoin('notification_channels as nc', 'sc.notification_channel_id', 'nc.id')
+            .select([
+                // Campos da sync_configuration
+                'sc.id',
+                'sc.name',
+                'sc.description',
+                'sc.source_integration_id',
+                'sc.target_integration_id',
+                'sc.notification_channel_id',
+                'sc.store_ids',
+                'sc.schedule',
+                'sc.options',
+                'sc.active',
+                'sc.created_at',
+                'sc.updated_at',
+                'sc.deleted_at',
+
+                // Campos da source_integration
+                'si.id as source_integration_id_full',
+                'si.name as source_integration_name',
+                'si.type as source_integration_type',
+                'si.base_url as source_integration_base_url',
+                'si.email as source_integration_email',
+                'si.password as source_integration_password',
+                'si.config as source_integration_config',
+                'si.active as source_integration_active',
+                'si.created_at as source_integration_created_at',
+                'si.updated_at as source_integration_updated_at',
+                'si.deleted_at as source_integration_deleted_at',
+
+                // Campos da target_integration
+                'ti.id as target_integration_id_full',
+                'ti.name as target_integration_name',
+                'ti.type as target_integration_type',
+                'ti.base_url as target_integration_base_url',
+                'ti.email as target_integration_email',
+                'ti.password as target_integration_password',
+                'ti.config as target_integration_config',
+                'ti.active as target_integration_active',
+                'ti.created_at as target_integration_created_at',
+                'ti.updated_at as target_integration_updated_at',
+                'ti.deleted_at as target_integration_deleted_at',
+
+                // Campos da notification_channel
+                'nc.id as notification_channel_id_full',
+                'nc.name as notification_channel_name',
+                'nc.type as notification_channel_type',
+                'nc.config as notification_channel_config',
+                'nc.active as notification_channel_active',
+                'nc.created_at as notification_channel_created_at',
+                'nc.updated_at as notification_channel_updated_at',
+                'nc.deleted_at as notification_channel_deleted_at'
+            ])
+            .where('sc.id', '=', id)
+            .where('sc.deleted_at', 'is', null)
+            .executeTakeFirst();
+
+        return result ? this.transformSyncConfigRow(result) : null;
+    }
+
+    /**
+     * Transforma row do banco na estrutura esperada pelo frontend
+     */
+    private transformSyncConfigRow(row: any): any {
+        return {
+            id: row.id,
+            name: row.name,
+            description: row.description,
+            source_integration_id: row.source_integration_id,
+            target_integration_id: row.target_integration_id,
+            notification_channel_id: row.notification_channel_id,
+            store_ids: row.store_ids,
+            schedule: row.schedule,
+            options: row.options,
+            active: row.active,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            deleted_at: row.deleted_at,
+
+            // Source Integration (pode ser null se não existir)
+            source_integration: row.source_integration_id_full ? {
+                id: row.source_integration_id_full,
+                name: row.source_integration_name,
+                type: row.source_integration_type,
+                base_url: row.source_integration_base_url,
+                email: row.source_integration_email,
+                password: row.source_integration_password,
+                config: row.source_integration_config,
+                active: row.source_integration_active,
+                created_at: row.source_integration_created_at,
+                updated_at: row.source_integration_updated_at,
+                deleted_at: row.source_integration_deleted_at
+            } : null,
+
+            // Target Integration (pode ser null se não existir)
+            target_integration: row.target_integration_id_full ? {
+                id: row.target_integration_id_full,
+                name: row.target_integration_name,
+                type: row.target_integration_type,
+                base_url: row.target_integration_base_url,
+                email: row.target_integration_email,
+                password: row.target_integration_password,
+                config: row.target_integration_config,
+                active: row.target_integration_active,
+                created_at: row.target_integration_created_at,
+                updated_at: row.target_integration_updated_at,
+                deleted_at: row.target_integration_deleted_at
+            } : null,
+
+            // Notification Channel (pode ser null se não existir)
+            notification_channel: row.notification_channel_id_full ? {
+                id: row.notification_channel_id_full,
+                name: row.notification_channel_name,
+                type: row.notification_channel_type,
+                config: row.notification_channel_config,
+                active: row.notification_channel_active,
+                created_at: row.notification_channel_created_at,
+                updated_at: row.notification_channel_updated_at,
+                deleted_at: row.notification_channel_deleted_at
+            } : null
+        };
+    }
 }
+
+export const syncService = new SyncService();

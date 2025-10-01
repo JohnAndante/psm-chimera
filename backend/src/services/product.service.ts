@@ -1,52 +1,17 @@
 import { db } from '../factory/database.factory.js';
+import {
+    ProductData,
+    CreateProductData,
+    UpdateProductData,
+    ProductFilters
+} from '../types/product.types.js';
 
-export interface ProductData {
-    id?: string;
-    code: number;
-    price: number;
-    final_price: number;
-    limit: number;
-    store_id: number;
-    starts_at?: string | null;
-    expires_at?: string | null;
-    created_at?: Date;
-    updated_at?: Date;
-    deleted_at?: Date | null;
-}
-
-export interface CreateProductData {
-    code: number;
-    price: number;
-    final_price: number;
-    limit: number;
-    store_id: number;
-    starts_at?: string;
-    expires_at?: string;
-}
-
-export interface UpdateProductData {
-    code?: number;
-    price?: number;
-    final_price?: number;
-    limit?: number;
-    starts_at?: string;
-    expires_at?: string;
-}
-
-export interface ProductFilters {
-    store_id?: number;
-    code?: number;
-    price_min?: number;
-    price_max?: number;
-    active_only?: boolean;
-}
-
-export class ProductService {
+class ProductService {
 
     /**
      * Busca todos os produtos
      */
-    static async getAllProducts(): Promise<ProductData[]> {
+    async getAllProducts(): Promise<ProductData[]> {
         return new Promise((resolve, reject) => {
             db.selectFrom('products')
                 .selectAll()
@@ -61,7 +26,7 @@ export class ProductService {
     /**
      * Busca produto por ID
      */
-    static async getProductById(id: string): Promise<ProductData | null> {
+    async getProductById(id: string): Promise<ProductData | null> {
         return new Promise((resolve, reject) => {
             db.selectFrom('products')
                 .selectAll()
@@ -76,7 +41,7 @@ export class ProductService {
     /**
      * Busca produtos por loja
      */
-    static async getByStoreId(storeId: number, filters: ProductFilters = {}): Promise<ProductData[]> {
+    async getByStoreId(storeId: number, filters: ProductFilters = {}): Promise<ProductData[]> {
         return new Promise((resolve, reject) => {
             let query = db.selectFrom('products')
                 .select([
@@ -133,7 +98,7 @@ export class ProductService {
     /**
      * Cria um produto
      */
-    static async createProduct(data: CreateProductData): Promise<ProductData> {
+    async createProduct(data: CreateProductData): Promise<ProductData> {
         return new Promise((resolve, reject) => {
             const productData = {
                 code: data.code,
@@ -157,9 +122,9 @@ export class ProductService {
     }
 
     /**
-     * Cria múltiplos produtos (batch)
-     */
-    static async createProducts(data: CreateProductData[]): Promise<void> {
+ * Cria múltiplos produtos
+ */
+    async createProducts(data: CreateProductData[]): Promise<void> {
         return new Promise((resolve, reject) => {
             if (data.length === 0) {
                 resolve();
@@ -189,7 +154,7 @@ export class ProductService {
     /**
      * Atualiza produto
      */
-    static async updateProduct(id: string, data: UpdateProductData): Promise<ProductData> {
+    async updateProduct(id: string, data: UpdateProductData): Promise<ProductData> {
         return new Promise((resolve, reject) => {
             const updateData: any = {
                 updated_at: new Date()
@@ -216,7 +181,7 @@ export class ProductService {
     /**
      * Deleta produto (soft delete)
      */
-    static async deleteProduct(id: string): Promise<void> {
+    async deleteProduct(id: string): Promise<void> {
         return new Promise((resolve, reject) => {
             db.updateTable('products')
                 .set({
@@ -234,7 +199,7 @@ export class ProductService {
     /**
      * Deleta todos os produtos de uma loja (para re-sync)
      */
-    static async deleteAllByStore(storeId: number): Promise<void> {
+    async deleteAllByStore(storeId: number): Promise<void> {
         return new Promise((resolve, reject) => {
             db.updateTable('products')
                 .set({
@@ -252,7 +217,7 @@ export class ProductService {
     /**
      * Deleta todos os produtos (hard delete - cuidado!)
      */
-    static async deleteAll(): Promise<void> {
+    async deleteAll(): Promise<void> {
         return new Promise((resolve, reject) => {
             db.deleteFrom('products')
                 .execute()
@@ -264,7 +229,7 @@ export class ProductService {
     /**
      * Conta produtos por loja
      */
-    static async countByStore(storeId: number): Promise<number> {
+    async countByStore(storeId: number): Promise<number> {
         return new Promise((resolve, reject) => {
             db.selectFrom('products')
                 .select((eb: any) => eb.fn.count('id').as('count'))
@@ -279,7 +244,7 @@ export class ProductService {
     /**
      * Busca produtos por códigos específicos
      */
-    static async getProductsByCodes(storeId: number, codes: number[]): Promise<ProductData[]> {
+    async getProductsByCodes(storeId: number, codes: number[]): Promise<ProductData[]> {
         return new Promise((resolve, reject) => {
             if (codes.length === 0) {
                 resolve([]);
@@ -301,32 +266,31 @@ export class ProductService {
     /**
      * Upsert de produtos (insert ou update se já existe)
      */
-    static async upsertProducts(storeId: number, products: CreateProductData[]): Promise<void> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                console.log(`[PRODUCTS] Upsert de ${products.length} produtos para loja ${storeId}`);
+    async upsertProducts(storeId: number, products: CreateProductData[]): Promise<void> {
+        console.log(`[PRODUCTS] Upsert de ${products.length} produtos para loja ${storeId}`);
 
-                // Primeiro, deletar produtos existentes da loja (soft delete)
-                await this.deleteAllByStore(storeId);
-
-                // Inserir novos produtos
+        // Primeiro, deletar produtos existentes da loja (soft delete)
+        return this.deleteAllByStore(storeId)
+            .then(() => {
+                // Inserir novos produtos se houver
                 if (products.length > 0) {
-                    await this.createProducts(products);
+                    return this.createProducts(products);
                 }
-
+                return Promise.resolve();
+            })
+            .then(() => {
                 console.log(`[PRODUCTS] Upsert concluído para loja ${storeId}`);
-                resolve();
-            } catch (error) {
+            })
+            .catch((error: any) => {
                 console.error(`[PRODUCTS] Erro no upsert para loja ${storeId}:`, error);
-                reject(error);
-            }
-        });
+                throw error;
+            });
     }
 
     /**
      * Converte produtos RP para formato interno
      */
-    static parseRPProducts(rpProducts: any[], storeId: number): CreateProductData[] {
+    parseRPProducts(rpProducts: any[], storeId: number): CreateProductData[] {
         const today = new Date().toISOString().slice(0, 10);
 
         return rpProducts.map((product: any) => ({
@@ -343,7 +307,7 @@ export class ProductService {
     /**
      * Converte produtos internos para formato CresceVendas
      */
-    static formatForCresceVendas(products: ProductData[]): any[] {
+    formatForCresceVendas(products: ProductData[]): any[] {
         return products.map((product: ProductData) => ({
             code: product.code,
             price: product.price,
@@ -351,4 +315,7 @@ export class ProductService {
             limit: product.limit
         }));
     }
+
 }
+
+export const productService = new ProductService();
