@@ -4,6 +4,7 @@ import { notificationChannelService } from '../services/notificationChannel.serv
 import { NotificationChannelData, NotificationChannelFilters, NotificationChannelType } from '../types/notification.type';
 
 export class NotificationChannelController {
+
   // GET /api/v1/notifications/channels
   static getAll(req: AuthenticatedRequest, res: Response) {
     const filters: NotificationChannelFilters = {};

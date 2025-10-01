@@ -2,6 +2,7 @@ import * as cron from 'node-cron';
 import { TelegramService } from '../services/telegram.service';
 import { db } from '../factory/database.factory';
 import { SyncJobService } from '../services/sync.job.service';
+import { logService } from '../services/log.service';
 import { randomUUID } from 'crypto';
 
 export class CronTestController {
@@ -84,6 +85,16 @@ export class CronTestController {
         this.lastExecution = now;
 
         console.log(`🕐 [CRON TEST #${this.executionCount}] Executando teste às ${timestamp}`);
+
+        // Criar sessão de logs para esta execução
+        const sessionId = `cron-test-${this.executionCount}-${Date.now()}`;
+
+        // Log estruturado do início da execução
+        await logService.info('CRON_TEST', `Execução #${this.executionCount} iniciada`, {
+            execution_number: this.executionCount,
+            timestamp: now.toISOString(),
+            test_type: 'automatic'
+        }, sessionId);
 
         try {
             // Teste 1: Verificar conexão com banco
@@ -199,6 +210,14 @@ export class CronTestController {
                 parse_mode: 'Markdown'
             });
             console.log('📤 [CRON TEST] Notificação enviada via Telegram');
+
+            // Log estruturado de sucesso
+            await logService.success('CRON_TEST', `Execução #${this.executionCount} concluída com sucesso`, {
+                execution_number: this.executionCount,
+                database_test: results.database_test,
+                sync_test: results.sync_test,
+                notification_sent: true
+            });
 
         } catch (error: any) {
             if (error.message?.includes('chat not found')) {
