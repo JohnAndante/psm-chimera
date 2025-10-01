@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../utils/auth';
 import { storeService } from '../services/store.service';
 import { StoreFilters } from '../types/store.types';
-import { SyncService } from '../services/sync.service';
+import { syncService } from '../services/sync.service';
 
 export class StoreController {
 
@@ -276,7 +276,7 @@ export class StoreController {
         const storeId = parseInt(id); // Validação já foi feita pelo middleware
 
         // Executar sincronização usando syncService
-        SyncService.executeSync({
+        syncService.executeSync({
             store_ids: [storeId],
             notification_channel_id: notification_channel_id ? parseInt(notification_channel_id) : undefined,
             options: {
