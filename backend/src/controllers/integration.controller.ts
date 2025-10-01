@@ -218,56 +218,53 @@ export class IntegrationController {
             });
         }
 
-        try {
-            const validTypes = ['RP', 'CRESCEVENDAS', 'TELEGRAM', 'EMAIL', 'WEBHOOK'];
+        const validTypes = ['RP', 'CRESCEVENDAS', 'TELEGRAM', 'EMAIL', 'WEBHOOK'];
 
-            if (!validTypes.includes(type)) {
-                return res.status(400).json({
-                    error: 'Tipo de integração inválido'
-                });
-            }
-
-            let validationResult;
-
-            switch (type) {
-                case 'RP': {
-                    const { RPIntegrationService } = await import('../services/rp.integration.service.js');
-                    validationResult = RPIntegrationService.validateConfig(config);
-                    break;
-                }
-
-                case 'CRESCEVENDAS': {
-                    const { CresceVendasIntegrationService } = await import('../services/crescevendas.integration.service.js');
-                    validationResult = CresceVendasIntegrationService.validateConfig(config);
-                    break;
-                }
-
-                default:
-                    validationResult = {
-                        valid: false,
-                        errors: [`Validação para tipo '${type}' não implementada ainda`]
-                    };
-            }
-
-            if (validationResult.valid) {
-                res.json({
-                    message: 'Configuração válida',
-                    valid: true
-                });
-            } else {
-                res.status(400).json({
-                    message: 'Configuração inválida',
-                    valid: false,
-                    errors: validationResult.errors
-                });
-            }
-
-        } catch (error) {
-            console.error('Erro ao validar configuração:', error);
-            res.status(500).json({
-                error: 'Erro interno do servidor'
+        if (!validTypes.includes(type)) {
+            return res.status(400).json({
+                error: 'Tipo de integração inválido'
             });
         }
+
+        const validateConfigByType = () => {
+            switch (type) {
+                case 'RP':
+                    return import('../services/rp.integration.service.js')
+                        .then(({ RPIntegrationService }) => RPIntegrationService.validateConfig(config));
+
+                case 'CRESCEVENDAS':
+                    return import('../services/crescevendas.integration.service.js')
+                        .then(({ CresceVendasIntegrationService }) => CresceVendasIntegrationService.validateConfig(config));
+
+                default:
+                    return Promise.resolve({
+                        valid: false,
+                        errors: [`Validação para tipo '${type}' não implementada ainda`]
+                    });
+            }
+        };
+
+        return validateConfigByType()
+            .then((validationResult) => {
+                if (validationResult.valid) {
+                    return res.json({
+                        message: 'Configuração válida',
+                        valid: true
+                    });
+                } else {
+                    return res.status(400).json({
+                        message: 'Configuração inválida',
+                        valid: false,
+                        errors: validationResult.errors
+                    });
+                }
+            })
+            .catch((error) => {
+                console.error('Erro ao validar configuração:', error);
+                return res.status(500).json({
+                    error: 'Erro interno do servidor'
+                });
+            });
     }
 
     // GET /api/v1/integrations/:id/status
