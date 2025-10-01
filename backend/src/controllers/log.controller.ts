@@ -20,157 +20,156 @@ export class LogController {
      * GET /logs - Retrieve logs with filtering support
      */
     static async getLogs(req: AuthenticatedRequest, res: Response): Promise<Response> {
-        try {
-            const filters: LogFilters = {
-                startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
-                endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
-                level: req.query.level as LogLevel,
-                category: req.query.category as string,
-                sessionId: req.query.sessionId as string,
-                search: req.query.search as string,
-                limit: req.query.limit ? parseInt(req.query.limit as string) : 100,
-                offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
-            };
+        const filters: LogFilters = {
+            startDate: req.query.startDate ? new Date(req.query.startDate as string) : undefined,
+            endDate: req.query.endDate ? new Date(req.query.endDate as string) : undefined,
+            level: req.query.level as LogLevel,
+            category: req.query.category as string,
+            sessionId: req.query.sessionId as string,
+            search: req.query.search as string,
+            limit: req.query.limit ? parseInt(req.query.limit as string) : 100,
+            offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
+        };
 
-            const logs = await logService.getLogs(filters);
+        return logService.getLogs(filters)
+            .then(logs => {
+                return res.json({
+                    success: true,
+                    data: logs,
+                    total: logs.length,
+                    filters: filters,
+                });
+            })
+            .catch((error: any) => {
+                logService.error('API', `Erro ao buscar logs: ${error?.message}`, {
+                    error: error?.stack,
+                    user_id: req.user?.id,
+                });
 
-            return res.json({
-                success: true,
-                data: logs,
-                total: logs.length,
-                filters: filters,
+                return res.status(500).json({
+                    success: false,
+                    message: 'Erro ao buscar logs',
+                    error: error?.message,
+                });
             });
-        } catch (error: any) {
-            await logService.error('API', `Erro ao buscar logs: ${error?.message}`, {
-                error: error?.stack,
-                user_id: req.user?.id,
-            });
-
-            return res.status(500).json({
-                success: false,
-                message: 'Erro ao buscar logs',
-                error: error?.message,
-            });
-        }
     }
 
     /**
      * GET /logs/session/:sessionId - Get logs by session ID
      */
     static async getLogsBySession(req: AuthenticatedRequest, res: Response): Promise<Response> {
-        try {
-            const { sessionId } = req.params;
+        const { sessionId } = req.params;
 
-            if (!sessionId) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Session ID é obrigatório',
-                });
-            }
-
-            const logs = await logService.getLogs({ sessionId });
-
-            return res.json({
-                success: true,
-                data: logs,
-                session_id: sessionId,
-                total: logs.length,
-            });
-        } catch (error: any) {
-            await logService.error('API', `Erro ao buscar logs da sessão: ${error?.message}`, {
-                error: error?.stack,
-                session_id: req.params.sessionId,
-                user_id: req.user?.id,
-            });
-
-            return res.status(500).json({
+        if (!sessionId) {
+            return res.status(400).json({
                 success: false,
-                message: 'Erro ao buscar logs da sessão',
-                error: error?.message,
+                message: 'Session ID é obrigatório',
             });
         }
+
+        return logService.getLogs({ sessionId })
+            .then(logs => {
+                return res.json({
+                    success: true,
+                    data: logs,
+                    session_id: sessionId,
+                    total: logs.length,
+                });
+            })
+            .catch((error: any) => {
+                logService.error('API', `Erro ao buscar logs da sessão: ${error?.message}`, {
+                    error: error?.stack,
+                    session_id: req.params.sessionId,
+                    user_id: req.user?.id,
+                });
+
+                return res.status(500).json({
+                    success: false,
+                    message: 'Erro ao buscar logs da sessão',
+                    error: error?.message,
+                });
+            });
     }
 
     /**
      * GET /logs/categories - Get available log categories
      */
     static async getLogCategories(req: AuthenticatedRequest, res: Response): Promise<Response> {
-        try {
-            const categories = await logService.getCategories();
+        return logService.getCategories()
+            .then(categories => {
+                return res.json({
+                    success: true,
+                    data: categories,
+                    total: categories.length,
+                });
+            })
+            .catch((error: any) => {
+                logService.error('API', `Erro ao buscar categorias: ${error?.message}`, {
+                    error: error?.stack,
+                    user_id: req.user?.id,
+                });
 
-            return res.json({
-                success: true,
-                data: categories,
-                total: categories.length,
+                return res.status(500).json({
+                    success: false,
+                    message: 'Erro ao buscar categorias',
+                    error: error?.message,
+                });
             });
-        } catch (error: any) {
-            await logService.error('API', `Erro ao buscar categorias: ${error?.message}`, {
-                error: error?.stack,
-                user_id: req.user?.id,
-            });
-
-            return res.status(500).json({
-                success: false,
-                message: 'Erro ao buscar categorias',
-                error: error?.message,
-            });
-        }
     }
 
     /**
      * GET /logs/statistics - Get log statistics and metrics
      */
     static async getLogStatistics(req: AuthenticatedRequest, res: Response): Promise<Response> {
-        try {
-            const statistics = await logService.getStatistics();
+        return logService.getStatistics()
+            .then(statistics => {
+                return res.json({
+                    success: true,
+                    data: statistics,
+                });
+            })
+            .catch((error: any) => {
+                logService.error('API', `Erro ao buscar estatísticas: ${error?.message}`, {
+                    error: error?.stack,
+                    user_id: req.user?.id,
+                });
 
-            return res.json({
-                success: true,
-                data: statistics,
+                return res.status(500).json({
+                    success: false,
+                    message: 'Erro ao buscar estatísticas',
+                    error: error?.message,
+                });
             });
-        } catch (error: any) {
-            await logService.error('API', `Erro ao buscar estatísticas: ${error?.message}`, {
-                error: error?.stack,
-                user_id: req.user?.id,
-            });
-
-            return res.status(500).json({
-                success: false,
-                message: 'Erro ao buscar estatísticas',
-                error: error?.message,
-            });
-        }
     }
 
     /**
      * POST /logs/cleanup - Manual cleanup trigger
      */
     static async cleanupLogs(req: AuthenticatedRequest, res: Response): Promise<Response> {
-        try {
-            await logService.info('API', 'Limpeza manual iniciada', {
-                user_id: req.user?.id,
-                user_email: req.user?.email,
-            });
+        return logService.info('API', 'Limpeza manual iniciada', {
+            user_id: req.user?.id,
+            user_email: req.user?.email,
+        })
+            .then(() => logService.cleanupOldLogs())
+            .then(result => {
+                return res.json({
+                    success: true,
+                    message: 'Limpeza concluída com sucesso',
+                    data: result,
+                });
+            })
+            .catch((error: any) => {
+                logService.error('API', `Erro na limpeza manual: ${error?.message}`, {
+                    error: error?.stack,
+                    user_id: req.user?.id,
+                });
 
-            const result = await logService.cleanupOldLogs();
-
-            return res.json({
-                success: true,
-                message: 'Limpeza concluída com sucesso',
-                data: result,
+                return res.status(500).json({
+                    success: false,
+                    message: 'Erro na limpeza de logs',
+                    error: error?.message,
+                });
             });
-        } catch (error: any) {
-            await logService.error('API', `Erro na limpeza manual: ${error?.message}`, {
-                error: error?.stack,
-                user_id: req.user?.id,
-            });
-
-            return res.status(500).json({
-                success: false,
-                message: 'Erro na limpeza de logs',
-                error: error?.message,
-            });
-        }
     }
 
     /**
@@ -238,31 +237,31 @@ export class LogController {
      * POST /logs/test - Create test log entry (development only)
      */
     static async createTestLog(req: AuthenticatedRequest, res: Response): Promise<Response> {
-        try {
-            const { level = 'INFO', category = 'TEST', message = 'Test log entry' } = req.body;
+        const { level = 'INFO', category = 'TEST', message = 'Test log entry' } = req.body;
 
-            await logService.log({
-                level: level as LogLevel,
-                category,
-                message,
-                metadata: {
-                    test: true,
-                    user_id: req.user?.id,
-                    timestamp: new Date().toISOString(),
-                },
-                source: 'manual',
+        return logService.log({
+            level: level as LogLevel,
+            category,
+            message,
+            metadata: {
+                test: true,
+                user_id: req.user?.id,
+                timestamp: new Date().toISOString(),
+            },
+            source: 'manual',
+        })
+            .then(() => {
+                return res.json({
+                    success: true,
+                    message: 'Log de teste criado com sucesso',
+                });
+            })
+            .catch((error: any) => {
+                return res.status(500).json({
+                    success: false,
+                    message: 'Erro ao criar log de teste',
+                    error: error?.message,
+                });
             });
-
-            return res.json({
-                success: true,
-                message: 'Log de teste criado com sucesso',
-            });
-        } catch (error: any) {
-            return res.status(500).json({
-                success: false,
-                message: 'Erro ao criar log de teste',
-                error: error?.message,
-            });
-        }
     }
 }
