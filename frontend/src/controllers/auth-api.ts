@@ -33,6 +33,19 @@ class AuthApi {
             return handleAxiosError(error as AxiosError);
         }
     }
+
+    /**
+     * Valida o token JWT no backend
+     */
+    async validateToken(): Promise<boolean> {
+        try {
+            const response = await this.axiosInstance.get(AUTH_ENDPOINTS.VALIDATE_TOKEN);
+            return response.status === 200;
+        } catch (error) {
+            console.log('Token validation error:', error);
+            return false;
+        }
+    }
 }
 
 // ===========================

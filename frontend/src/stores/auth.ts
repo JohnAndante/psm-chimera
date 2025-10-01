@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import { saveAuthData, loadAuthData, removeAuthData } from "@/lib/auth"
 import type { LoginUserData } from "@/types/auth"
+import { authApi } from "@/controllers"
 
 export type User = {
     id: string
@@ -22,6 +23,7 @@ type AuthState = {
     logout: () => void
     loadFromStorage: () => void
     isAuthenticated: () => boolean
+    validateToken: () => Promise<void>
 }
 
 export const useAuth = create<AuthState>((set) => ({
@@ -75,5 +77,17 @@ export const useAuth = create<AuthState>((set) => ({
         const authData = loadAuthData()
         const isAuth = !!authData?.token
         return isAuth
+    },
+
+    validateToken: async () => {
+        const isValid = await authApi.validateToken();
+
+        if (!isValid) {
+            removeAuthData();
+            set({ token: null, user: null });
+
+            // Forçar recarregamento para redirecionar para login
+            window.location.reload();
+        }
     }
 }))

@@ -3,6 +3,7 @@
  */
 export const AUTH_ENDPOINTS = {
     LOGIN: 'v1/auth/login',
+    VALIDATE_TOKEN: 'v1/auth/validate-token',
 } as const;
 
 export const AUTH_STORAGE_KEYS = {
