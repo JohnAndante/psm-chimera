@@ -1,289 +1,237 @@
-datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
-}
-
 generator client {
-    provider = "prisma-client-js"
-    output   = "../generated/prisma"
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
-enum UserType {
-    ADMIN
-    USER
-}
-
-enum NotificationType {
-    TELEGRAM
-    EMAIL
-    WEBHOOK
-}
-
-enum JobType {
-    SYNC_PRODUCTS
-    COMPARE_DATA
-    CLEANUP_LOGS
-    CUSTOM
-}
-
-enum ExecutionStatus {
-    PENDING
-    RUNNING
-    SUCCESS
-    FAILED
-    CANCELLED
-}
-
-enum IntegrationType {
-    RP
-    CRESCEVENDAS
-    TELEGRAM
-    EMAIL
-    WEBHOOK
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-    id    Int      @id @default(autoincrement())
-    email String   @unique
-    name  String?
-    role  UserType @default(ADMIN)
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  name      String?
+  role      UserType  @default(ADMIN)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  deletedAt DateTime?
+  auth      Auth?
 
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @default(now()) @updatedAt
-    deletedAt DateTime?
-
-    auth Auth?
-
-    @@map("users")
+  @@map("users")
 }
 
 model Auth {
-    id Int @id @default(autoincrement())
+  id            Int       @id @default(autoincrement())
+  user_id       Int       @unique
+  email         String    @unique
+  password_hash String
+  active        Boolean   @default(true)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @default(now()) @updatedAt
+  deleted_at    DateTime?
+  user          User      @relation(fields: [user_id], references: [id])
 
-    user_id       Int    @unique
-    email         String @unique
-    password_hash String
-
-    active Boolean @default(true)
-
-    created_at DateTime  @default(now())
-    updated_at DateTime  @default(now()) @updatedAt
-    deleted_at DateTime?
-
-    user User @relation(fields: [user_id], references: [id])
-
-    @@map("authentications")
+  @@map("authentications")
 }
 
 model Integration {
-    id       Int             @id @default(autoincrement())
-    name     String          @unique
-    type     IntegrationType @default(RP)
-    base_url String?
-    email    String?
-    password String?
-    config   Json?
+  id                     Int                 @id @default(autoincrement())
+  name                   String              @unique
+  base_url               String?
+  email                  String?
+  password               String?
+  config                 Json?
+  active                 Boolean             @default(true)
+  created_at             DateTime            @default(now())
+  updated_at             DateTime            @default(now()) @updatedAt
+  deleted_at             DateTime?
+  type                   IntegrationType     @default(RP)
+  integrationKey         IntegrationKey[]
+  job_configs            JobConfiguration[]
+  sync_configs_as_source SyncConfiguration[] @relation("SyncSourceIntegration")
+  sync_configs_as_target SyncConfiguration[] @relation("SyncTargetIntegration")
 
-    active Boolean @default(true)
-
-    created_at DateTime  @default(now())
-    updated_at DateTime  @default(now()) @updatedAt
-    deleted_at DateTime?
-
-    integrationKey IntegrationKey[]
-    job_configs    JobConfiguration[]
-
-    // Sync system relationships
-    sync_configs_as_source SyncConfiguration[] @relation("SyncSourceIntegration")
-    sync_configs_as_target SyncConfiguration[] @relation("SyncTargetIntegration")
-
-    @@map("integrations")
+  @@map("integrations")
 }
 
 model IntegrationKey {
-    id Int @id @default(autoincrement())
+  id             Int         @id @default(autoincrement())
+  integration_id Int
+  key            String      @unique
+  expires_at     DateTime?
+  created_at     DateTime    @default(now())
+  updated_at     DateTime    @default(now()) @updatedAt
+  deleted_at     DateTime?
+  integration    Integration @relation(fields: [integration_id], references: [id])
 
-    integration_id Int
-    key            String    @unique
-    expires_at     DateTime?
-
-    created_at DateTime  @default(now())
-    updated_at DateTime  @default(now()) @updatedAt
-    deleted_at DateTime?
-
-    integration Integration @relation(fields: [integration_id], references: [id])
-
-    @@map("integration_keys")
+  @@map("integration_keys")
 }
 
 model Store {
-    id Int @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
+  name         String
+  registration String    @unique
+  document     String    @default("")
+  active       Boolean   @default(true)
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @default(now()) @updatedAt
+  deleted_at   DateTime?
+  products     Product[]
 
-    name         String
-    registration String  @unique
-    document     String  @default("")
-    active       Boolean @default(true)
-
-    created_at DateTime  @default(now())
-    updated_at DateTime  @default(now()) @updatedAt
-    deleted_at DateTime?
-
-    products Product[]
-
-    @@map("stores")
+  @@map("stores")
 }
 
 model Product {
-    id          String @id @default(uuid())
-    code        Int
-    price       Float
-    final_price Float
-    limit       Int
+  id          String    @id @default(uuid())
+  code        Int
+  price       Float
+  final_price Float
+  limit       Int
+  store_id    Int
+  starts_at   String?
+  expires_at  String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @default(now()) @updatedAt
+  deleted_at  DateTime?
+  store       Store     @relation(fields: [store_id], references: [id])
 
-    store_id   Int
-    starts_at  String?
-    expires_at String?
-
-    created_at DateTime  @default(now())
-    updated_at DateTime  @default(now()) @updatedAt
-    deleted_at DateTime?
-
-    store Store @relation(fields: [store_id], references: [id])
-
-    @@map("products")
+  @@map("products")
 }
 
 model NotificationChannel {
-    id     Int              @id @default(autoincrement())
-    name   String           @unique
-    type   NotificationType
-    config Json // Flexible config for different types: { chat_id, bot_token, email, webhook_url, etc }
-    active Boolean          @default(true)
+  id                  Int                 @id @default(autoincrement())
+  name                String              @unique
+  type                NotificationType
+  config              Json
+  active              Boolean             @default(true)
+  created_at          DateTime            @default(now())
+  updated_at          DateTime            @updatedAt
+  deleted_at          DateTime?
+  job_notifications   JobNotification[]
+  sync_configurations SyncConfiguration[]
 
-    created_at DateTime  @default(now())
-    updated_at DateTime  @updatedAt
-    deleted_at DateTime?
-
-    job_notifications   JobNotification[]
-    sync_configurations SyncConfiguration[]
-
-    @@map("notification_channels")
+  @@map("notification_channels")
 }
 
 model JobConfiguration {
-    id           Int     @id @default(autoincrement())
-    name         String  @unique
-    description  String?
-    cron_pattern String // "0 5 * * *" - cron expression
-    job_type     JobType
-    config       Json // Job-specific configuration
-    active       Boolean @default(true)
+  id                   Int               @id @default(autoincrement())
+  name                 String            @unique
+  description          String?
+  cron_pattern         String
+  job_type             JobType
+  config               Json
+  active               Boolean           @default(true)
+  integration_id       Int?
+  created_at           DateTime          @default(now())
+  updated_at           DateTime          @updatedAt
+  deleted_at           DateTime?
+  integration          Integration?      @relation(fields: [integration_id], references: [id])
+  executions           JobExecution[]
+  notification_configs JobNotification[]
 
-    // Relationships
-    integration_id Int? // Optional: specific integration to use
-
-    created_at DateTime  @default(now())
-    updated_at DateTime  @updatedAt
-    deleted_at DateTime?
-
-    executions           JobExecution[]
-    notification_configs JobNotification[]
-    integration          Integration?      @relation(fields: [integration_id], references: [id])
-
-    @@map("job_configurations")
+  @@map("job_configurations")
 }
 
 model JobExecution {
-    id            String          @id @default(uuid())
-    job_config_id Int
-    status        ExecutionStatus
-    started_at    DateTime        @default(now())
-    finished_at   DateTime?
-    logs          String? // Structured logs as text
-    metrics       Json? // Performance metrics: { duration, records_processed, errors_count }
-    error_details Json? // Error stack trace, context, etc
+  id            String           @id @default(uuid())
+  job_config_id Int
+  status        ExecutionStatus
+  started_at    DateTime         @default(now())
+  finished_at   DateTime?
+  logs          String?
+  metrics       Json?
+  error_details Json?
+  job_config    JobConfiguration @relation(fields: [job_config_id], references: [id])
 
-    job_config JobConfiguration @relation(fields: [job_config_id], references: [id])
-
-    @@map("job_executions")
+  @@map("job_executions")
 }
 
 model JobNotification {
-    id                      Int @id @default(autoincrement())
-    job_config_id           Int
-    notification_channel_id Int
+  id                      Int                 @id @default(autoincrement())
+  job_config_id           Int
+  notification_channel_id Int
+  on_success              Boolean             @default(false)
+  on_failure              Boolean             @default(true)
+  on_start                Boolean             @default(false)
+  created_at              DateTime            @default(now())
+  updated_at              DateTime            @updatedAt
+  job_config              JobConfiguration    @relation(fields: [job_config_id], references: [id])
+  notification_channel    NotificationChannel @relation(fields: [notification_channel_id], references: [id])
 
-    // When to notify
-    on_success Boolean @default(false)
-    on_failure Boolean @default(true)
-    on_start   Boolean @default(false)
-
-    created_at DateTime @default(now())
-    updated_at DateTime @updatedAt
-
-    job_config           JobConfiguration    @relation(fields: [job_config_id], references: [id])
-    notification_channel NotificationChannel @relation(fields: [notification_channel_id], references: [id])
-
-    @@unique([job_config_id, notification_channel_id])
-    @@map("job_notifications")
+  @@unique([job_config_id, notification_channel_id])
+  @@map("job_notifications")
 }
 
-// Sistema de Sync RP → CresceVendas (novo sistema focado)
 model SyncConfiguration {
-    id          Int     @id @default(autoincrement())
-    name        String  @unique
-    description String?
+  id                      Int                  @id @default(autoincrement())
+  name                    String               @unique
+  description             String?
+  source_integration_id   Int
+  target_integration_id   Int
+  notification_channel_id Int?
+  store_ids               Json                 @default("[]")
+  schedule                Json?
+  options                 Json                 @default("{}")
+  active                  Boolean              @default(true)
+  created_at              DateTime             @default(now())
+  updated_at              DateTime             @updatedAt
+  deleted_at              DateTime?
+  notification_channel    NotificationChannel? @relation(fields: [notification_channel_id], references: [id])
+  source_integration      Integration          @relation("SyncSourceIntegration", fields: [source_integration_id], references: [id])
+  target_integration      Integration          @relation("SyncTargetIntegration", fields: [target_integration_id], references: [id])
+  executions              SyncExecution[]
 
-    source_integration_id   Int // RP Integration
-    target_integration_id   Int // CresceVendas Integration
-    notification_channel_id Int? // Telegram notifications
-
-    // Configuração de lojas (JSON array de IDs ou vazio para todas)
-    store_ids Json @default("[]") // number[]
-
-    // Configuração de agendamento
-    schedule Json? // { sync_time: "05:00", compare_time: "05:30" }
-
-    // Opções de execução
-    options Json @default("{}") // { batch_size: 100, cleanup_old_data: true, send_notifications: true }
-
-    active Boolean @default(true)
-
-    created_at DateTime  @default(now())
-    updated_at DateTime  @updatedAt
-    deleted_at DateTime?
-
-    // Relationships
-    source_integration   Integration          @relation("SyncSourceIntegration", fields: [source_integration_id], references: [id])
-    target_integration   Integration          @relation("SyncTargetIntegration", fields: [target_integration_id], references: [id])
-    notification_channel NotificationChannel? @relation(fields: [notification_channel_id], references: [id])
-
-    executions SyncExecution[]
-
-    @@map("sync_configurations")
+  @@map("sync_configurations")
 }
 
 model SyncExecution {
-    id             String @id @default(uuid())
-    sync_config_id Int? // Null para execuções ad-hoc
+  id                 String             @id @default(uuid())
+  sync_config_id     Int?
+  status             ExecutionStatus    @default(PENDING)
+  started_at         DateTime           @default(now())
+  finished_at        DateTime?
+  stores_processed   Json
+  summary            Json
+  comparison_results Json?
+  execution_logs     String?
+  error_details      Json?
+  created_at         DateTime           @default(now())
+  sync_config        SyncConfiguration? @relation(fields: [sync_config_id], references: [id])
 
-    status      ExecutionStatus @default(PENDING)
-    started_at  DateTime        @default(now())
-    finished_at DateTime?
+  @@map("sync_executions")
+}
 
-    // Dados de execução
-    stores_processed   Json // Array de { store_id, store_name, products_synced, status, error? }
-    summary            Json // { total_stores, successful_stores, failed_stores, total_products, execution_time }
-    comparison_results Json? // Array de ComparisonResult (opcional)
+enum UserType {
+  ADMIN
+  USER
+}
 
-    // Logs e métricas
-    execution_logs String? // Logs detalhados da execução
-    error_details  Json? // Detalhes de erro se falhou
+enum NotificationType {
+  TELEGRAM
+  EMAIL
+  WEBHOOK
+}
 
-    created_at DateTime @default(now())
+enum JobType {
+  SYNC_PRODUCTS
+  COMPARE_DATA
+  CLEANUP_LOGS
+  CUSTOM
+}
 
-    // Relationships
-    sync_config SyncConfiguration? @relation(fields: [sync_config_id], references: [id])
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
 
-    @@map("sync_executions")
+enum IntegrationType {
+  RP
+  CRESCEVENDAS
+  TELEGRAM
+  EMAIL
+  WEBHOOK
 }
