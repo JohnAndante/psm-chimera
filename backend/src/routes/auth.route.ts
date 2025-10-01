@@ -17,6 +17,9 @@ router.post('/refresh', authenticateToken, AuthController.refresh);
 // GET /api/v1/auth/me
 router.get('/me', authenticateToken, AuthController.me);
 
+// GET /api/v1/auth/validate-token
+router.get('/validate-token', authenticateToken, AuthController.validateToken);
+
 // POST /api/v1/auth/change-password
 router.post('/change-password', authenticateToken, AuthController.changePassword);
 

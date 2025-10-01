@@ -102,6 +102,23 @@ export class AuthController {
             });
     }
 
+    // GET /api/v1/auth/validate-token
+    static async validateToken(req: AuthenticatedRequest, res: Response) {
+        if (!req.user) {
+            return res.status(401).json({
+                error: 'Token inválido ou expirado',
+                valid: false
+            });
+        }
+
+        // Se chegou até aqui, o token é válido (passou pelo middleware authenticateToken)
+        res.json({
+            message: 'Token válido',
+            valid: true,
+            user: req.user
+        });
+    }
+
     // POST /api/v1/auth/change-password
     static async changePassword(req: AuthenticatedRequest, res: Response) {
         const {
