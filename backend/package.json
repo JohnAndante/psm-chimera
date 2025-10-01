@@ -17,6 +17,7 @@
         "db:setup": "npm run db:generate && npm run db:migrate && npm run db:seed"
     },
     "devDependencies": {
+        "@types/axios": "^0.9.36",
         "@types/express": "^5.0.3",
         "@types/joi": "^17.2.2",
         "@types/node": "^24.5.2",
@@ -37,6 +38,7 @@
         "@types/jsonwebtoken": "^9.0.10",
         "@types/node-cron": "^3.0.11",
         "@types/pg": "^8.15.5",
+        "axios": "^1.12.2",
         "bcryptjs": "^3.0.2",
         "cors": "^2.8.5",
         "dotenv": "^17.2.2",
