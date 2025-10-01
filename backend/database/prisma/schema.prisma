@@ -93,6 +93,10 @@ model Integration {
     integrationKey IntegrationKey[]
     job_configs    JobConfiguration[]
 
+    // Sync system relationships
+    sync_configs_as_source SyncConfiguration[] @relation("SyncSourceIntegration")
+    sync_configs_as_target SyncConfiguration[] @relation("SyncTargetIntegration")
+
     @@map("integrations")
 }
 
@@ -150,75 +154,136 @@ model Product {
 }
 
 model NotificationChannel {
-    id           Int                 @id @default(autoincrement())
-    name         String              @unique
-    type         NotificationType
-    config       Json // Flexible config for different types: { chat_id, bot_token, email, webhook_url, etc }
-    active       Boolean             @default(true)
-    
-    created_at   DateTime            @default(now())
-    updated_at   DateTime            @updatedAt
-    deleted_at   DateTime?
-    
-    job_notifications JobNotification[]
+    id     Int              @id @default(autoincrement())
+    name   String           @unique
+    type   NotificationType
+    config Json // Flexible config for different types: { chat_id, bot_token, email, webhook_url, etc }
+    active Boolean          @default(true)
+
+    created_at DateTime  @default(now())
+    updated_at DateTime  @updatedAt
+    deleted_at DateTime?
+
+    job_notifications   JobNotification[]
+    sync_configurations SyncConfiguration[]
 
     @@map("notification_channels")
 }
 
 model JobConfiguration {
-    id               Int                 @id @default(autoincrement())
-    name             String              @unique
-    description      String?
-    cron_pattern     String              // "0 5 * * *" - cron expression
-    job_type         JobType
-    config           Json                // Job-specific configuration
-    active           Boolean             @default(true)
-    
+    id           Int     @id @default(autoincrement())
+    name         String  @unique
+    description  String?
+    cron_pattern String // "0 5 * * *" - cron expression
+    job_type     JobType
+    config       Json // Job-specific configuration
+    active       Boolean @default(true)
+
     // Relationships
-    integration_id   Int?                // Optional: specific integration to use
-    
-    created_at       DateTime            @default(now())
-    updated_at       DateTime            @updatedAt
-    deleted_at       DateTime?
-    
+    integration_id Int? // Optional: specific integration to use
+
+    created_at DateTime  @default(now())
+    updated_at DateTime  @updatedAt
+    deleted_at DateTime?
+
     executions           JobExecution[]
     notification_configs JobNotification[]
-    integration          Integration?     @relation(fields: [integration_id], references: [id])
+    integration          Integration?      @relation(fields: [integration_id], references: [id])
 
     @@map("job_configurations")
 }
 
 model JobExecution {
-    id              String           @id @default(uuid())
-    job_config_id   Int
-    status          ExecutionStatus
-    started_at      DateTime         @default(now())
-    finished_at     DateTime?
-    logs            String?          // Structured logs as text
-    metrics         Json?            // Performance metrics: { duration, records_processed, errors_count }
-    error_details   Json?            // Error stack trace, context, etc
-    
-    job_config      JobConfiguration @relation(fields: [job_config_id], references: [id])
+    id            String          @id @default(uuid())
+    job_config_id Int
+    status        ExecutionStatus
+    started_at    DateTime        @default(now())
+    finished_at   DateTime?
+    logs          String? // Structured logs as text
+    metrics       Json? // Performance metrics: { duration, records_processed, errors_count }
+    error_details Json? // Error stack trace, context, etc
+
+    job_config JobConfiguration @relation(fields: [job_config_id], references: [id])
 
     @@map("job_executions")
 }
 
 model JobNotification {
-    id                      Int                 @id @default(autoincrement())
-    job_config_id          Int
+    id                      Int @id @default(autoincrement())
+    job_config_id           Int
     notification_channel_id Int
-    
+
     // When to notify
-    on_success             Boolean             @default(false)
-    on_failure             Boolean             @default(true)
-    on_start               Boolean             @default(false)
-    
-    created_at             DateTime            @default(now())
-    updated_at             DateTime            @updatedAt
-    
-    job_config             JobConfiguration    @relation(fields: [job_config_id], references: [id])
-    notification_channel   NotificationChannel @relation(fields: [notification_channel_id], references: [id])
+    on_success Boolean @default(false)
+    on_failure Boolean @default(true)
+    on_start   Boolean @default(false)
+
+    created_at DateTime @default(now())
+    updated_at DateTime @updatedAt
+
+    job_config           JobConfiguration    @relation(fields: [job_config_id], references: [id])
+    notification_channel NotificationChannel @relation(fields: [notification_channel_id], references: [id])
 
     @@unique([job_config_id, notification_channel_id])
     @@map("job_notifications")
+}
+
+// Sistema de Sync RP → CresceVendas (novo sistema focado)
+model SyncConfiguration {
+    id          Int     @id @default(autoincrement())
+    name        String  @unique
+    description String?
+
+    source_integration_id   Int // RP Integration
+    target_integration_id   Int // CresceVendas Integration
+    notification_channel_id Int? // Telegram notifications
+
+    // Configuração de lojas (JSON array de IDs ou vazio para todas)
+    store_ids Json @default("[]") // number[]
+
+    // Configuração de agendamento
+    schedule Json? // { sync_time: "05:00", compare_time: "05:30" }
+
+    // Opções de execução
+    options Json @default("{}") // { batch_size: 100, cleanup_old_data: true, send_notifications: true }
+
+    active Boolean @default(true)
+
+    created_at DateTime  @default(now())
+    updated_at DateTime  @updatedAt
+    deleted_at DateTime?
+
+    // Relationships
+    source_integration   Integration          @relation("SyncSourceIntegration", fields: [source_integration_id], references: [id])
+    target_integration   Integration          @relation("SyncTargetIntegration", fields: [target_integration_id], references: [id])
+    notification_channel NotificationChannel? @relation(fields: [notification_channel_id], references: [id])
+
+    executions SyncExecution[]
+
+    @@map("sync_configurations")
+}
+
+model SyncExecution {
+    id             String @id @default(uuid())
+    sync_config_id Int? // Null para execuções ad-hoc
+
+    status      ExecutionStatus @default(PENDING)
+    started_at  DateTime        @default(now())
+    finished_at DateTime?
+
+    // Dados de execução
+    stores_processed   Json // Array de { store_id, store_name, products_synced, status, error? }
+    summary            Json // { total_stores, successful_stores, failed_stores, total_products, execution_time }
+    comparison_results Json? // Array de ComparisonResult (opcional)
+
+    // Logs e métricas
+    execution_logs String? // Logs detalhados da execução
+    error_details  Json? // Detalhes de erro se falhou
+
+    created_at DateTime @default(now())
+
+    // Relationships
+    sync_config SyncConfiguration? @relation(fields: [sync_config_id], references: [id])
+
+    @@map("sync_executions")
 }
