@@ -2,6 +2,12 @@ import { db } from '../factory/database.factory';
 import { StoreTable } from '../types/database';
 import { StoreFilters, CreateStoreData, UpdateStoreData } from '../types/store.types';
 
+// Tipo local para paginação
+interface PaginationOptions {
+    page?: number;
+    limit?: number;
+}
+
 class StoreService {
 
     getAllStores(filters: StoreFilters = {}): Promise<StoreTable[]> {
@@ -54,7 +60,9 @@ class StoreService {
         total: number;
     }> {
         return new Promise((resolve, reject) => {
-            const offset = (pagination.page - 1) * pagination.limit;
+            const page = pagination.page || 1;
+            const limit = pagination.limit || 10;
+            const offset = (page - 1) * limit;
 
             let productQuery = db
                 .selectFrom('products')
@@ -72,7 +80,7 @@ class StoreService {
             // Buscar produtos com paginação
             const productsPromise = productQuery
                 .orderBy('created_at', 'desc')
-                .limit(pagination.limit)
+                .limit(limit)
                 .offset(offset)
                 .execute();
 
