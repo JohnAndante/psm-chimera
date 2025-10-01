@@ -37,12 +37,19 @@ export function DataTable<TData, TValue>({
     skeletonRows = 5,
     ...props
 }: DataTableProps<TData, TValue>) {
+    // Garantir que data é sempre um array
+    const safeData = Array.isArray(data) ? data : [];
+
     const table = useReactTable({
-        data,
+        data: safeData,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
     })
+
+    // Proteger acesso aos rows
+    const rowModel = table.getRowModel();
+    const rows = rowModel?.rows || [];
 
     const renderSkeletonRows = () => {
         return Array.from({ length: skeletonRows }, (_, index) => (
@@ -75,7 +82,7 @@ export function DataTable<TData, TValue>({
     }
 
     const renderDataRows = () => {
-        if (!isLoading && table.getRowModel().rows.length === 0) {
+        if (!isLoading && rows.length === 0) {
             return (
                 <motion.tr
                     initial={{ opacity: 0 }}
@@ -98,7 +105,7 @@ export function DataTable<TData, TValue>({
             )
         }
 
-        return table.getRowModel().rows.map((row, index) => (
+        return rows.map((row, index) => (
             <motion.tr
                 key={row.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -187,7 +194,7 @@ export function DataTable<TData, TValue>({
                         {isLoading ? (
                             <Skeleton className="h-4 w-32" />
                         ) : (
-                            `Total de ${table.getRowModel().rows.length} registros`
+                            `Total de ${rows.length} registros`
                         )}
                     </motion.div>
 
