@@ -8,6 +8,15 @@ export * from './auth'
 // API Types
 export * from './api'
 
+// Integration Types
+export * from './integration'
+
+// Sync Types
+export * from './sync'
+
+// Store Types
+export * from './store'
+
 // Agent Types
 export type { AgentDetails } from './agent'
 export type {
