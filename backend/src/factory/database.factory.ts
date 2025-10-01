@@ -16,6 +16,10 @@ class DatabaseFactory {
         return DatabaseFactory.instance;
     }
 
+    public static getDatabase(): Kysely<Database> {
+        return DatabaseFactory.getInstance();
+    }
+
     private static createConnection(): Kysely<Database> {
         const connectionString = EnvFactory.get('DATABASE_URL');
 
@@ -72,5 +76,6 @@ class DatabaseFactory {
     }
 }
 
-// Export da instância do banco de dados
+// Export da classe e instância do banco de dados
+export { DatabaseFactory };
 export const db = DatabaseFactory.getInstance();

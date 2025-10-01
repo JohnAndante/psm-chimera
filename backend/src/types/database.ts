@@ -4,6 +4,7 @@ export type NotificationType = 'TELEGRAM' | 'EMAIL' | 'WEBHOOK';
 export type JobType = 'SYNC_PRODUCTS' | 'COMPARE_DATA' | 'CLEANUP_LOGS' | 'CUSTOM';
 export type ExecutionStatus = 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILED' | 'CANCELLED';
 export type IntegrationType = 'RP' | 'CRESCEVENDAS' | 'TELEGRAM' | 'EMAIL' | 'WEBHOOK';
+export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS';
 
 export interface UserTable {
     id?: number; // Optional for inserts (auto-increment)
@@ -152,6 +153,18 @@ export interface SyncConfigurationTable {
     deleted_at: Date | null;
 }
 
+export interface LogEntryTable {
+    id: string; // UUID
+    timestamp: Date;
+    level: LogLevel;
+    category: string;
+    message: string;
+    metadata: unknown | null; // JSON
+    session_id: string | null;
+    source: string;
+    created_at: Date;
+}
+
 export interface Database {
     users: UserTable;
     authentications: AuthTable;
@@ -165,4 +178,5 @@ export interface Database {
     job_notifications: JobNotificationTable;
     sync_executions: SyncExecutionTable;
     sync_configurations: SyncConfigurationTable;
+    log_entries: LogEntryTable;
 }

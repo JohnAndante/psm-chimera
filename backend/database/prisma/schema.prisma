@@ -202,6 +202,34 @@ model SyncExecution {
   @@map("sync_executions")
 }
 
+model LogEntry {
+  id         String   @id @default(uuid())
+  timestamp  DateTime @default(now())
+  level      LogLevel
+  category   String // "SYNC", "RP", "CV", "TELEGRAM", "SYSTEM", "AUTH", etc.
+  message    String
+  metadata   Json? // Dados extras: store_id, job_id, execution_id, etc.
+  session_id String? // Para agrupar logs de uma mesma execução
+  source     String   @default("api") // "api", "cron", "manual", "telegram"
+
+  created_at DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([category])
+  @@index([level])
+  @@index([session_id])
+  @@index([created_at])
+  @@map("log_entries")
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  SUCCESS
+}
+
 enum UserType {
   ADMIN
   USER

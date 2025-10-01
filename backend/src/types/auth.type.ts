@@ -29,3 +29,14 @@ export interface UserTokenPayload {
     iat: number;
     exp: number;
 }
+
+import { Request } from 'express';
+
+export interface AuthenticatedRequest extends Request {
+    user?: {
+        id: number;
+        email: string;
+        name: string;
+        role: string;
+    };
+}
