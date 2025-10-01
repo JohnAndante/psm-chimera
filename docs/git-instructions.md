@@ -42,15 +42,17 @@ Este projeto segue uma filosofia de commits **atômicos**, **funcionais** e orga
 ### Para Features Novas
 
 **Opção 1: Ordem Inversa (Recomendada)**
+
 ```bash
 git commit -m "#123 - feat: add user types and interfaces"
-git commit -m "#123 - feat: add user validation schemas"  
+git commit -m "#123 - feat: add user validation schemas"
 git commit -m "#123 - feat: add user service layer"
 git commit -m "#123 - feat: add user controller"
 git commit -m "#123 - feat: add user routes"
 ```
 
 **Opção 2: Mega Commit (Apenas para features pequenas)**
+
 ```bash
 git commit -m "#123 - feat: add complete user management feature"
 ```
@@ -58,6 +60,7 @@ git commit -m "#123 - feat: add complete user management feature"
 ### Para Refatorações
 
 **Sempre incluir todas as dependências afetadas:**
+
 ```bash
 # Exemplo: Renomeando um arquivo
 git commit -m "#124 - refactor: rename ProductService and update all imports"
@@ -79,12 +82,14 @@ git commit -m "#127 - fix: correct promise chain pattern in all controllers"
 ## 🚀 Workflow de Commit
 
 ### 1. Verificar Estado
+
 ```bash
 git status
 git diff
 ```
 
 ### 2. Testar Funcionalidade
+
 ```bash
 # Garantir que tudo está funcionando
 npm run build
@@ -92,6 +97,7 @@ npm run test
 ```
 
 ### 3. Stage Changes
+
 ```bash
 # Para commits atômicos, stage apenas os arquivos relacionados
 git add specific-files
@@ -101,11 +107,13 @@ git add .
 ```
 
 ### 4. Commit
+
 ```bash
 git commit -m "#[issue] - [tipo]: [descrição]"
 ```
 
 ### 5. Push
+
 ```bash
 git push origin [branch-name]
 ```
@@ -122,6 +130,7 @@ git push origin [branch-name]
 ## 🔧 Casos Especiais
 
 ### Movimentação de Arquivos
+
 ```bash
 # Sempre incluir o rename + updates em um commit
 git mv old-file.ts new-file.ts
@@ -130,12 +139,14 @@ git commit -m "#123 - refactor: rename service file and update imports"
 ```
 
 ### Mudanças de Estrutura
+
 ```bash
 # Mover interfaces para pasta types
 git commit -m "#124 - refactor: reorganize interfaces to types folder"
 ```
 
 ### Correções de Padrão
+
 ```bash
 # Converter try/catch para promise chains
 git commit -m "#125 - refactor: convert controllers to promise chain pattern"
@@ -153,7 +164,7 @@ git commit -m "#125 - refactor: convert controllers to promise chain pattern"
 
 ```bash
 #001 - feat: add Kysely database factory with singleton pattern
-#002 - feat: create product types and interfaces  
+#002 - feat: create product types and interfaces
 #003 - feat: implement product service with promise chains
 #004 - feat: add product controller with error handling
 #005 - feat: register product routes in main router
