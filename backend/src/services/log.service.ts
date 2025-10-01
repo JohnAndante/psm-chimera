@@ -4,7 +4,6 @@ import { EventEmitter } from 'events';
 import { randomUUID } from 'crypto';
 
 import { DatabaseFactory } from '../factory/database.factory';
-import { TelegramService } from './telegram.service';
 import {
     LogLevel,
     LogEntry,
@@ -36,7 +35,6 @@ export class LogService {
     private static instance: LogService;
     private db = DatabaseFactory.getDatabase();
     private eventEmitter = new EventEmitter();
-    private telegramService: TelegramService;
 
     private config: LogServiceConfig = {
         fileLogsEnabled: true,
@@ -48,7 +46,6 @@ export class LogService {
     };
 
     private constructor() {
-        this.telegramService = new TelegramService();
         this.ensureLogDirectory();
     }
 
