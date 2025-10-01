@@ -1,32 +1,5 @@
 import { SyncExecution } from '../../database/generated/prisma';
-
-export interface SyncResult {
-    store_id: number;
-    store_name: string;
-    products_synced: number;
-    status: 'success' | 'failed';
-    error?: string;
-}
-
-export interface CompareResult {
-    store_id: number;
-    store_name: string;
-    rp_products: number;
-    crescevendas_products: number;
-    differences: {
-        only_in_rp: number;
-        only_in_crescevendas: number;
-        price_differences: number;
-    };
-}
-
-export interface SyncSummary {
-    total_stores: number;
-    successful_stores: number;
-    failed_stores: number;
-    total_products: number;
-    execution_time_ms: number;
-}
+import { SyncResult, CompareResult, SyncSummary } from '../types/notification.type';
 
 /**
  * Serviço para templates padronizados de notificações do sistema de sync

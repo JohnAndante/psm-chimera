@@ -2,26 +2,14 @@ import { PrismaClient, ExecutionStatus } from '../../database/generated/prisma';
 import { RPIntegrationService } from './rp.integration.service';
 import { CresceVendasIntegrationService } from './crescevendas.integration.service';
 import { TelegramService } from './telegram.service';
-import { SyncExecutionRequest, SyncExecutionResult, ComparisonResult } from '../types/sync.type';
+import { 
+    SyncExecutionRequest, 
+    SyncExecutionResult, 
+    ComparisonResult,
+    JobExecutionResult,
+    StoreResult 
+} from '../types/sync.type';
 import { randomUUID } from 'crypto';
-
-export interface JobExecutionResult {
-    execution_id: string;
-    status: 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILED' | 'CANCELLED';
-    message: string;
-    data?: any;
-    error?: string;
-    execution_time: number;
-}
-
-export interface StoreResult {
-    store_id: number;
-    store_name: string;
-    products_synced: number;
-    status: 'SUCCESS' | 'FAILED' | 'SKIPPED';
-    error?: string;
-    execution_time: number;
-}
 
 interface ProductData {
     code: number;

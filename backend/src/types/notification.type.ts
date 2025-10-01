@@ -99,3 +99,47 @@ export interface NotificationTestResult {
         error?: string;
     };
 }
+
+// Telegram specific interfaces
+export interface TelegramMessage {
+    text: string;
+    parse_mode?: 'HTML' | 'Markdown' | 'MarkdownV2';
+    disable_web_page_preview?: boolean;
+    disable_notification?: boolean;
+}
+
+export interface TelegramSendResult {
+    success: boolean;
+    message_id?: number;
+    error?: string;
+    details?: any;
+}
+
+// Notification template interfaces
+export interface SyncResult {
+    store_id: number;
+    store_name: string;
+    products_synced: number;
+    status: 'success' | 'failed';
+    error?: string;
+}
+
+export interface CompareResult {
+    store_id: number;
+    store_name: string;
+    rp_products: number;
+    crescevendas_products: number;
+    differences: {
+        only_in_rp: number;
+        only_in_crescevendas: number;
+        price_differences: number;
+    };
+}
+
+export interface SyncSummary {
+    total_stores: number;
+    successful_stores: number;
+    failed_stores: number;
+    total_products: number;
+    execution_time_ms: number;
+}

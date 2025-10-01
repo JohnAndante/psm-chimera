@@ -86,3 +86,29 @@ export interface IntegrationTestResult {
     error?: string;
     response_time?: number;
 }
+
+// CresceVendas specific interfaces
+export interface CresceVendasProduct {
+    code: string;
+    price: number;
+    final_price: number;
+    limit?: number;
+}
+
+export interface CresceVendasBatchUploadRequest {
+    override: number;
+    start_date: string;
+    end_date: string;
+    store_registrations: string[];
+    name: string;
+    discount_store_lines: CresceVendasProduct[];
+}
+
+export interface CresceVendasDiscountResponse {
+    id: number;
+    name: string;
+    store_registrations: string[];
+    start_date: string;
+    end_date: string;
+    discount_store_lines: CresceVendasProduct[];
+}

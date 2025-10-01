@@ -126,3 +126,22 @@ export enum DifferenceType {
     PRICE_DIFF = 'PRICE_DIFF',
     STATUS_DIFF = 'STATUS_DIFF'
 }
+
+// Job execution interfaces
+export interface JobExecutionResult {
+    execution_id: string;
+    status: 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILED' | 'CANCELLED';
+    message: string;
+    data?: any;
+    error?: string;
+    execution_time: number;
+}
+
+export interface StoreResult {
+    store_id: number;
+    store_name: string;
+    products_synced: number;
+    status: 'SUCCESS' | 'FAILED' | 'SKIPPED';
+    error?: string;
+    execution_time: number;
+}

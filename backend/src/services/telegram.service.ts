@@ -1,20 +1,15 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { TelegramConfig, TelegramAllowedUser } from '../types/notification.type';
-import { NotificationTemplateService, SyncResult, CompareResult, SyncSummary } from './notification.template.service';
-
-export interface TelegramMessage {
-    text: string;
-    parse_mode?: 'HTML' | 'Markdown' | 'MarkdownV2';
-    disable_web_page_preview?: boolean;
-    disable_notification?: boolean;
-}
-
-export interface TelegramSendResult {
-    success: boolean;
-    message_id?: number;
-    error?: string;
-    details?: any;
-}
+import { 
+    TelegramConfig, 
+    TelegramAllowedUser,
+    TelegramMessage,
+    TelegramSendResult,
+    SyncResult, 
+    CompareResult, 
+    SyncSummary 
+} from '../types/notification.type';
+import { NotificationTemplateService } from './notification.template.service';
+import { logService } from './log.service';
 
 export class TelegramService {
     private bot: TelegramBot | null = null;
@@ -319,6 +314,14 @@ export class TelegramService {
             );
 
             console.log(`[TELEGRAM] Mensagem enviada com sucesso: ${result.message_id}`);
+
+            // Log estruturado de sucesso
+            await logService.success('TELEGRAM', 'Mensagem enviada com sucesso', {
+                message_id: result.message_id,
+                chat_id: targetChatId,
+                text_length: message.text.length,
+                parse_mode: message.parse_mode
+            });
 
             return {
                 success: true,
