@@ -7,9 +7,9 @@ Este documento mostra como usar os middlewares de filtro e paginação implement
 ### 1. Importações Necessárias
 
 ```typescript
-import { filterMiddleware } from '../middlewares/filter.middleware.js';
-import { paginationMiddleware } from '../middlewares/pagination.middleware.js';
-import { applyFilters, applyPagination, createPaginatedResponse } from '../utils/query-builder.helper.js';
+import { filterMiddleware } from '../middlewares/filter.middleware';
+import { paginationMiddleware } from '../middlewares/pagination.middleware';
+import { applyFilters, applyPagination, createPaginatedResponse } from '../utils/query-builder.helper';
 ```
 
 ### 2. Definindo Filtros na Rota
@@ -294,9 +294,8 @@ CREATE INDEX idx_stores_created_at ON stores(created_at);
 ```typescript
 router.get('/',
     authenticateToken,           // Primeiro: autenticação
-    requirePermission('read'),   // Segundo: autorização
-    filterMiddleware(config),    // Terceiro: filtros
-    paginationMiddleware(config),// Quarto: paginação
+    filterMiddleware(config),    // Segundo: filtros
+    paginationMiddleware(config),// Terceiro: paginação
     Controller.getAll           // Último: controller
 );
 ```
