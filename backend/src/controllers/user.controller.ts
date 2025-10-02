@@ -8,7 +8,6 @@ import { createPaginatedResponse } from '../utils/query-builder.helper';
 export class UserController {
     // GET /api/v1/users
     static getAll(req: AuthenticatedRequest, res: Response) {
-        // Middlewares já processaram filtros e paginação
         const filters = req.filters || {};
         const pagination = req.pagination!;
 

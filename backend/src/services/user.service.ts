@@ -36,7 +36,7 @@ class UserService {
             // Aplicar filtros
             query = applyFilters(query, filters);
 
-            // Count query para total - simplificada para evitar problemas de GROUP BY
+            // Count query para total
             let countQuery = db
                 .selectFrom('users')
                 .select(db.fn.count('users.id').as('total'))
@@ -132,63 +132,6 @@ class UserService {
         });
     }
 
-    getUserByEmail(email: string): Promise<UserWithAuth | null> {
-        return new Promise((resolve, reject) => {
-            if (!email) {
-                return reject(new Error('Email é obrigatório'));
-            }
-
-            db.selectFrom('users')
-                .leftJoin('authentications', 'users.id', 'authentications.user_id')
-                .select([
-                    'users.id',
-                    'users.email',
-                    'users.name',
-                    'users.role',
-                    'users.createdAt',
-                    'users.updatedAt',
-                    'users.deletedAt',
-                    'authentications.id as auth_id',
-                    'authentications.email as auth_email',
-                    'authentications.active as auth_active',
-                    'authentications.password_hash',
-                    'authentications.created_at as auth_created_at',
-                    'authentications.updated_at as auth_updated_at'
-                ])
-                .where('users.email', '=', email)
-                .where('users.deletedAt', 'is', null)
-                .executeTakeFirst()
-                .then((row: any) => {
-                    if (!row) {
-                        resolve(null);
-                        return;
-                    }
-
-                    const user: UserWithAuth = {
-                        id: row.id,
-                        email: row.email,
-                        name: row.name,
-                        role: row.role,
-                        active: row.auth_active || false,
-                        createdAt: row.createdAt,
-                        updatedAt: row.updatedAt,
-                        deletedAt: row.deletedAt,
-                        auth: row.auth_id ? {
-                            id: row.auth_id,
-                            email: row.auth_email,
-                            active: row.auth_active,
-                            created_at: row.auth_created_at,
-                            updated_at: row.auth_updated_at
-                        } : null
-                    };
-                    resolve(user);
-                })
-                .catch(error => {
-                    reject(error);
-                });
-        });
-    }
-
     checkEmailExists(email: string, excludeId?: number): Promise<boolean> {
         return new Promise((resolve, reject) => {
             let query = db
@@ -229,6 +172,7 @@ class UserService {
                                 email: data.email,
                                 name: data.name || null,
                                 role: data.role || 'USER',
+                                active: true,
                                 createdAt: now,
                                 updatedAt: now
                             };
