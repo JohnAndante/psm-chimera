@@ -11,6 +11,7 @@ export interface UserTable {
     email: string;
     name: string | null;
     role: UserType;
+    active: boolean
     createdAt: Date;
     updatedAt: Date;
     deletedAt: Date | null;

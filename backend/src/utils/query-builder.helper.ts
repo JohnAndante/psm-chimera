@@ -115,7 +115,6 @@ export function applyPagination<DB, TB extends keyof DB, O>(
  * Helper para criar resposta paginada padrão
  */
 export interface PaginatedResponse<T> {
-    success: true;
     data: T[];
     pagination: {
         limit: number;
@@ -144,7 +143,6 @@ export function createPaginatedResponse<T>(
     }
 ): PaginatedResponse<T> {
     return {
-        success: true,
         data,
         pagination: {
             limit: pagination.limit,

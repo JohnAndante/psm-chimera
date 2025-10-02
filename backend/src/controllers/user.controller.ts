@@ -1,45 +1,28 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../utils/auth';
 import { userService } from '../services/user.service';
-import { CreateUserData, UpdateUserData, UserFilters, ChangePasswordData } from '../types/user.type';
-import { error } from 'console';
+import { CreateUserData, UpdateUserData, ChangePasswordData } from '../types/user.type';
 import { authService } from '../services/auth.service';
+import { createPaginatedResponse } from '../utils/query-builder.helper';
 
 export class UserController {
     // GET /api/v1/users
     static getAll(req: AuthenticatedRequest, res: Response) {
-        const filters: UserFilters = {};
+        // Middlewares já processaram filtros e paginação
+        const filters = req.filters || {};
+        const pagination = req.pagination!;
 
-        // Aplicar filtros da query string
-        if (req.query.role && typeof req.query.role === 'string') {
-            filters.role = req.query.role as 'ADMIN' | 'USER';
-        }
+        return userService.getAllUsers(filters, pagination)
+            .then(result => {
+                const { data, total } = result;
 
-        if (req.query.active !== undefined) {
-            filters.active = req.query.active === 'true';
-        }
+                const paginationInfo = req.calculatePaginationInfo!(total);
 
-        if (req.query.search && typeof req.query.search === 'string') {
-            filters.search = req.query.search;
-        }
+                const response = createPaginatedResponse(
+                    data, pagination, total, paginationInfo,
+                );
 
-        return userService.getAllUsers(filters)
-            .then(users => {
-                // Remover dados sensíveis da resposta
-                const safeUsers = users.map(user => ({
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.role,
-                    active: user.active,
-                    createdAt: user.createdAt,
-                    updatedAt: user.updatedAt
-                }));
-
-                res.status(200).json({
-                    message: 'Usuários recuperados com sucesso',
-                    users: safeUsers
-                });
+                res.status(200).json(response);
             })
             .catch(error => {
                 console.error('Erro ao buscar usuários:', error);

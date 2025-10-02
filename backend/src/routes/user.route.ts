@@ -2,12 +2,21 @@ import { Router } from 'express';
 import { UserController } from '../controllers/user.controller';
 import { UserValidator } from '../validators/user.validator';
 import { authenticateToken, requireAdmin } from '../utils/auth';
+import { paginationMiddleware } from '../middlewares/pagination.middleware';
+import { filterMiddleware } from '../middlewares/filter.middleware';
 
 const router = Router();
 
 // GET /api/v1/users - Listar usuários (requer autenticação)
 router.get('/',
     authenticateToken,
+    filterMiddleware({
+        name: 'string',
+        email: 'string',
+        role: 'enum',
+        active: 'boolean',
+    }),
+    paginationMiddleware(),
     UserValidator.getAll,
     UserController.getAll
 );

@@ -3,14 +3,17 @@ import bcrypt from 'bcryptjs';
 import {
     CreateUserData,
     UpdateUserData,
-    UserFilters,
+    UserListData,
     UserWithAuth,
 } from '../types/user.type';
 import { AuthTable, UserTable } from '../types/database';
+import { FilterResult, PaginationResult } from '../types/filter-pagination.type';
+import { applyFilters, applyPagination } from '../utils/query-builder.helper';
+import { sql } from 'kysely';
 
 class UserService {
 
-    getAllUsers(filters: UserFilters = {}): Promise<UserWithAuth[]> {
+    getAllUsers(filters: FilterResult, pagination: PaginationResult): Promise<UserListData> {
         return new Promise((resolve, reject) => {
             let query = db
                 .selectFrom('users')
@@ -20,60 +23,52 @@ class UserService {
                     'users.email',
                     'users.name',
                     'users.role',
+                    'users.active',
                     'users.createdAt',
                     'users.updatedAt',
                     'users.deletedAt',
-                    'authentications.id as auth_id',
-                    'authentications.email as auth_email',
-                    'authentications.active as auth_active',
-                    'authentications.created_at as auth_created_at',
-                    'authentications.updated_at as auth_updated_at'
+                    sql<boolean>`CASE WHEN authentications.id IS NOT NULL THEN true ELSE false END`.as('hasPassword'),
                 ])
+                .where('users.deletedAt', 'is', null)
+                .orderBy('users.createdAt', 'desc');
+
+
+            // Aplicar filtros
+            query = applyFilters(query, filters);
+
+            // Count query para total - simplificada para evitar problemas de GROUP BY
+            let countQuery = db
+                .selectFrom('users')
+                .select(db.fn.count('users.id').as('total'))
                 .where('users.deletedAt', 'is', null);
 
-            // Filtro por role
-            if (filters.role) {
-                query = query.where('users.role', '=', filters.role);
-            }
+            // Aplicar os mesmos filtros na query de count
+            countQuery = applyFilters(countQuery, filters);
 
-            // Filtro por status ativo (através da auth)
-            if (filters.active !== undefined) {
-                query = query.where('authentications.active', '=', filters.active);
-            }
+            // Aplica paginação
+            query = applyPagination(query, pagination);
 
-            // Busca por nome ou email
-            if (filters.search) {
-                const searchTerm = `%${filters.search}%`;
-                query = query.where((eb) =>
-                    eb.or([
-                        eb('users.name', 'ilike', searchTerm),
-                        eb('users.email', 'ilike', searchTerm)
-                    ])
-                );
-            }
+            // Executa ambas as querys em paralelo
+            Promise.all([
+                countQuery.executeTakeFirstOrThrow(),
+                query.execute()
+            ])
+                .then(([countResult, data]) => {
+                    const total = Number(countResult.total);
 
-            query
-                .orderBy('users.createdAt', 'desc')
-                .execute()
-                .then((rows: any[]) => {
-                    const users: UserWithAuth[] = rows.map(row => ({
-                        id: row.id,
+                    const mappedData = data.map(row => ({
+                        id: row.id!,
                         email: row.email,
                         name: row.name,
                         role: row.role,
-                        active: row.auth_active || false,
+                        active: row.active,
                         createdAt: row.createdAt,
                         updatedAt: row.updatedAt,
                         deletedAt: row.deletedAt,
-                        auth: row.auth_id ? {
-                            id: row.auth_id,
-                            email: row.auth_email,
-                            active: row.auth_active,
-                            created_at: row.auth_created_at,
-                            updated_at: row.auth_updated_at
-                        } : null
+                        hasPassword: Boolean(row.hasPassword)
                     }));
-                    resolve(users);
+
+                    return resolve({ total, data: mappedData });
                 })
                 .catch(error => {
                     reject(error);

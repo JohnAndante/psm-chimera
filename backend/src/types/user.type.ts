@@ -12,6 +12,16 @@ export interface UserData {
     deletedAt: Date | null;
 }
 
+// Dados do usuário para listagem (com indicação se tem senha)
+export interface UserListItem extends UserData {
+    hasPassword: boolean;
+}
+
+export interface UserListData {
+    total: number;
+    data: UserListItem[];
+}
+
 // Dados para criação de usuário
 export interface CreateUserData {
     email: string;
