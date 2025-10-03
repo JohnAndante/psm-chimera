@@ -4,7 +4,7 @@
  */
 export function LoginFooter() {
     return (
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="text-center text-xs text-gray-300">
             ©
             {' '}
             {new Date().getFullYear()}

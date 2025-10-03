@@ -6,12 +6,12 @@ import { LogoPSM } from "@/components/smart-svgs/logo-psm";
  */
 export function LoginHeader() {
     return (
-        <div className="flex flex-col gap-2 text-center items-center select-none text-shadow shadow-primary">
+        <div className="flex flex-col gap-2 text-center items-center select-none text-white shadow-primary">
             <LogoPSM size={96} />
 
-            <h1 className="text-2xl font-medium text-muted">PSM Chimera</h1>
+            <h1 className="text-2xl font-medium">PSM Chimera</h1>
 
-            <p className="text-muted">Painel administrativo de configurações</p>
+            <p>Painel administrativo de configurações</p>
         </div>
     );
 }

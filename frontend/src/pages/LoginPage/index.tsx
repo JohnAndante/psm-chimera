@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 
 import { useLogin } from "./hooks";
 import { LoginHeader, LoginFooter, ErrorAlert, AbstractBackground } from "./components";
+import { cn } from "@/lib/utils";
 
 /**
  * Página de login do sistema
@@ -23,7 +24,7 @@ export default function LoginPage() {
             <div className="relative z-10 flex flex-col gap-8 justify-center items-center h-screen shadow-md w-full">
                 <LoginHeader />
 
-                <Card className="w-full max-w-md shadow-2xl shadow-primary/20">
+                <Card className="w-full max-w-md shadow-2xl shadow-primary/20 bg-gray-300/60 backdrop-blur-sm border border-accent/30">
 
                     <CardContent>
                         <Form {...form}>
@@ -37,7 +38,7 @@ export default function LoginPage() {
                                     name="email"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-sm font-medium">
+                                            <FormLabel className="text-sm font-medium text-black">
                                                 Email
                                             </FormLabel>
                                             <FormControl>
@@ -45,6 +46,7 @@ export default function LoginPage() {
                                                     type="text"
                                                     placeholder="seu@email.com"
                                                     disabled={isLoading}
+                                                    className="bg-transparent border border-gray-200 text-gray-900"
                                                     {...field}
                                                 />
                                             </FormControl>
@@ -59,7 +61,7 @@ export default function LoginPage() {
                                     name="password"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-sm font-medium">
+                                            <FormLabel className="text-sm font-medium text-black">
                                                 Senha
                                             </FormLabel>
                                             <FormControl>
@@ -67,6 +69,7 @@ export default function LoginPage() {
                                                     type="password"
                                                     placeholder="senha"
                                                     disabled={isLoading}
+                                                    className="bg-transparent border border-gray-200 text-gray-900"
                                                     {...field}
                                                 />
                                             </FormControl>
@@ -81,7 +84,7 @@ export default function LoginPage() {
                                     name="remember"
                                     render={({ field }) => (
                                         <FormItem className="flex flex-row items-center justify-between">
-                                            <FormLabel className="text-sm font-medium">
+                                            <FormLabel className="text-sm font-medium text-black">
                                                 Lembrar de mim
                                             </FormLabel>
                                             <FormControl>
@@ -98,7 +101,11 @@ export default function LoginPage() {
                                 {/* Login Button */}
                                 <Button
                                     type="submit"
-                                    className="w-full h-12 text-base font-medium"
+                                    className={cn(
+                                        "w-full h-12 text-base font-medium bg-primary hover:bg-primary/90 text-white",
+                                        "active:scale-[0.98] active:duration-75",
+                                        "disabled:opacity-50 disabled:cursor-not-allowed",
+                                    )}
                                     disabled={isLoading}
                                 >
                                     {isLoading ? (
