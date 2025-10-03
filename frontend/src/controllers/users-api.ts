@@ -36,9 +36,9 @@ class UsersApi {
 
             this.axiosInstance.get(url)
                 .then(response => {
-                    const { message, users } = response.data;
+                    const { message, data } = response.data;
 
-                    resolve({ message, users });
+                    resolve({ message, users: data });
                 })
                 .catch(error => {
                     reject(processApiError(error));
