@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table"
 
 import { cn } from "@/lib/utils"
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon, File } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { motion, AnimatePresence } from "framer-motion"
@@ -47,7 +47,6 @@ export function DataTable<TData, TValue>({
         getPaginationRowModel: getPaginationRowModel(),
     })
 
-    // Proteger acesso aos rows
     const rowModel = table.getRowModel();
     const rows = rowModel?.rows || [];
 
@@ -69,10 +68,9 @@ export function DataTable<TData, TValue>({
                         <Skeleton
                             className={cn(
                                 "h-4",
-                                // Varia a largura dos skeletons para parecer mais natural
-                                colIndex === 0 ? "w-32" : // Nome/ID mais largo
-                                    colIndex === columns.length - 1 ? "w-20" : // Ações mais estreito
-                                        "w-24" // Tamanho médio para outros campos
+                                colIndex === 0 ? "w-32" :
+                                    colIndex === columns.length - 1 ? "w-20" :
+                                        "w-24"
                             )}
                         />
                     </TableCell>
@@ -94,9 +92,10 @@ export function DataTable<TData, TValue>({
                             <motion.div
                                 initial={{ scale: 0.8 }}
                                 animate={{ scale: 1 }}
-                                transition={{ duration: 0.3, delay: 0.1 }}
+                                transition={{ duration: 0.3, delay: 0.1, ease: "easeOut" }}
+                                className="rounded-full p-2 bg-muted"
                             >
-                                📄
+                                <File className="w-6 h-6" />
                             </motion.div>
                             <span>Nenhum dado disponível</span>
                         </div>
@@ -128,6 +127,7 @@ export function DataTable<TData, TValue>({
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.2, delay: 0.1 }}
+                            className={cell.column.id === columns[0].id ? "pl-2" : undefined}
                         >
                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </motion.div>
@@ -158,7 +158,13 @@ export function DataTable<TData, TValue>({
                                 }}
                             >
                                 {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id}>
+                                    <TableHead
+                                        key={header.id}
+                                        className={cn(
+                                            "h-10 text-left align-middle",
+                                            header.column.id === columns[0].id ? "pl-4" : undefined
+                                        )}
+                                    >
                                         {header.isPlaceholder
                                             ? null
                                             : flexRender(
