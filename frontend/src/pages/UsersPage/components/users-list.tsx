@@ -193,81 +193,58 @@ export default function UsersPage() {
         </>
     )
 
-    const getUsersList = () => {
-        return (
-            <PageCard cardTitle="Lista de Usuários" cardExtra={(
-                <UsersFilterControls
-                    activeFiltersCount={getActiveFiltersCount()}
-                    onClearFilters={handleClearFilters}
-                    onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
-                />
-            )}>
-                <UsersActiveFilters
-                    filters={filters}
-                    onFilterChange={handleFilterChange}
-                    onApplyFilters={handleApplyFilters}
-                    onRemoveFilter={handleRemoveFilter}
-                    isExpanded={isFiltersExpanded}
-                    isLoading={isLoading}
-                />
-                <DataTable
-                    columns={[
-                        {
-                            id: 'name',
-                            header: 'Nome',
-                            accessorKey: 'name',
-                        },
-                        {
-                            id: 'email',
-                            header: 'Email',
-                            accessorKey: 'email',
-                        },
-                        {
-                            id: 'role',
-                            header: 'Cargo',
-                            accessorKey: 'role',
-                            cell: ({ row }) => (
-                                getRoleLabel(row.original.role)
-                            )
-                        },
-                        {
-                            id: 'active',
-                            header: 'Ativo',
-                            accessorKey: 'active',
-                            cell: ({ row }) => (
-                                row.original.active ? 'Sim' : 'Não'
-                            )
-                        },
-                        {
-                            id: 'createdAt',
-                            header: 'Criado em',
-                            accessorKey: 'createdAt',
-                            cell: ({ row }) => (
-                                new Date(row.original.createdAt).toLocaleDateString('pt-BR', {
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: '2-digit',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                })
-                            )
-                        },
-                        {
-                            id: 'actions',
-                            header: 'Ações',
-                            accessorKey: 'id',
-                            cell: ({ row }) => (
-                                isAdmin(currentUser) ? getActionButtons(row.original) : '-'
-                            )
-                        }
-                    ]}
-                    data={users}
-                    isLoading={isLoading}
-                    showPagination={true}
-                />
-            </PageCard>
-        )
-    }
+    type CellProps = { row: { original: BaseUser } };
+
+    const tableColumns = [
+        {
+            id: 'name',
+            header: 'Nome',
+            accessorKey: 'name',
+        },
+        {
+            id: 'email',
+            header: 'Email',
+            accessorKey: 'email',
+        },
+        {
+            id: 'role',
+            header: 'Cargo',
+            accessorKey: 'role',
+            cell: ({ row }: CellProps) => (
+                getRoleLabel(row.original.role)
+            )
+        },
+        {
+            id: 'active',
+            header: 'Ativo',
+            accessorKey: 'active',
+            cell: ({ row }: CellProps) => (
+                row.original.active ? 'Sim' : 'Não'
+            )
+        },
+        {
+            id: 'createdAt',
+            header: 'Criado em',
+            accessorKey: 'createdAt',
+            cell: ({ row }: CellProps) => (
+                new Date(row.original.createdAt).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+            )
+        },
+        {
+            id: 'actions',
+            header: 'Ações',
+            accessorKey: 'id',
+            cell: ({ row }: CellProps) => (
+                isAdmin(currentUser) ? getActionButtons(row.original) : '-'
+            )
+        }
+    ];
 
     const breadcrumbs = [
         { label: "Dashboard", to: "/" },
@@ -293,7 +270,28 @@ export default function UsersPage() {
             breadcrumbs={breadcrumbs}
             extra={isAdmin(currentUser) ? newUserButton : null}
         >
-            {getUsersList()}
+            <PageCard cardTitle="Lista de Usuários" cardExtra={(
+                <UsersFilterControls
+                    activeFiltersCount={getActiveFiltersCount()}
+                    onClearFilters={handleClearFilters}
+                    onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
+                />
+            )}>
+                <UsersActiveFilters
+                    filters={filters}
+                    onFilterChange={handleFilterChange}
+                    onApplyFilters={handleApplyFilters}
+                    onRemoveFilter={handleRemoveFilter}
+                    isExpanded={isFiltersExpanded}
+                    isLoading={isLoading}
+                />
+                <DataTable
+                    columns={tableColumns}
+                    data={users}
+                    isLoading={isLoading}
+                    showPagination={true}
+                />
+            </PageCard>
 
             <ChangePasswordModal
                 isOpen={changePasswordModal.isOpen}
