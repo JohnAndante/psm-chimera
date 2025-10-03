@@ -13,10 +13,10 @@ model User {
   email     String    @unique
   name      String?
   role      UserType  @default(ADMIN)
-  active    Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt
   deletedAt DateTime?
+  active    Boolean   @default(true)
   auth      Auth?
 
   @@map("users")
@@ -207,12 +207,11 @@ model LogEntry {
   id         String   @id @default(uuid())
   timestamp  DateTime @default(now())
   level      LogLevel
-  category   String // "SYNC", "RP", "CV", "TELEGRAM", "SYSTEM", "AUTH", etc.
+  category   String
   message    String
-  metadata   Json? // Dados extras: store_id, job_id, execution_id, etc.
-  session_id String? // Para agrupar logs de uma mesma execução
-  source     String   @default("api") // "api", "cron", "manual", "telegram"
-
+  metadata   Json?
+  session_id String?
+  source     String   @default("api")
   created_at DateTime @default(now())
 
   @@index([timestamp])
