@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils"
 import { useTheme } from "@/components/theme-provider"
 import { useSidebar } from "@/components/ui/sidebar"
 import { LogoPSM } from "@/components/smart-svgs/logo-psm"
+import { Separator } from "@/components/ui/separator"
 
 export function Sidebar() {
     const location = useLocation()
@@ -121,7 +122,8 @@ export function Sidebar() {
             <SidebarPrimitive
                 className={cn(
                     "select-none transition-all duration-300 ease-in-out flex flex-col h-screen",
-                    "w-[var(--sidebar-width)] group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)]"
+                    "w-[var(--sidebar-width)] group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)]",
+                    "transition-all duration-300 ease-in-out"
                 )}
                 collapsible="icon"
             >
@@ -156,14 +158,17 @@ export function Sidebar() {
                 </div>
 
                 {/* Footer do Sidebar */}
-                <SidebarFooter className="border-t border-border flex-shrink-0">
+                <SidebarFooter>
                     <SidebarContent>
+
+                        <Separator orientation="horizontal" className="bg-border" />
+
                         {/* Botão de Toggle */}
                         <SidebarMenuItem key="toggle">
                             <SidebarMenuButton
                                 onClick={toggleSidebar}
                                 className={cn(
-                                    "flex items-center justify-start gap-5 px-4 py-2 rounded-lg hover:bg-muted/50",
+                                    "flex items-center justify-start gap-5 px-4 py-2 mb-2 rounded-lg hover:bg-muted/50",
                                     isCollapsed ? "ml-2" : "")}
                             >
                                 {isCollapsed ? (
@@ -179,9 +184,6 @@ export function Sidebar() {
                                 </span>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
-
-                        {/* Separador */}
-                        <hr className="my-1 border-border" />
 
                         {/* Menu do Usuário */}
                         <SidebarMenuItem key="user-menu">
