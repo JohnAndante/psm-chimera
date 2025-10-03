@@ -121,7 +121,6 @@ export function Sidebar() {
             <SidebarPrimitive
                 className={cn(
                     "select-none transition-all duration-300 ease-in-out flex flex-col h-screen",
-                    // isCollapsed ? "w-16" : "w-60"
                     "w-[var(--sidebar-width)] group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)]"
                 )}
                 collapsible="icon"
