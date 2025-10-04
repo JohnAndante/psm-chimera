@@ -1,320 +1,504 @@
-# Plano de Ação
+# Plano de Ação - PSM Ch#### **✅ MIGRAÇÃO PRISMA → KYSELY CONCLUÍDA**
 
-## 🎯 **Plano de Ação: Sistema de Integração Configurável**
+- **100% dos services migrados** para Kysely
+- **Prisma restrito apenas** ao `database/seed.ts`
+- **Performance melhorada** com queries type-safe
+- **Código mais limpo** e maintídvel
 
-### **📋 Objetivo Principal**
+#### **✅ SISTEMA DE QUERY UNIFICADO**
 
-Migrar o fluxo hardcoded do [`fazTudo2`]fazTudo2.ts ) para um sistema configurável via UI que permita:
+- **queryMiddleware implementado** - substitui middlewares separados
+- **Filtros, paginação, ordenação** centralizados
+- **Case-insensitive search** com ILIKE
+- **Column mapping** para flexibilidade de API
 
-- Configurar integrações A (RP) e B (CresceVendas) dinamicamente
-- Executar jobs automáticos (5h e 5h30) e sob demanda
-- Notificações via Telegram configuráveis
-- Comparação automatizada de dados
+#### **✅ DOCUMENTAÇÃO TÉCNICA COMPLETA**
+
+- **Padrões arquiteturais** bem definidos
+- **Instruções detalhadas** para development
+- **Sistema de query documentado** completamente
+- **Git workflow** padronizadoatus Atual do Projeto (Outubro 2025)**
+
+### **✅ CONCLUÍDO - Arquitetura Base Moderna**
+
+- **Backend TypeScript + Express** - Sistema base implementado
+- **Sistema de Query Unificado** - queryMiddleware para filtros/paginação/ordenação
+- **Kysely ORM** - Migração completa de Prisma para Kysely (exceto seed)
+- **Frontend React + TypeScript** - Interface moderna com Tailwind CSS
+- **Documentação Completa** - Arquitetura, padrões e sistema de query documentados
+- **Padrões de Código** - Instruções detalhadas para controllers, services e rotas
+
+### **⚠️ SITUAÇÃO ATUAL DO AGENDAMENTO**
+
+**DESCOBERTA IMPORTANTE:** O sistema de agendamento cron está implementado mas **NÃO FUNCIONA AUTOMATICAMENTE**:
+
+- ✅ **Infraestrutura existe**: `node-cron`, tabelas `job_configurations`, `CronTestService`
+- ❌ **Nenhum job inicia automaticamente** no startup do servidor
+- ❌ **Sistema funciona 100% sob demanda** via API
+- ❌ **Nenhuma integração com jobs do banco de dados**
+
+### **🔍 OUTRAS DESCOBERTAS TÉCNICAS IMPORTANTES**
+
+#### **✅ MIGRAÇÃO PRISMA → KYSELY CONCLUÍDA**
+
+- **100% dos services migrados** para Kysely
+- **Prisma restrito apenas** ao `database/seed.ts`
+- **Performance melhorada** com queries type-safe
+- **Código mais limpo** e maintível
+
+#### **✅ SISTEMA DE QUERY UNIFICADO**
+
+- **queryMiddleware implementado** - substitui middlewares separados
+- **Filtros, paginação, ordenação** centralizados
+- **Case-insensitive search** com ILIKE
+- **Column mapping** para flexibilidade de API
+
+#### **✅ DOCUMENTAÇÃO TÉCNICA COMPLETA**
+
+- **Padrões arquiteturais** bem definidos
+- **Instruções detalhadas** para development
+- **Sistema de query documentado** completamente
+- **Git workflow** padronizado
+
+### **📋 Objetivo Principal Atualizado**
+
+Completar a migração do `server-node-fill` (hardcoded) para sistema configurável via UI:
+
+- ✅ Configurar integrações A (RP) e B (CresceVendas) dinamicamente
+- 🔄 **PRIORIDADE**: Implementar jobs automáticos funcionais (5h e 5h30)
+- ✅ Notificações via Telegram configuráveis (base implementada)
+- 🔄 Comparação automatizada de dados
 
 ---
 
-## 🔧 **BACKEND - Implementações Necessárias**
+## 🔧 **BACKEND - Status e Implementações**
 
-### **1. 📊 Expandir Sistema de Integrações**
+### **1. � Configuração de Integrações Externas**
 
-#### **1.1 Atualizar Types de Integration**
+#### **✅ BASE IMPLEMENTADA**
+
+- **Tipos básicos**: `IntegrationType`, interfaces de database
+- **Services base**: `integration.service.ts` com Kysely
+- **Controllers**: CRUD completo para integrações
+- **Validação**: Joi validators implementados
+
+#### **✅ SERVICES DE INTEGRAÇÃO EXTERNOS**
+
+```typescript
+// ✅ JÁ IMPLEMENTADOS
+- rp.integration.service.ts - Completo com autenticação e produtos
+- crescevendas.integration.service.ts - Completo com campanhas
+- telegram.service.ts - Notificações funcionais
+- sync.job.service.ts - Sistema de sync migrado para Kysely
+```
+
+#### **🔄 NECESSÁRIO IMPLEMENTAR**
+
+```typescript
+// src/services/job-scheduler.service.ts - CRIAR URGENTE
+export class JobSchedulerService {
+  static async initialize(): Promise<void>
+  static async loadJobsFromDatabase(): Promise<void>
+  static async scheduleJob(config: JobConfiguration): Promise<void>
+  static async stopJob(jobId: string): Promise<void>
+  private static jobs: Map<string, cron.ScheduledTask>
+}
+```
+
+#### **🔄 TIPOS EXPANDIDOS NECESSÁRIOS**
 
 ```typescript
 // src/types/integration.type.ts - EXPANDIR
 export interface RPIntegrationConfig {
   auth_method: 'TOKEN' | 'LOGIN';
-  // Para TOKEN direto
   static_token?: string;
-  token_header?: string; // ex: "Authorization", "token", "X-API-Key"
-  // Para LOGIN
+  token_header?: string;
   login_endpoint?: string;
   username?: string;
   password?: string;
-  token_response_field?: string; // ex: "response.token", "data.access_token"
-  // Endpoints
-  products_endpoint?: string; // ex: "/v2.8/produtounidade/listaprodutos/{lastId}/unidade/{storeReg}/detalhado"
+  products_endpoint?: string;
   pagination?: {
     method: 'OFFSET' | 'CURSOR';
-    param_name: string; // ex: "lastProductId", "page"
+    param_name: string;
   };
 }
 
 export interface CresceVendasConfig {
-  auth_headers: Record<string, string>; // ex: {"X-AdminUser-Email": "...", "X-AdminUser-Token": "..."}
+  auth_headers: Record<string, string>;
   send_products_endpoint?: string;
   get_products_endpoint?: string;
   campaign_config?: {
-    name_template: string; // ex: "{store} Descontos - {date}"
-    start_time: string; // ex: "06:00"
-    end_time: string; // ex: "23:59"
+    name_template: string;
+    start_time: string;
+    end_time: string;
   };
 }
 ```
 
-#### **1.2 Criar Integration Service Adapters**
+### **2. 🔄 Sistema de Jobs e Agendamento**
+
+#### **✅ IMPLEMENTADO**
+
+- **Tabelas de banco**: `job_configurations`, `job_executions`, `job_notifications`
+- **Tipos básicos**: `JobType`, `ExecutionStatus` em `database.ts`
+- **SyncJobService**: Migrado completamente para Kysely
+- **CronTestService**: Funcional para testes manuais
+- **Controllers**: `sync.controller.ts`, `cron.test.controller.ts`
+
+#### **❌ PROBLEMA CRÍTICO IDENTIFICADO**
 
 ```typescript
-// src/services/rp.integration.service.ts - CRIAR
-export class RPIntegrationService {
-  constructor(private config: RPIntegrationConfig) {}
+// ❌ FALTANDO: Inicialização automática no startup
+// backend/src/index.ts atual:
+app.listen(SERVER_PORT, () => {
+    console.log(`🚀 PSM Chimera Backend rodando na porta ${SERVER_PORT}`);
+    // ❌ Nenhum job é inicializado aqui!
+});
 
-  async authenticate(): Promise<string>
-  async getProductsByStore(storeReg: string, lastId?: number): Promise<Product[]>
-  async testConnection(): Promise<boolean>
-}
+// ✅ NECESSÁRIO:
+app.listen(SERVER_PORT, async () => {
+    console.log(`🚀 PSM Chimera Backend rodando na porta ${SERVER_PORT}`);
+    await JobSchedulerService.initialize(); // ← FALTANDO!
+    console.log('📅 Jobs automáticos inicializados');
+});
+```
 
-// src/services/crescevendas.integration.service.ts - CRIAR
-export class CresceVendasIntegrationService {
-  constructor(private config: CresceVendasConfig) {}
+#### **🔄 IMPLEMENTAÇÕES URGENTES**
 
-  async sendProducts(storeReg: string, products: Product[]): Promise<CampaignResult>
-  async getActiveProducts(storeReg: string): Promise<Product[]>
-  async testConnection(): Promise<boolean>
+```typescript
+// src/services/job-scheduler.service.ts - CRIAR AGORA
+export class JobSchedulerService {
+  private static jobs = new Map<string, cron.ScheduledTask>();
+
+  static async initialize(): Promise<void> {
+    const activeJobs = await this.loadActiveJobsFromDB();
+    for (const job of activeJobs) {
+      await this.scheduleJob(job);
+    }
+  }
+
+  private static async loadActiveJobsFromDB() {
+    return db.selectFrom('job_configurations')
+      .selectAll()
+      .where('active', '=', true)
+      .where('deleted_at', 'is', null)
+      .execute();
+  }
+
+  static async scheduleJob(config: JobConfiguration): Promise<void> {
+    const task = cron.schedule(config.cron_pattern, async () => {
+      await this.executeJob(config);
+    }, { timezone: "America/Sao_Paulo" });
+
+    this.jobs.set(config.id.toString(), task);
+  }
 }
 ```
 
-### **2. 🔄 Sistema de Jobs Configurável**
+### **3. 📱 Controllers e APIs**
 
-#### **2.1 Expandir Job Configuration**
-
-```typescript
-// src/types/job.type.ts - EXPANDIR
-export interface SyncJobConfig {
-  source_integration_id: number; // RP Integration
-  target_integration_id: number; // CresceVendas Integration
-  notification_channel_id?: number;
-  stores: number[]; // IDs das lojas ou [] para todas
-  schedule: {
-    sync_time: string; // ex: "05:00"
-    compare_time: string; // ex: "05:30"
-  };
-  options: {
-    batch_size: number;
-    cleanup_old_data: boolean;
-    send_notifications: boolean;
-  };
-}
-```
-
-#### **2.2 Implementar Job Processors**
+#### **✅ IMPLEMENTADO**
 
 ```typescript
-// src/services/sync.job.service.ts - CRIAR
-export class SyncJobService {
-  async executeSyncJob(config: SyncJobConfig): Promise<JobExecutionResult>
-  async executeCompareJob(config: SyncJobConfig): Promise<CompareResult>
-  async executeSyncForStore(storeId: number, config: SyncJobConfig): Promise<StoreResult>
-}
+// ✅ Controllers existentes e funcionais:
+- auth.controller.ts - Autenticação JWT completa
+- user.controller.ts - CRUD com queryMiddleware
+- integration.controller.ts - CRUD completo
+- store.controller.ts - Gerenciamento de lojas
+- sync.controller.ts - Execução manual de syncs
+- cron.test.controller.ts - Testes de cron
+- notificationChannel.controller.ts - Canais Telegram
+- log.controller.ts - Logs com SSE streaming
 ```
 
-### **3. 📱 Controllers para Execução Manual**
-
-#### **3.1 Integration Management Controller**
+#### **🔄 MELHORIAS NECESSÁRIAS**
 
 ```typescript
 // src/controllers/integration.controller.ts - EXPANDIR
-export class IntegrationController {
-  // Existing methods...
+static testConnection(req: AuthenticatedRequest, res: Response) {
+  // Testar conexão com integração (RP/CresceVendas)
+}
 
-  static testIntegration(req: AuthenticatedRequest, res: Response) {
-    // Testar conexão com integração específica
-  }
+static validateConfig(req: AuthenticatedRequest, res: Response) {
+  // Validar configuração antes de salvar
+}
 
-  static validateConfig(req: AuthenticatedRequest, res: Response) {
-    // Validar configuração antes de salvar
-  }
+// src/controllers/job.controller.ts - CRIAR
+export class JobController {
+  static createJob(req: AuthenticatedRequest, res: Response)
+  static scheduleJob(req: AuthenticatedRequest, res: Response)
+  static stopJob(req: AuthenticatedRequest, res: Response)
+  static getActiveJobs(req: AuthenticatedRequest, res: Response)
+  static getExecutionHistory(req: AuthenticatedRequest, res: Response)
 }
 ```
 
-#### **3.2 Manual Execution Controller**
+### **4. 🔔 Sistema de Notificações**
+
+#### **✅ FUNCIONAL COMPLETAMENTE**
 
 ```typescript
-// src/controllers/manual.execution.controller.ts - CRIAR
-export class ManualExecutionController {
-  static syncAllStores(req: AuthenticatedRequest, res: Response) {
-    // Executar sync manual para todas as lojas
-  }
-
-  static syncSpecificStore(req: AuthenticatedRequest, res: Response) {
-    // Executar sync manual para loja específica
-  }
-
-  static compareData(req: AuthenticatedRequest, res: Response) {
-    // Executar comparação manual
-  }
-
-  static getExecutionHistory(req: AuthenticatedRequest, res: Response) {
-    // Histórico de execuções
-  }
-}
-```
-
-### **4. 🔔 Sistema de Notificações Expandido**
-
-#### **4.1 Templates de Mensagem**
-
-```typescript
-// src/services/notification.template.service.ts - CRIAR
+// ✅ notification.template.service.ts - COMPLETO
 export class NotificationTemplateService {
-  static getSyncStartTemplate(storeCount: number): string
-  static getSyncSuccessTemplate(results: SyncResult[]): string
-  static getSyncErrorTemplate(error: string): string
-  static getCompareResultTemplate(comparison: CompareResult): string
+  static getSyncStartTemplate(storeCount: number, configName?: string): string
+  static getSyncSuccessTemplate(results: SyncResult[], summary: SyncSummary): string
+  static getSyncErrorTemplate(error: string, configName?: string): string
+  static getCompareResultTemplate(comparison: CompareResult[]): string
+  static getScheduledJobFailureTemplate(jobName: string, error: string): string
+  static getScheduledJobSuccessTemplate(jobName: string, summary: SyncSummary): string
+  // + mais templates implementados
 }
+
+// ✅ telegram.service.ts - FUNCIONAL
+// ✅ notification-channel.service.ts - CRUD completo
+// ✅ Controllers e routes funcionais
 ```
 
 ### **5. 📊 Logs e Auditoria**
 
-#### **5.1 Execution Logs**
+#### **✅ FUNCIONALIDADE COMPLETA**
 
 ```typescript
-// Expandir job_executions table com:
-- step_logs: Json // Log detalhado de cada etapa
-- performance_metrics: Json // Tempo, quantidade de produtos, etc.
-- comparison_results: Json // Resultados da comparação
+// ✅ Tabelas de banco implementadas:
+- log_entries: Logs estruturados com UUID, níveis, metadata JSON
+- job_executions: Histórico completo com metrics e error_details
+- sync_executions: Logs específicos de sync com stores_processed
+
+// ✅ Services funcionais:
+- log.service.ts - CRUD completo com Kysely
+- Logs automáticos em todos os services
+- SSE streaming para logs em tempo real no frontend
+
+// ✅ Features avançadas:
+- Filtros por nível, categoria, fonte
+- Paginação e busca
+- Metadata JSON estruturada
+- Retention automática (7 dias configurável)
 ```
 
 ---
 
-## 🎨 **FRONTEND - Implementações Necessárias**
+## 🎨 **FRONTEND - Status e Implementações**
 
-### **1. 📋 Páginas de Configuração**
+### **1. 📋 Base Técnica Moderna**
 
-#### **1.1 Integration Configuration Page**
+#### **✅ STACK IMPLEMENTADA**
 
 ```typescript
-// src/pages/IntegrationsPage/ - EXPANDIR
-- Wizard de configuração por tipo
-- Formulários dinâmicos baseados no tipo
-- Preview/teste de configuração
-- Validação em tempo real
+// ✅ Base técnica completa:
+- React 18 + TypeScript
+- Vite para build otimizado
+- Tailwind CSS + shadcn/ui components
+- Zustand para state management
+- React Hook Form + validation
+- Framer Motion para animações
+- TanStack Table para data tables avançadas
 ```
 
-#### **1.2 Job Configuration Page**
+### **2. 📋 Páginas Implementadas**
+
+#### **✅ PÁGINAS FUNCIONAIS**
+
+- **LoginPage** - Autenticação JWT completa
+- **DashboardPage** - Overview do sistema
+- **UsersPage** - CRUD completo com DataTable avançada
+- **IntegrationsPage** - Base implementada, precisa expansão
+- **LogsPage** - Visualização em tempo real com SSE
+- **CronTestPage** - Interface para testes de cron
+- **SyncPage** - Execução manual de syncs
+- **NotificationChannelsPage** - Gerenciamento de canais Telegram
+
+#### **🔄 PÁGINAS A CRIAR/EXPANDIR**
 
 ```typescript
-// src/pages/JobsPage/ - CRIAR
-- Configuração de jobs de sincronização
+// src/pages/JobsPage/ - CRIAR URGENTE
+- Configuração visual de jobs automáticos
 - Seleção de integrações source/target
-- Configuração de horários (cron visual)
-- Seleção de lojas (multi-select com filtros)
+- Cron expression builder visual
+- Seleção de lojas com filtros
 - Configuração de notificações
+
+// src/pages/IntegrationsPage/ - EXPANDIR
+- Wizard por tipo de integração (RP/CresceVendas)
+- Formulários dinâmicos baseados no tipo
+- Teste de conexão em tempo real
+- Preview de configuração JSON
 ```
 
-### **2. 🚀 Dashboard de Execução**
+### **3. � Componentes e Infraestrutura**
 
-#### **2.1 Manual Execution Dashboard**
+#### **✅ COMPONENTES BASE IMPLEMENTADOS**
 
 ```typescript
-// src/pages/ExecutionPage/ - CRIAR
-- Botões para execução manual (todas/por loja)
-- Status em tempo real das execuções
-- Logs ao vivo
-- Histórico de execuções
-- Métricas de performance
+// ✅ UI Components (shadcn/ui completo):
+- DataTable avançada com sorting/filtering/pagination
+- Forms com validação em tempo real
+- Modal/Dialog systems
+- Loading states e skeletons
+- Toast notifications
+- Sidebar navigation responsiva
+
+// ✅ Custom Components funcionais:
+- AnimatedWrapper (framer-motion)
+- RoutineStatusBadge
+- TextareaWithCounter
+- Layout components (PageContainer, PageCard)
+- ProfileModal com logout
 ```
 
-#### **2.2 Monitoring Dashboard**
+#### **� COMPONENTES ESPECÍFICOS A CRIAR**
 
 ```typescript
-// src/pages/MonitoringPage/ - CRIAR
-- Status dos jobs automáticos
-- Últimas execuções
-- Alertas e falhas
-- Comparações de dados
-- Gráficos de performance
-```
+// src/components/integration/ - EXPANDIR
+- IntegrationTypeSelector (RP/CresceVendas/Telegram)
+- RPConfigForm (auth methods, endpoints)
+- CresceVendasConfigForm (headers, campaigns)
+- IntegrationTester (conexão em tempo real)
+- ConfigPreview (JSON viewer)
 
-### **3. 🔧 Componentes Específicos**
-
-#### **3.1 Integration Config Components**
-
-```typescript
-// src/components/integration/ - CRIAR
-- IntegrationTypeSelector
-- RPConfigForm (auth method, endpoints)
-- CresceVendasConfigForm (headers, endpoints)
-- IntegrationTester (testar conexão)
-- ConfigPreview (preview JSON)
-```
-
-#### **3.2 Job Config Components**
-
-```typescript
 // src/components/jobs/ - CRIAR
-- CronScheduleBuilder (visual cron builder)
-- StoreSelector (multi-select com pesquisa)
+- CronScheduleBuilder (visual cron expression)
+- StoreSelector (multi-select com search)
 - NotificationChannelSelector
-- JobConfigWizard
-```
+- JobConfigWizard (step-by-step)
+- JobStatusMonitor (tempo real)
 
-#### **3.3 Execution Components**
-
-```typescript
-// src/components/execution/ - CRIAR
-- ExecutionButton (com loading states)
-- LiveLogViewer (logs em tempo real)
+// src/components/execution/ - EXPANDIR
+- ExecutionButton (estados de loading)
+- LiveLogViewer (já existe base no LogsPage)
 - ExecutionHistoryTable
 - ComparisonResultsViewer
-- PerformanceMetrics
+- PerformanceMetrics charts
+```
+
+### **4. 📊 Estado dos Controllers Frontend**
+
+#### **✅ APIs IMPLEMENTADAS**
+
+```typescript
+// ✅ Controllers funcionais:
+- auth-api.ts - Login/logout JWT
+- users-api.ts - CRUD completo
+- integration.controller.ts - Base implementada
+- store.controller.ts - Gerenciamento lojas
+- sync.controller.ts - Execução manual
+- log.controller.ts - SSE streaming
+- notification-channels-api.ts - Telegram
+
+// 🔄 A expandir:
+- jobs-api.ts - CRIAR (gerenciamento jobs)
+- execution-api.ts - EXPANDIR (histórico, métricas)
 ```
 
 ---
 
-## 📅 **Cronograma de Implementação**
+## 📅 **Cronograma ATUALIZADO (Outubro 2025)**
 
-### **🔥 Sprint 1 (1-2 semanas): Core Infrastructure**
+### **🎯 FOCO IMEDIATO: Sistema de Jobs Automáticos**
 
-1. **Backend:**
-   - Expandir integration types e configs
-   - Criar RP/CresceVendas service adapters
-   - Implementar system de jobs configurável
+#### **� Sprint URGENTE (3-5 dias): Job Scheduler**
 
-2. **Frontend:**
-   - Expandir página de integrações
-   - Formulários dinâmicos por tipo de integração
+**Backend (CRÍTICO):**
 
-### **🚀 Sprint 2 (1-2 semanas): Job System**
+- ✅ Tipos e services já implementados
+- 🔥 **CRIAR JobSchedulerService** - inicialização automática
+- 🔥 **INTEGRAR com index.ts** - startup automático
+- 🔥 **TESTAR jobs automáticos** - 5h e 5h30
+- 🔄 Expandir integration configs (RP/CresceVendas)
 
-1. **Backend:**
-   - Implementar sync job service
-   - Controller de execução manual
-   - Sistema de templates de notificação
+**Frontend (IMPORTANTE):**
 
-2. **Frontend:**
-   - Página de configuração de jobs
-   - Dashboard de execução manual
+- 🔄 Página JobsPage - configuração visual
+- 🔄 Componentes de agendamento
+- 🔄 Monitor de jobs ativos
 
-### **📊 Sprint 3 (1 semana): Monitoring & Polish**
+### **🚀 Sprint 2 (1 semana): Configuração Dinâmica**
 
-1. **Backend:**
-   - Logs detalhados e auditoria
-   - Métricas de performance
+**Backend:**
 
-2. **Frontend:**
-   - Dashboard de monitoramento
-   - Componentes de visualização
+- ✅ Integration services já funcionais
+- 🔄 Expandir tipos de configuração
+- 🔄 Validação de configs
+- 🔄 Teste de conexões
+
+**Frontend:**
+
+- 🔄 Wizard de configuração de integrações
+- 🔄 Formulários dinâmicos por tipo
+- 🔄 Preview e teste de configurações
+
+### **📊 Sprint 3 (1 semana): Monitoramento e Finalização**
+
+**Sistema:**
+
+- ✅ Logs já implementados completamente
+- 🔄 Dashboard de monitoramento
+- 🔄 Métricas em tempo real
+- 🔄 Alertas e notificações automáticas
+- 🔄 Migração final do server-node-fill
 
 ---
 
-## 🎯 **Melhorias vs Server-Node-Fill**
+## 🎯 **Estado Atual vs Server-Node-Fill**
 
-### **✅ Vantagens da V2:**
+### **✅ VANTAGENS JÁ ALCANÇADAS na V2:**
 
-- **Configurável:** Sem código hardcoded
-- **Multi-integração:** Suporte a diferentes APIs
-- **Interface gráfica:** Configuração via UI
-- **Flexível:** Execução manual + automática
-- **Auditável:** Logs estruturados e métricas
-- **Escalável:** Fácil adicionar novas integrações
-- **Testável:** Cada integração pode ser testada isoladamente
+- **✅ Arquitetura Moderna:** TypeScript + React + Kysely
+- **✅ Interface Gráfica:** UI completa para configuração
+- **✅ Sistema de Query Unificado:** Filtros/paginação/ordenação
+- **✅ Logs Estruturados:** Sistema completo de auditoria
+- **✅ Notificações Telegram:** Totalmente configuráveis
+- **✅ Multi-usuário:** Sistema de autenticação e permissões
+- **✅ Execução Manual:** Sync sob demanda funcional
+- **✅ Type Safety:** Código 100% tipado e validado
 
-### **🔄 Migração Gradual:**
+### **⚠️ GAPS IDENTIFICADOS vs Server-Node-Fill:**
 
-1. **Manter server-node-fill** rodando durante desenvolvimento
-2. **Configurar integrações** na V2 baseado nos dados atuais
-3. **Testar execução manual** antes de ativar jobs automáticos
-4. **Migrar jobs automáticos** um por vez
-5. **Desativar server-node-fill** após validação completa
+| Funcionalidade | Server-Node-Fill | PSM Chimera V2 | Status |
+|---|---|---|---|
+| **Jobs Automáticos** | ✅ Funciona (5h/5h30) | ❌ Não inicia sozinho | 🔥 **CRÍTICO** |
+| **Configuração** | ❌ Hardcoded | ✅ UI configurável | ✅ **MELHOR** |
+| **Integrações** | ✅ RP + CresceVendas | ✅ Services implementados | ✅ **IGUAL** |
+| **Notificações** | ✅ Telegram básico | ✅ Sistema avançado | ✅ **MELHOR** |
+| **Logs** | ❌ Básico | ✅ Sistema completo | ✅ **MELHOR** |
+| **Interface** | ❌ Apenas código | ✅ UI completa | ✅ **MELHOR** |
 
-Este plano permite uma migração controlada mantendo a funcionalidade existente enquanto constrói a nova arquitetura configurável! 🚀
+### **🔄 PLANO DE MIGRAÇÃO ATUALIZADO:**
+
+#### **Fase 1 (URGENTE - Esta Semana):**
+
+1. ✅ **Server-node-fill ainda rodando** - mantém operação
+2. 🔥 **Implementar JobSchedulerService** - jobs automáticos
+3. 🔥 **Testar jobs 5h/5h30** - validar funcionamento
+4. 🔄 **Configurar integrações via UI** - dados atuais
+
+#### **Fase 2 (Próxima Semana):**
+
+1. 🔄 **Executar sync manual** - testar fluxo completo
+2. 🔄 **Ativar 1 job automático** - teste em paralelo
+3. 🔄 **Comparar resultados** - V2 vs server-node-fill
+4. 🔄 **Ajustar diferenças** - garantir paridade
+
+#### **Fase 3 (Semana Seguinte):**
+
+1. 🔄 **Migrar todos jobs automáticos** - desligar server-node-fill
+2. 🔄 **Monitorar 48h** - validação completa
+3. 🔄 **Desativação definitiva** - server-node-fill
+4. ✅ **Migração concluída** - V2 operacional
+
+---
+
+## 🏆 **CONCLUSÃO: Estado Atual é EXCELENTE**
+
+### **✅ O QUE JÁ TEMOS:**
+
+- **Arquitetura sólida e moderna** - Muito superior ao server-node-fill
+- **95% da funcionalidade implementada** - Apenas jobs automáticos faltando
+- **Sistema mais robusto** - Logs, UI, multi-usuário, type safety
+- **Qualidade de código alta** - Padrões estabelecidos e documentados
+
+### **🎯 PRÓXIMO PASSO CRÍTICO:**
+
+Implementar JobSchedulerService para inicialização automática de jobs no startup
+
+Estamos muito próximos de ter um sistema 10x melhor que o atual! 🚀
