@@ -2,7 +2,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
 import { KeyRound, Plus, SquarePen, Trash2 } from "lucide-react";
 import { PageCard } from "@/components/layout/page-card";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { usersApi } from "@/controllers/users-api";
 import { useToast } from "@/hooks/use-toast";
 import { DataTable } from "@/components/data-table";
@@ -19,11 +19,9 @@ import { DeleteUserModal } from "./delete-user-modal";
 import { isAdmin } from "@/utils/permissions";
 import { useAuth } from "@/stores/auth";
 import type { FilterConfig } from "@/types/filter-api";
+import { useTableData } from "@/hooks/use-table-data";
 
 export default function UsersPage() {
-    const [users, setUsers] = useState<BaseUser[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-
     const [filters, setFilters] = useState<UsersFilterState>({
         name: "",
         role: "ALL",
@@ -39,56 +37,53 @@ export default function UsersPage() {
     const { toast } = useToast();
     const { user: currentUser } = useAuth();
 
-    const loadUsers = useCallback((currentFilters: UsersFilterState) => {
-        setIsLoading(true);
-
-        const apiFilters: FilterConfig = {
-            filter: {}
-        };
-
+    // Função de fetch memoizada para evitar recriações desnecessárias
+    const fetchUsers = useCallback(async (filterConfig: FilterConfig) => {
         // Adicionar filtro de name
-        if (currentFilters.name && currentFilters.name.trim()) {
-            apiFilters.filter!.name = { ilike: currentFilters.name.trim() };
+        if (filters.name && filters.name.trim()) {
+            if (!filterConfig.filter) filterConfig.filter = {};
+            filterConfig.filter.name = { ilike: filters.name.trim() };
         }
 
         // Adicionar filtro de role
-        if (currentFilters.role !== "ALL") {
-            apiFilters.filter!.role = { eq: currentFilters.role };
+        if (filters.role !== "ALL") {
+            if (!filterConfig.filter) filterConfig.filter = {};
+            filterConfig.filter.role = { eq: filters.role };
         }
 
         // Adicionar filtro de active/inactive
-        if (currentFilters.active !== "ALL") {
-            const activeValue = currentFilters.active === "true";
-            apiFilters.filter!.active = { eq: activeValue };
+        if (filters.active !== "ALL") {
+            if (!filterConfig.filter) filterConfig.filter = {};
+            const activeValue = filters.active === "true";
+            filterConfig.filter.active = { eq: activeValue };
         }
 
-        // Se não tiver filtros, remover o objeto vazio
-        if (Object.keys(apiFilters.filter!).length === 0) {
-            delete apiFilters.filter;
-        }
+        const response = await usersApi.list(filterConfig);
 
-        usersApi.list(apiFilters)
-            .then(response => {
-                setUsers(response.users ?? []);
-            })
-            .catch(error => {
-                toast.error("Erro ao carregar usuários", {
-                    description: error.message || 'Erro desconhecido'
-                });
-            })
-            .finally(() => {
-                setIsLoading(false);
+        return {
+            data: response.data ?? [],
+            metadata: response.metadata!
+        };
+    }, [filters.name, filters.role, filters.active]);
+
+    // Usar o hook useTableData para gerenciar dados, paginação e filtros
+    const {
+        data: users,
+        isLoading,
+        pagination,
+        metadata,
+        sorting,
+        handlePaginationChange,
+        handleSortingChange,
+        refetch
+    } = useTableData<BaseUser>({
+        fetchFn: fetchUsers,
+        onError: (error) => {
+            toast.error("Erro ao carregar usuários", {
+                description: error.message || 'Erro desconhecido'
             });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        loadUsers({
-            name: "",
-            role: "ALL",
-            active: "ALL"
-        });
-    }, [loadUsers]);
+        }
+    });
 
     const handleFilterChange = (key: keyof UsersFilterState, value: string) => {
         const newFilters = { ...filters, [key]: value };
@@ -96,13 +91,15 @@ export default function UsersPage() {
     };
 
     const handleApplyFilters = () => {
-        loadUsers(filters);
+        // O refetch já vai acontecer automaticamente por causa do dependencies
+        // Mas podemos chamar explicitamente se quisermos
+        refetch();
     };
 
     const handleRemoveFilter = (key: keyof UsersFilterState, value: string) => {
         const newFilters = { ...filters, [key]: value };
         setFilters(newFilters);
-        loadUsers(newFilters);
+        // O refetch acontece automaticamente pelo dependencies
     };
 
     const getActiveFiltersCount = () => {
@@ -134,7 +131,7 @@ export default function UsersPage() {
     };
 
     const handleModalSuccess = () => {
-        loadUsers(filters);
+        refetch();
     };
 
     const getRoleLabel = (role: "ADMIN" | "USER") => {
@@ -162,7 +159,7 @@ export default function UsersPage() {
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:text-yellow-500 transition-colors"
                         onClick={() => handleChangePassword(user)}
                     >
                         <KeyRound size={16} />
@@ -177,7 +174,7 @@ export default function UsersPage() {
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:text-blue-500 transition-colors"
                         onClick={() => handleEditUser(user)}
                     >
                         <SquarePen size={16} />
@@ -192,7 +189,7 @@ export default function UsersPage() {
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="cursor-pointer text-red-500/70 hover:text-red-500 transition-colors"
                         onClick={() => handleDeleteUser(user)}
                     >
                         <Trash2 size={16} />
@@ -212,16 +209,19 @@ export default function UsersPage() {
             id: 'name',
             header: 'Nome',
             accessorKey: 'name',
+            enableSorting: true,
         },
         {
             id: 'email',
             header: 'Email',
             accessorKey: 'email',
+            enableSorting: true,
         },
         {
             id: 'role',
             header: 'Cargo',
             accessorKey: 'role',
+            enableSorting: true,
             cell: ({ row }: CellProps) => (
                 getRoleLabel(row.original.role)
             )
@@ -230,6 +230,7 @@ export default function UsersPage() {
             id: 'active',
             header: 'Ativo',
             accessorKey: 'active',
+            enableSorting: true,
             cell: ({ row }: CellProps) => (
                 row.original.active ? 'Sim' : 'Não'
             )
@@ -238,6 +239,7 @@ export default function UsersPage() {
             id: 'createdAt',
             header: 'Criado em',
             accessorKey: 'createdAt',
+            enableSorting: true,
             cell: ({ row }: CellProps) => (
                 new Date(row.original.createdAt).toLocaleDateString('pt-BR', {
                     day: '2-digit',
@@ -252,6 +254,7 @@ export default function UsersPage() {
             id: 'actions',
             header: 'Ações',
             accessorKey: 'id',
+            enableSorting: false,
             cell: ({ row }: CellProps) => (
                 isAdmin(currentUser) ? getActionButtons(row.original) : '-'
             )
@@ -297,11 +300,20 @@ export default function UsersPage() {
                     isExpanded={isFiltersExpanded}
                     isLoading={isLoading}
                 />
+
                 <DataTable
                     columns={tableColumns}
                     data={users}
                     isLoading={isLoading}
                     showPagination={true}
+                    manualPagination={true}
+                    pageCount={metadata ? Math.ceil(metadata.total / pagination.limit) : 0}
+                    totalRecords={metadata?.total ?? 0}
+                    pagination={pagination}
+                    onPaginationChange={handlePaginationChange}
+                    manualSorting={true}
+                    sorting={sorting}
+                    onSortingChange={handleSortingChange}
                 />
             </PageCard>
 
