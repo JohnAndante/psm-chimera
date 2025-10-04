@@ -9,7 +9,7 @@ import { DataTable } from "@/components/data-table";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import type { BaseUser } from "@/types/user-api";
-import type { UsersFilterState, UsersApiFilters } from "../types";
+import type { UsersFilterState } from "../types";
 import { UsersActiveFilters } from "./users-active-filters";
 import { UsersFilterControls } from "./users-filter-controls";
 import { ChangePasswordModal } from "./change-password-modal";
@@ -18,6 +18,7 @@ import { CreateUserModal } from "./create-user-modal";
 import { DeleteUserModal } from "./delete-user-modal";
 import { isAdmin } from "@/utils/permissions";
 import { useAuth } from "@/stores/auth";
+import type { FilterConfig } from "@/types/filter-api";
 
 export default function UsersPage() {
     const [users, setUsers] = useState<BaseUser[]>([]);
@@ -41,21 +42,32 @@ export default function UsersPage() {
     const loadUsers = useCallback((currentFilters: UsersFilterState) => {
         setIsLoading(true);
 
-        const apiFilters: UsersApiFilters = {};
+        const apiFilters: FilterConfig = {
+            filter: {} // Inicializar o objeto filter
+        };
 
+        // Adicionar filtro de busca
         if (currentFilters.search && currentFilters.search.trim()) {
             apiFilters.search = currentFilters.search.trim();
         }
 
+        // Adicionar filtro de role
         if (currentFilters.role !== "ALL") {
-            apiFilters.role = currentFilters.role;
+            apiFilters.filter!.role = { eq: currentFilters.role };
         }
 
+        // Adicionar filtro de active/inactive
         if (currentFilters.active !== "ALL") {
-            apiFilters.active = currentFilters.active === "true";
+            const activeValue = currentFilters.active === "true";
+            apiFilters.filter!.active = { eq: activeValue };
         }
 
-        usersApi.list(Object.keys(apiFilters).length > 0 ? apiFilters : undefined)
+        // Se não tiver filtros, remover o objeto vazio
+        if (Object.keys(apiFilters.filter!).length === 0) {
+            delete apiFilters.filter;
+        }
+
+        usersApi.list(apiFilters)
             .then(response => {
                 setUsers(response.users ?? []);
             })
