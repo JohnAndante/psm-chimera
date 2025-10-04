@@ -8,12 +8,24 @@ import {
 } from '../types/user.type';
 import { AuthTable, UserTable } from '../types/database';
 import { FilterResult, PaginationResult } from '../types/filter-pagination.type';
-import { applyFilters, applyPagination } from '../utils/query-builder.helper';
+import { applyFilters, applyPagination, applySorting } from '../utils/query-builder.helper';
 import { sql } from 'kysely';
 
 class UserService {
 
-    getAllUsers(filters: FilterResult, pagination: PaginationResult): Promise<UserListData> {
+
+    getAllUsers(filters: FilterResult, pagination: PaginationResult, sorting?: Record<string, 'asc' | 'desc'>): Promise<UserListData> {
+        const columnMapping = {
+            'active': 'users.active',
+            'role': 'users.role',
+            'email': 'users.email',
+            'name': 'users.name',
+            'createdAt': 'users.createdAt',
+            'updatedAt': 'users.updatedAt'
+        };
+
+        const searchFields = ['users.name', 'users.email'];
+
         return new Promise((resolve, reject) => {
             let query = db
                 .selectFrom('users')
@@ -34,7 +46,21 @@ class UserService {
 
 
             // Aplicar filtros
-            query = applyFilters(query, filters);
+            query = applyFilters({
+                query,
+                filters,
+                columnMapping: columnMapping,
+                searchFields: searchFields
+            });
+
+
+            // Aplicar ordenação (padrão: createdAt desc)
+            query = applySorting(
+                query,
+                sorting || { createdAt: 'desc' },
+                columnMapping
+            );
+
 
             // Count query para total
             let countQuery = db
@@ -42,8 +68,13 @@ class UserService {
                 .select(db.fn.count('users.id').as('total'))
                 .where('users.deletedAt', 'is', null);
 
-            // Aplicar os mesmos filtros na query de count
-            countQuery = applyFilters(countQuery, filters);
+            // Aplicar os mesmos filtros à query de contagem
+            countQuery = applyFilters({
+                query: countQuery,
+                filters,
+                columnMapping: columnMapping,
+                searchFields: searchFields
+            });
 
             // Aplica paginação
             query = applyPagination(query, pagination);
