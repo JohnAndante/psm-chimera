@@ -21,7 +21,15 @@ export function validate(schemas: ValidationSchemas) {
 
         // Validar query parameters
         if (schemas.query) {
-            const { error } = schemas.query.validate(req.query);
+            const queryToValidate = { ...req.query };
+
+            Object.keys(queryToValidate).forEach(key => {
+                if (key.startsWith('filter[') || key.startsWith('order[')) {
+                    delete queryToValidate[key];
+                }
+            });
+
+            const { error } = schemas.query.validate(queryToValidate);
             if (error) {
                 errors.push(`Query inválida: ${error.details.map(d => d.message).join(', ')}`);
             }

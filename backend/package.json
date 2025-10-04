@@ -10,7 +10,7 @@
     "scripts": {
         "build": "npx tsc",
         "start": "tsx dist/index.js",
-        "dev": "tsx src/index.ts",
+        "dev": "nodemon src/index.ts",
         "db:generate": "npx prisma generate --schema=./database/prisma/schema.prisma",
         "db:migrate": "prisma migrate deploy --schema=./database/prisma/schema.prisma",
         "db:seed": "tsx database/prisma/seed.ts",
@@ -24,6 +24,7 @@
         "@types/node-telegram-bot-api": "^0.64.11",
         "install": "^0.13.0",
         "node-telegram-bot-api": "^0.66.0",
+        "nodemon": "^3.1.10",
         "npm": "^11.6.1",
         "prisma": "^6.16.2",
         "prisma-kysely": "^2.2.1",
