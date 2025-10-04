@@ -1,11 +1,11 @@
 import type { AxiosInstance } from 'axios';
 
 import { createApiInstance } from './base-api';
-import type { ListUsersResponse } from '@/types/user-api';
-import type { UsersApiFilters } from '@/pages/UsersPage/types';
 import { processApiError } from '@/utils/api-error';
 import { buildApiUrl } from '@/utils/build-api-url';
 import type { FilterConfig } from '@/types/filter-api';
+import type { ApiResponse } from '@/types';
+import type { BaseUser } from '@/types/user-api';
 
 // ===========================
 // Users API Class
@@ -19,15 +19,13 @@ class UsersApi {
     }
 
     list(filters?: FilterConfig) {
-        return new Promise<ListUsersResponse>((resolve, reject) => {
+        return new Promise<ApiResponse<BaseUser[]>>((resolve, reject) => {
             const url = buildApiUrl('v1/users', filters);
-
-            console.log("URL de requisição:", url); // Para debug
 
             this.axiosInstance.get(url)
                 .then(response => {
-                    const { message, data } = response.data;
-                    resolve({ message, users: data });
+                    const { data, metadata } = response.data;
+                    resolve({ data, metadata });
                 })
                 .catch(error => {
                     reject(processApiError(error));
