@@ -51,3 +51,9 @@ export interface FilterConfig {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
 }
+
+export interface PaginationResult {
+    limit: number;
+    offset: number;
+    page: number;
+}

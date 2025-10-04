@@ -8,13 +8,19 @@ export interface ApiError {
     error?: string;
 }
 
+export interface PaginationMetadata {
+    limit: number;
+    offset: number;
+    total: number;
+}
+
 
 /**
  * Resposta genérica da API com tipagem
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T> {
     data?: T;
     error?: ApiError;
-    status: number;
-    metadata?: Record<string, any>;
+    metadata?: PaginationMetadata;
+    message?: string;
 }
