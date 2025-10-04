@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { SyncController } from "@/controllers/sync.controller";
 import { IntegrationController } from "@/controllers/integration.controller";
-import { StoreController } from "@/controllers/store.controller";
+import { storeApi } from "@/controllers/store-api";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save } from "lucide-react";
 import { AnimatedWrapper } from "@/components/animated-wrapper";
@@ -47,7 +47,7 @@ export default function CreateSyncConfigPage() {
             try {
                 const [integrationsData, storesData] = await Promise.all([
                     IntegrationController.getAllIntegrations(),
-                    StoreController.getAllStores({ active: true })
+                    storeApi.list({ active: true })
                 ]);
 
                 setIntegrations(integrationsData.filter(i => i.active));
