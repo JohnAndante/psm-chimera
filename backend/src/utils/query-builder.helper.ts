@@ -1,18 +1,15 @@
-import { SelectQueryBuilder, Kysely, sql } from 'kysely';
-import {
-    FilterResult,
-    PaginationResult,
-    FilterOperator
-} from '../types/filter-pagination.type.js';
+import { SelectQueryBuilder } from 'kysely';
+import { FilterOperator, FilterResult, PaginationResult } from '../types/filter-pagination.type';
+
+export interface ApplyFiltersConfig<DB, TB extends keyof DB, O> {
+    query: SelectQueryBuilder<DB, TB, O>;
+    filters: FilterResult;
+    columnMapping?: Record<string, string>; // Mapeia campo da URL -> coluna do banco
+    searchFields?: string[]; // Campos onde aplicar busca por search term
+}
 
 /**
- * Query Builder Helper
- *
- * Funções para aplicar filtros e paginação em queries Kysely
- */
-
-/**
- * Aplica um filtro específico à query
+ * Aplica um único filtro à query
  */
 function applyFilter<DB, TB extends keyof DB, O>(
     query: SelectQueryBuilder<DB, TB, O>,
@@ -20,66 +17,77 @@ function applyFilter<DB, TB extends keyof DB, O>(
     operator: FilterOperator,
     value: any
 ): SelectQueryBuilder<DB, TB, O> {
-    const fieldRef = field as any; // Type assertion necessária para Kysely
-
     switch (operator) {
         case 'eq':
-            return query.where(fieldRef, '=', value);
-
+            return query.where(field as any, '=', value);
         case 'ne':
-            return query.where(fieldRef, '!=', value);
-
+            return query.where(field as any, '!=', value);
         case 'gt':
-            return query.where(fieldRef, '>', value);
-
+            return query.where(field as any, '>', value);
         case 'gte':
-            return query.where(fieldRef, '>=', value);
-
+            return query.where(field as any, '>=', value);
         case 'lt':
-            return query.where(fieldRef, '<', value);
-
+            return query.where(field as any, '<', value);
         case 'lte':
-            return query.where(fieldRef, '<=', value);
-
-        case 'like':
-            return query.where(fieldRef, 'like', value);
-
-        case 'ilike':
-            return query.where(fieldRef, 'ilike', value);
-
+            return query.where(field as any, '<=', value);
         case 'in':
-            return query.where(fieldRef, 'in', value);
-
+            return query.where(field as any, 'in', value);
         case 'nin':
-            return query.where(fieldRef, 'not in', value);
-
-        case 'between':
-            return query.where(fieldRef, '>=', value[0]).where(fieldRef, '<=', value[1]);
-
-        case 'null':
-            return value
-                ? query.where(fieldRef, 'is', null)
-                : query.where(fieldRef, 'is not', null);
-
+            return query.where(field as any, 'not in', value);
+        case 'like':
+            return query.where(field as any, 'like', `%${value}`);
+        case 'isNull':
+            return query.where(field as any, 'is', null);
+        case 'isNotNull':
+            return query.where(field as any, 'is not', null);
         default:
-            throw new Error(`Unsupported filter operator: ${operator}`);
+            console.warn(`Operador desconhecido: ${operator}`);
+            return query;
     }
 }
 
 /**
- * Aplica todos os filtros à query
+ * Aplica todos os filtros à query com suporte a mapeamento de colunas e busca em múltiplos campos
  */
 export function applyFilters<DB, TB extends keyof DB, O>(
-    query: SelectQueryBuilder<DB, TB, O>,
-    filters: FilterResult
+    config: ApplyFiltersConfig<DB, TB, O>
 ): SelectQueryBuilder<DB, TB, O> {
+    const { query, filters, columnMapping = {}, searchFields = [] } = config;
     let filteredQuery = query;
 
-    for (const [field, fieldFilters] of Object.entries(filters)) {
+    console.log('🔧 Aplicando filtros:', JSON.stringify(filters, null, 2));
+    console.log('🗺️ Mapeamento de colunas:', columnMapping);
+    console.log('🔍 Campos de busca:', searchFields);
+
+    // Extrair e processar o termo de busca separadamente
+    const searchTerm = filters.search?.eq as string | undefined;
+    const otherFilters = { ...filters };
+    delete otherFilters.search;
+
+    // Aplicar busca em múltiplos campos se houver searchTerm e searchFields
+    if (searchTerm && searchFields.length > 0) {
+        console.log(`🔎 Aplicando busca por "${searchTerm}" nos campos:`, searchFields);
+
+        filteredQuery = filteredQuery.where((eb) => {
+            const conditions = searchFields.map(field =>
+                eb(field as any, 'like', `%${searchTerm}%`)
+            );
+            return eb.or(conditions);
+        });
+    }
+
+    // Aplicar filtros específicos com mapeamento de colunas
+    for (const [field, fieldFilters] of Object.entries(otherFilters)) {
+        // Mapear o campo para a coluna correta do banco, se definido
+        const mappedField = columnMapping[field] || field;
+
+        console.log(`📌 Aplicando filtros para campo: ${field} -> ${mappedField}`);
+
         for (const [operator, value] of Object.entries(fieldFilters)) {
+            console.log(`   ✓ ${mappedField} ${operator} ${value}`);
             filteredQuery = applyFilter(
                 filteredQuery,
-                field,
+                mappedField,
                 operator as FilterOperator,
                 value
             );
@@ -96,70 +104,9 @@ export function applyPagination<DB, TB extends keyof DB, O>(
     query: SelectQueryBuilder<DB, TB, O>,
     pagination: PaginationResult
 ): SelectQueryBuilder<DB, TB, O> {
-    let paginatedQuery = query;
-
-    // Aplica limit apenas se não for 0 (unlimited)
-    if (pagination.limit > 0) {
-        paginatedQuery = paginatedQuery.limit(pagination.limit);
-    }
-
-    // Aplica offset
-    if (pagination.offset > 0) {
-        paginatedQuery = paginatedQuery.offset(pagination.offset);
-    }
-
-    return paginatedQuery;
-}
-
-/**
- * Helper para criar resposta paginada padrão
- */
-export interface PaginatedResponse<T> {
-    data: T[];
-    pagination: {
-        limit: number;
-        offset: number;
-        page?: number;
-        totalCount: number;
-        hasNextPage: boolean;
-        hasPreviousPage: boolean;
-        totalPages?: number;
-        currentPage?: number;
-    };
-}
-
-/**
- * Cria resposta paginada padrão
- */
-export function createPaginatedResponse<T>(
-    data: T[],
-    pagination: PaginationResult,
-    totalCount: number,
-    paginationInfo: {
-        hasNextPage: boolean;
-        hasPreviousPage: boolean;
-        totalPages?: number;
-        currentPage?: number;
-    }
-): PaginatedResponse<T> {
-    return {
-        data,
-        pagination: {
-            limit: pagination.limit,
-            offset: pagination.offset,
-            page: pagination.page,
-            totalCount,
-            ...paginationInfo
-        }
-    };
-}
-
-/**
- * Helper para ordenação dinâmica
- */
-export interface SortConfig {
-    field: string;
-    direction: 'asc' | 'desc';
+    return query
+        .limit(pagination.limit)
+        .offset(pagination.offset);
 }
 
 /**
@@ -167,14 +114,23 @@ export interface SortConfig {
  */
 export function applySorting<DB, TB extends keyof DB, O>(
     query: SelectQueryBuilder<DB, TB, O>,
-    sorting: SortConfig[]
+    sorting?: Record<string, 'asc' | 'desc'>,
+    columnMapping?: Record<string, string>
 ): SelectQueryBuilder<DB, TB, O> {
+    if (!sorting) return query;
+
     let sortedQuery = query;
 
-    for (const sort of sorting) {
-        const fieldRef = sort.field as any; // Type assertion necessária para Kysely
-        sortedQuery = sortedQuery.orderBy(fieldRef, sort.direction);
+    for (const [field, direction] of Object.entries(sorting)) {
+        const mappedField = columnMapping?.[field] || field;
+        console.log(`🔽 Ordenando por: ${mappedField} ${direction}`);
+        sortedQuery = sortedQuery.orderBy(mappedField as any, direction);
     }
 
     return sortedQuery;
+}
+
+export interface PaginatedResponse<T> {
+    data: T[];
+    total: number;
 }
