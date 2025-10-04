@@ -19,6 +19,7 @@ router.get('/',
     UserValidator.getAll,
     queryMiddleware({
         name: { type: 'string', sortable: true, filterable: true },
+        email: { type: 'string', sortable: true, filterable: false },
         role: {
             type: 'enum',
             sortable: true,
@@ -26,8 +27,7 @@ router.get('/',
             enumValues: ['ADMIN', 'USER']
         },
         active: { type: 'boolean', sortable: true, filterable: true },
-        createdAt: { type: 'date', sortable: true, filterable: false },
-        updatedAt: { type: 'date', sortable: true, filterable: false }
+        createdAt: { type: 'date', sortable: true, filterable: true },
     }),
     UserController.getAll
 );

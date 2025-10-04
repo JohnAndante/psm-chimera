@@ -9,8 +9,8 @@
     "type": "module",
     "scripts": {
         "build": "npx tsc",
-        "start": "tsx dist/index.js",
-        "dev": "nodemon src/index.ts",
+        "start": "tsx dist/index.js TZ=UTC",
+        "dev": "nodemon src/index.ts TZ=UTC",
         "db:generate": "npx prisma generate --schema=./database/prisma/schema.prisma",
         "db:migrate": "prisma migrate deploy --schema=./database/prisma/schema.prisma",
         "db:seed": "tsx database/prisma/seed.ts",

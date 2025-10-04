@@ -9,7 +9,7 @@ export class UserController {
     static getAll(req: AuthenticatedRequest, res: Response) {
         const filters = req.filters || {};
         const pagination = req.pagination || { limit: 10, offset: 0 };
-        const sorting = req.sorting || { createdAt: 'desc' };
+        const sorting = req.sorting || { createdAt: 'asc' };
 
         return userService.getAllUsers(filters, pagination, sorting)
             .then(result => {
@@ -17,11 +17,12 @@ export class UserController {
 
                 return res.status(200).json({
                     data,
-                    pagination: {
+                    metadata: {
                         limit: pagination.limit,
                         offset: pagination.offset,
                         total: total,
-                    }
+                    },
+                    message: 'Usuários recuperados com sucesso'
                 });
 
             })
