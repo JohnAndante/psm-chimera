@@ -1,5 +1,5 @@
 import { SelectQueryBuilder } from 'kysely';
-import { FilterOperator, FilterResult, PaginationResult } from '../types/filter-pagination.type';
+import { FilterResult, FilterOperator, PaginationResult } from '../types/query.type';
 
 export interface ApplyFiltersConfig<DB, TB extends keyof DB, O> {
     query: SelectQueryBuilder<DB, TB, O>;
@@ -33,8 +33,15 @@ function applyFilter<DB, TB extends keyof DB, O>(
         case 'in':
             return query.where(field as any, 'in', value);
         case 'nin':
+        case 'notIn':
             return query.where(field as any, 'not in', value);
         case 'like':
+        case 'contains':
+        case 'ilike':
+            return query.where(field as any, 'ilike', `%${value}%`); // Case-insensitive LIKE
+        case 'startsWith':
+            return query.where(field as any, 'like', `${value}%`);
+        case 'endsWith':
             return query.where(field as any, 'like', `%${value}`);
         case 'isNull':
             return query.where(field as any, 'is', null);
@@ -70,7 +77,7 @@ export function applyFilters<DB, TB extends keyof DB, O>(
 
         filteredQuery = filteredQuery.where((eb) => {
             const conditions = searchFields.map(field =>
-                eb(field as any, 'like', `%${searchTerm}%`)
+                eb(field as any, 'ilike', `%${searchTerm}%`) // Usar ILIKE para busca case-insensitive
             );
             return eb.or(conditions);
         });
