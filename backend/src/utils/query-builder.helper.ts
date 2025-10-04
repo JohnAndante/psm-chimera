@@ -38,7 +38,7 @@ function applyFilter<DB, TB extends keyof DB, O>(
         case 'like':
         case 'contains':
         case 'ilike':
-            return query.where(field as any, 'ilike', `%${value}%`); // Case-insensitive LIKE
+            return query.where(field as any, 'ilike', `%${value}%`);
         case 'startsWith':
             return query.where(field as any, 'like', `${value}%`);
         case 'endsWith':
@@ -77,7 +77,7 @@ export function applyFilters<DB, TB extends keyof DB, O>(
 
         filteredQuery = filteredQuery.where((eb) => {
             const conditions = searchFields.map(field =>
-                eb(field as any, 'ilike', `%${searchTerm}%`) // Usar ILIKE para busca case-insensitive
+                eb(field as any, 'ilike', `%${searchTerm}%`)
             );
             return eb.or(conditions);
         });
