@@ -1,18 +1,18 @@
-# Plano de Ação - PSM Ch#### **✅ MIGRAÇÃO PRISMA → KYSELY CONCLUÍDA**
+# Plano de Ação - PSM Ch#### ✅ MIGRAÇÃO PRISMA → KYSELY CONCLUÍDA
 
 - **100% dos services migrados** para Kysely
 - **Prisma restrito apenas** ao `database/seed.ts`
 - **Performance melhorada** com queries type-safe
 - **Código mais limpo** e maintídvel
 
-#### **✅ SISTEMA DE QUERY UNIFICADO**
+#### ✅ SISTEMA DE QUERY UNIFICADO
 
 - **queryMiddleware implementado** - substitui middlewares separados
 - **Filtros, paginação, ordenação** centralizados
 - **Case-insensitive search** com ILIKE
 - **Column mapping** para flexibilidade de API
 
-#### **✅ DOCUMENTAÇÃO TÉCNICA COMPLETA**
+#### ✅ DOCUMENTAÇÃO TÉCNICA COMPLETA
 
 - **Padrões arquiteturais** bem definidos
 - **Instruções detalhadas** para development
@@ -39,21 +39,21 @@
 
 ### **🔍 OUTRAS DESCOBERTAS TÉCNICAS IMPORTANTES**
 
-#### **✅ MIGRAÇÃO PRISMA → KYSELY CONCLUÍDA**
+#### ✅ MIGRAÇÃO PRISMA → KYSELY CONCLUÍDA
 
 - **100% dos services migrados** para Kysely
 - **Prisma restrito apenas** ao `database/seed.ts`
 - **Performance melhorada** com queries type-safe
 - **Código mais limpo** e maintível
 
-#### **✅ SISTEMA DE QUERY UNIFICADO**
+#### ✅ SISTEMA DE QUERY UNIFICADO
 
 - **queryMiddleware implementado** - substitui middlewares separados
 - **Filtros, paginação, ordenação** centralizados
 - **Case-insensitive search** com ILIKE
 - **Column mapping** para flexibilidade de API
 
-#### **✅ DOCUMENTAÇÃO TÉCNICA COMPLETA**
+#### ✅ DOCUMENTAÇÃO TÉCNICA COMPLETA
 
 - **Padrões arquiteturais** bem definidos
 - **Instruções detalhadas** para development
@@ -75,14 +75,14 @@ Completar a migração do `server-node-fill` (hardcoded) para sistema configurá
 
 ### **1. � Configuração de Integrações Externas**
 
-#### **✅ BASE IMPLEMENTADA**
+#### ✅ BASE IMPLEMENTADA
 
 - **Tipos básicos**: `IntegrationType`, interfaces de database
 - **Services base**: `integration.service.ts` com Kysely
 - **Controllers**: CRUD completo para integrações
 - **Validação**: Joi validators implementados
 
-#### **✅ SERVICES DE INTEGRAÇÃO EXTERNOS**
+#### ✅ SERVICES DE INTEGRAÇÃO EXTERNOS
 
 ```typescript
 // ✅ JÁ IMPLEMENTADOS
@@ -92,7 +92,7 @@ Completar a migração do `server-node-fill` (hardcoded) para sistema configurá
 - sync.job.service.ts - Sistema de sync migrado para Kysely
 ```
 
-#### **🔄 NECESSÁRIO IMPLEMENTAR**
+#### 🔄 NECESSÁRIO IMPLEMENTAR
 
 ```typescript
 // src/services/job-scheduler.service.ts - CRIAR URGENTE
@@ -105,7 +105,7 @@ export class JobSchedulerService {
 }
 ```
 
-#### **🔄 TIPOS EXPANDIDOS NECESSÁRIOS**
+#### 🔄 TIPOS EXPANDIDOS NECESSÁRIOS
 
 ```typescript
 // src/types/integration.type.ts - EXPANDIR
@@ -137,7 +137,7 @@ export interface CresceVendasConfig {
 
 ### **2. 🔄 Sistema de Jobs e Agendamento**
 
-#### **✅ IMPLEMENTADO**
+#### ✅ IMPLEMENTADO
 
 - **Tabelas de banco**: `job_configurations`, `job_executions`, `job_notifications`
 - **Tipos básicos**: `JobType`, `ExecutionStatus` em `database.ts`
@@ -145,7 +145,7 @@ export interface CresceVendasConfig {
 - **CronTestService**: Funcional para testes manuais
 - **Controllers**: `sync.controller.ts`, `cron.test.controller.ts`
 
-#### **❌ PROBLEMA CRÍTICO IDENTIFICADO**
+#### ❌ PROBLEMA CRÍTICO IDENTIFICADO
 
 ```typescript
 // ❌ FALTANDO: Inicialização automática no startup
@@ -163,7 +163,7 @@ app.listen(SERVER_PORT, async () => {
 });
 ```
 
-#### **🔄 IMPLEMENTAÇÕES URGENTES**
+#### 🔄 IMPLEMENTAÇÕES URGENTES
 
 ```typescript
 // src/services/job-scheduler.service.ts - CRIAR AGORA
@@ -197,7 +197,7 @@ export class JobSchedulerService {
 
 ### **3. 📱 Controllers e APIs**
 
-#### **✅ IMPLEMENTADO**
+#### ✅ IMPLEMENTADO
 
 ```typescript
 // ✅ Controllers existentes e funcionais:
@@ -211,7 +211,7 @@ export class JobSchedulerService {
 - log.controller.ts - Logs com SSE streaming
 ```
 
-#### **🔄 MELHORIAS NECESSÁRIAS**
+#### 🔄 MELHORIAS NECESSÁRIAS
 
 ```typescript
 // src/controllers/integration.controller.ts - EXPANDIR
@@ -235,7 +235,7 @@ export class JobController {
 
 ### **4. 🔔 Sistema de Notificações**
 
-#### **✅ FUNCIONAL COMPLETAMENTE**
+#### ✅ FUNCIONAL COMPLETAMENTE
 
 ```typescript
 // ✅ notification.template.service.ts - COMPLETO
@@ -256,7 +256,7 @@ export class NotificationTemplateService {
 
 ### **5. 📊 Logs e Auditoria**
 
-#### **✅ FUNCIONALIDADE COMPLETA**
+#### ✅ FUNCIONALIDADE COMPLETA
 
 ```typescript
 // ✅ Tabelas de banco implementadas:
@@ -282,7 +282,7 @@ export class NotificationTemplateService {
 
 ### **1. 📋 Base Técnica Moderna**
 
-#### **✅ STACK IMPLEMENTADA**
+#### ✅ STACK IMPLEMENTADA
 
 ```typescript
 // ✅ Base técnica completa:
@@ -297,7 +297,7 @@ export class NotificationTemplateService {
 
 ### **2. 📋 Páginas Implementadas**
 
-#### **✅ PÁGINAS FUNCIONAIS**
+#### ✅ PÁGINAS FUNCIONAIS
 
 - **LoginPage** - Autenticação JWT completa
 - **DashboardPage** - Overview do sistema
@@ -308,7 +308,7 @@ export class NotificationTemplateService {
 - **SyncPage** - Execução manual de syncs
 - **NotificationChannelsPage** - Gerenciamento de canais Telegram
 
-#### **🔄 PÁGINAS A CRIAR/EXPANDIR**
+#### 🔄 PÁGINAS A CRIAR/EXPANDIR
 
 ```typescript
 // src/pages/JobsPage/ - CRIAR URGENTE
@@ -327,7 +327,7 @@ export class NotificationTemplateService {
 
 ### **3. � Componentes e Infraestrutura**
 
-#### **✅ COMPONENTES BASE IMPLEMENTADOS**
+#### ✅ COMPONENTES BASE IMPLEMENTADOS
 
 ```typescript
 // ✅ UI Components (shadcn/ui completo):
@@ -346,7 +346,7 @@ export class NotificationTemplateService {
 - ProfileModal com logout
 ```
 
-#### **� COMPONENTES ESPECÍFICOS A CRIAR**
+#### � COMPONENTES ESPECÍFICOS A CRIAR
 
 ```typescript
 // src/components/integration/ - EXPANDIR
@@ -373,7 +373,7 @@ export class NotificationTemplateService {
 
 ### **4. 📊 Estado dos Controllers Frontend**
 
-#### **✅ APIs IMPLEMENTADAS**
+#### ✅ APIs IMPLEMENTADAS
 
 ```typescript
 // ✅ Controllers funcionais:
@@ -396,7 +396,7 @@ export class NotificationTemplateService {
 
 ### **🎯 FOCO IMEDIATO: Sistema de Jobs Automáticos**
 
-#### **� Sprint URGENTE (3-5 dias): Job Scheduler**
+#### � Sprint URGENTE (3-5 dias): Job Scheduler
 
 **Backend (CRÍTICO):**
 
@@ -465,21 +465,21 @@ export class NotificationTemplateService {
 
 ### **🔄 PLANO DE MIGRAÇÃO ATUALIZADO:**
 
-#### **Fase 1 (URGENTE - Esta Semana):**
+#### Fase 1 (URGENTE - Esta Semana)
 
 1. ✅ **Server-node-fill ainda rodando** - mantém operação
 2. 🔥 **Implementar JobSchedulerService** - jobs automáticos
 3. 🔥 **Testar jobs 5h/5h30** - validar funcionamento
 4. 🔄 **Configurar integrações via UI** - dados atuais
 
-#### **Fase 2 (Próxima Semana):**
+#### Fase 2 (Próxima Semana)
 
 1. 🔄 **Executar sync manual** - testar fluxo completo
 2. 🔄 **Ativar 1 job automático** - teste em paralelo
 3. 🔄 **Comparar resultados** - V2 vs server-node-fill
 4. 🔄 **Ajustar diferenças** - garantir paridade
 
-#### **Fase 3 (Semana Seguinte):**
+#### Fase 3 (Semana Seguinte)
 
 1. 🔄 **Migrar todos jobs automáticos** - desligar server-node-fill
 2. 🔄 **Monitorar 48h** - validação completa
