@@ -18,18 +18,29 @@ const idParamSchema = Joi.object({
 
 // Schema para query parameters do getAll
 const getAllUsersQuerySchema = Joi.object({
-    role: Joi.string().valid('ADMIN', 'USER').optional().messages({
-        'any.only': 'role deve ser ADMIN ou USER'
+    filter: Joi.object({
+        role: Joi.string().valid('ADMIN', 'USER').optional().messages({
+            'string.base': 'role deve ser uma string',
+            'any.only': 'role deve ser ADMIN ou USER'
+        }),
+        active: Joi.boolean().optional().messages({
+            'boolean.base': 'active deve ser verdadeiro ou falso'
+        })
+    }).optional().messages({
+        'object.base': 'filter deve ser um objeto'
     }),
-    active: Joi.string().valid('true', 'false').optional().messages({
-        'any.only': 'active deve ser "true" ou "false"'
+    page: Joi.number().integer().min(1).optional().messages({
+        'number.base': 'page deve ser um número',
+        'number.integer': 'page deve ser um número inteiro',
+        'number.min': 'page deve ser pelo menos 1'
     }),
-    search: Joi.string().min(1).max(255).optional().messages({
-        'string.base': 'search deve ser uma string',
-        'string.min': 'search deve ter pelo menos 1 caractere',
-        'string.max': 'search deve ter no máximo 255 caracteres'
+    limit: Joi.number().integer().min(1).max(100).optional().messages({
+        'number.base': 'limit deve ser um número',
+        'number.integer': 'limit deve ser um número inteiro',
+        'number.min': 'limit deve ser pelo menos 1',
+        'number.max': 'limit deve ser no máximo 100'
     })
-});
+}).unknown(true); // Permite parâmetros de ordenação como order[field]
 
 // Schema para criação de usuário
 const createUserBodySchema = Joi.object({

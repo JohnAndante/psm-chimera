@@ -3,25 +3,27 @@ import { AuthenticatedRequest } from '../utils/auth';
 import { userService } from '../services/user.service';
 import { CreateUserData, UpdateUserData, ChangePasswordData } from '../types/user.type';
 import { authService } from '../services/auth.service';
-import { createPaginatedResponse } from '../utils/query-builder.helper';
 
 export class UserController {
     // GET /api/v1/users
     static getAll(req: AuthenticatedRequest, res: Response) {
         const filters = req.filters || {};
-        const pagination = req.pagination!;
+        const pagination = req.pagination || { limit: 10, offset: 0 };
+        const sorting = req.sorting || { createdAt: 'desc' };
 
-        return userService.getAllUsers(filters, pagination)
+        return userService.getAllUsers(filters, pagination, sorting)
             .then(result => {
                 const { data, total } = result;
 
-                const paginationInfo = req.calculatePaginationInfo!(total);
+                return res.status(200).json({
+                    data,
+                    pagination: {
+                        limit: pagination.limit,
+                        offset: pagination.offset,
+                        total: total,
+                    }
+                });
 
-                const response = createPaginatedResponse(
-                    data, pagination, total, paginationInfo,
-                );
-
-                res.status(200).json(response);
             })
             .catch(error => {
                 console.error('Erro ao buscar usuários:', error);

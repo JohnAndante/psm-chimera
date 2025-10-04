@@ -1,23 +1,37 @@
-import { Router } from 'express';
+import { NextFunction, Router, Request, Response } from 'express';
 import { UserController } from '../controllers/user.controller';
 import { UserValidator } from '../validators/user.validator';
 import { authenticateToken, requireAdmin } from '../utils/auth';
-import { paginationMiddleware } from '../middlewares/pagination.middleware';
-import { filterMiddleware } from '../middlewares/filter.middleware';
+import { queryMiddleware } from '../middlewares/query.middleware';
 
 const router = Router();
+
+function debugQueryMiddleware(req: Request, res: Response, next: NextFunction) {
+    console.log('🔍 Query Parameters:', req.query);
+    console.log('🔍 URL:', req.originalUrl);
+    next();
+}
 
 // GET /api/v1/users - Listar usuários (requer autenticação)
 router.get('/',
     authenticateToken,
-    filterMiddleware({
-        name: 'string',
-        email: 'string',
-        role: 'enum',
-        active: 'boolean',
-    }),
-    paginationMiddleware(),
+    debugQueryMiddleware,
     UserValidator.getAll,
+    queryMiddleware({
+        search: 'string',
+
+        name: { type: 'string', sortable: true, filterable: true },
+        email: { type: 'string', sortable: true, filterable: true },
+        role: {
+            type: 'enum',
+            sortable: true,
+            filterable: true,
+            enumValues: ['ADMIN', 'USER']
+        },
+        active: { type: 'boolean', sortable: true, filterable: true },
+        createdAt: { type: 'date', sortable: true, filterable: false },
+        updatedAt: { type: 'date', sortable: true, filterable: false }
+    }),
     UserController.getAll
 );
 
