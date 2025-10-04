@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { useForm } from "react-hook-form";
 import { Store as StoreIcon } from "lucide-react";
-import { StoreController } from "@/controllers/store.controller";
+import { storeApi } from "@/controllers/store-api";
 import { useToast } from "@/hooks/use-toast";
 import type { ApiError } from "@/types/api";
 import { HTTP_STATUS, getErrorType } from "@/types/api-error";
@@ -58,7 +58,7 @@ export function CreateStoreModal({
             active: data.active
         };
 
-        StoreController.createStore(createData)
+        storeApi.createStore(createData)
             .then(() => {
                 toast.success("Loja criada", {
                     description: `Loja ${data.name} foi criada com sucesso.`

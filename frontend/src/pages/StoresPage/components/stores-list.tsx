@@ -3,21 +3,21 @@ import { Button } from "@/components/ui/button";
 import { SquarePen, Trash2, Plus } from "lucide-react";
 import { PageCard } from "@/components/layout/page-card";
 import { useEffect, useState, useCallback } from "react";
-import { StoreController } from "@/controllers/store.controller";
+import { storeApi } from "@/controllers/store-api";
 import { useToast } from "@/hooks/use-toast";
 import { DataTable } from "@/components/data-table";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import type { Store } from "@/types/store";
 import type { StoresFilterState } from "../types";
-import { StoresActiveFilters } from "./stores-active-filters";
-import { StoresFilterControls } from "./stores-filter-controls";
-import { EditStoreModal } from "./edit-store-modal";
-import { CreateStoreModal } from "./create-store-modal";
-import { DeleteStoreModal } from "./delete-store-modal";
 import { isAdmin } from "@/utils/permissions";
 import { useAuth } from "@/stores/auth";
 import type { FilterConfig } from "@/types/filter-api";
+import { CreateStoreModal } from "@/pages/StoresPage/components/create-store-modal";
+import { DeleteStoreModal } from "@/pages/StoresPage/components/delete-store-modal";
+import { EditStoreModal } from "@/pages/StoresPage/components/edit-store-modal";
+import { StoresActiveFilters } from "@/pages/StoresPage/components/stores-active-filters";
+import { StoresFilterControls } from "@/pages/StoresPage/components/stores-filter-controls";
 
 export default function StoresPage() {
     const [stores, setStores] = useState<Store[]>([]);
@@ -65,7 +65,7 @@ export default function StoresPage() {
             delete apiFilters.filter;
         }
 
-        StoreController.getAllStores(apiFilters.filter)
+        storeApi.list(apiFilters.filter)
             .then(response => {
                 setStores(response ?? []);
             })
@@ -187,21 +187,25 @@ export default function StoresPage() {
             id: 'name',
             header: 'Nome',
             accessorKey: 'name',
+            enableSorting: true,
         },
         {
             id: 'registration',
             header: 'Registro',
             accessorKey: 'registration',
+            enableSorting: true,
         },
         {
             id: 'document',
             header: 'Documento',
             accessorKey: 'document',
+            enableSorting: true,
         },
         {
             id: 'active',
             header: 'Status',
             accessorKey: 'active',
+            enableSorting: true,
             cell: ({ row }: CellProps) => (
                 getActiveBadge(row.original.active)
             )
@@ -210,6 +214,7 @@ export default function StoresPage() {
             id: 'created_at',
             header: 'Criado em',
             accessorKey: 'created_at',
+            enableSorting: true,
             cell: ({ row }: CellProps) => (
                 new Date(row.original.created_at).toLocaleDateString('pt-BR', {
                     day: '2-digit',
@@ -224,6 +229,7 @@ export default function StoresPage() {
             id: 'actions',
             header: 'Ações',
             accessorKey: 'id',
+            enableSorting: false,
             cell: ({ row }: CellProps) => (
                 isAdmin(currentUser) ? getActionButtons(row.original) : '-'
             )

@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { useForm } from "react-hook-form";
 import { SquarePen } from "lucide-react";
 import type { Store } from "@/types/store";
-import { StoreController } from "@/controllers/store.controller";
+import { storeApi } from "@/controllers/store-api";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import type { UpdateStoreRequest } from "@/types/store";
@@ -72,7 +72,7 @@ export function EditStoreModal({
             active: data.active
         };
 
-        StoreController.updateStore(store.id, updateData)
+        storeApi.updateStore(store.id, updateData)
             .then(() => {
                 toast.success("Loja atualizada", {
                     description: `Dados da loja ${data.name} foram atualizados com sucesso.`

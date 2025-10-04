@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Trash2, AlertTriangle } from "lucide-react";
 import type { Store } from "@/types/store";
-import { StoreController } from "@/controllers/store.controller";
+import { storeApi } from "@/controllers/store-api";
 import { useToast } from "@/hooks/use-toast";
 
 interface DeleteStoreModalProps {
@@ -28,7 +28,7 @@ export function DeleteStoreModal({
 
         setIsLoading(true);
         try {
-            await StoreController.deleteStore(store.id);
+            await storeApi.deleteStore(store.id);
 
             toast.success("Loja deletada", {
                 description: `Loja ${store.name} foi deletada com sucesso.`
