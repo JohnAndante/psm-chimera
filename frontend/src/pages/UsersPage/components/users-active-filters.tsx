@@ -29,7 +29,7 @@ export function UsersActiveFilters({
 
     const form = useForm({
         defaultValues: {
-            search: filters.search,
+            name: filters.name,
             role: filters.role,
             active: filters.active
         }
@@ -38,7 +38,7 @@ export function UsersActiveFilters({
 
     const getActiveFiltersCount = () => {
         let count = 0;
-        if (filters.search) count++;
+        if (filters.name) count++;
         if (filters.role !== "ALL") count++;
         if (filters.active !== "ALL") count++;
         return count;
@@ -89,7 +89,7 @@ export function UsersActiveFilters({
                                     className="flex flex-wrap gap-2"
                                 >
                                     <AnimatePresence>
-                                        {filters.search && (
+                                        {filters.name && (
                                             <motion.div
                                                 initial={{ opacity: 0, scale: 0.8 }}
                                                 animate={{ opacity: 1, scale: 1 }}
@@ -97,12 +97,12 @@ export function UsersActiveFilters({
                                                 transition={{ duration: 0.2 }}
                                             >
                                                 <Badge variant="outline" className="flex items-center gap-1">
-                                                    Busca: {filters.search}
+                                                    Busca: {filters.name}
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
                                                         className="h-4 w-4 p-0 hover:bg-transparent"
-                                                        onClick={() => onRemoveFilter("search", "")}
+                                                        onClick={() => onRemoveFilter("name", "")}
                                                     >
                                                         <X size={12} />
                                                     </Button>
@@ -171,18 +171,18 @@ export function UsersActiveFilters({
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded-lg border">
                                         <FormField
                                             control={form.control}
-                                            name="search"
+                                            name="name"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <Label htmlFor="search-filter">Buscar</Label>
+                                                    <Label htmlFor="name-filter">Nome</Label>
                                                     <FormControl>
                                                         <Input
-                                                            id="search-filter"
-                                                            placeholder="Buscar por nome ou email..."
+                                                            id="name-filter"
+                                                            placeholder="Buscar por nome"
                                                             {...field}
                                                             onChange={(e) => {
                                                                 field.onChange(e);
-                                                                onFilterChange("search", e.target.value);
+                                                                onFilterChange("name", e.target.value);
                                                             }}
                                                             onKeyDown={(e) => {
                                                                 if (e.key === 'Enter') {

@@ -25,7 +25,7 @@ export default function UsersPage() {
     const [isLoading, setIsLoading] = useState(false);
 
     const [filters, setFilters] = useState<UsersFilterState>({
-        search: "",
+        name: "",
         role: "ALL",
         active: "ALL"
     });
@@ -43,12 +43,12 @@ export default function UsersPage() {
         setIsLoading(true);
 
         const apiFilters: FilterConfig = {
-            filter: {} // Inicializar o objeto filter
+            filter: {}
         };
 
-        // Adicionar filtro de busca
-        if (currentFilters.search && currentFilters.search.trim()) {
-            apiFilters.search = currentFilters.search.trim();
+        // Adicionar filtro de name
+        if (currentFilters.name && currentFilters.name.trim()) {
+            apiFilters.filter!.name = { ilike: currentFilters.name.trim() };
         }
 
         // Adicionar filtro de role
@@ -84,7 +84,7 @@ export default function UsersPage() {
 
     useEffect(() => {
         loadUsers({
-            search: "",
+            name: "",
             role: "ALL",
             active: "ALL"
         });
@@ -107,7 +107,7 @@ export default function UsersPage() {
 
     const getActiveFiltersCount = () => {
         let count = 0;
-        if (filters.search) count++;
+        if (filters.name) count++;
         if (filters.role !== "ALL") count++;
         if (filters.active !== "ALL") count++;
         return count;
@@ -115,7 +115,7 @@ export default function UsersPage() {
 
     const handleClearFilters = () => {
         setFilters({
-            search: "",
+            name: "",
             role: "ALL",
             active: "ALL"
         });

@@ -3,7 +3,7 @@ import { RPIntegrationService } from './rp.integration.service.js';
 import { CresceVendasIntegrationService } from './crescevendas.integration.service.js';
 import { productService } from './product.service.js';
 import { integrationService } from './integration.service.js';
-import { notificationChannelService } from './notificationChannel.service.js';
+import { notificationChannelService } from './notification-channel.service.js';
 import { getTelegramService } from './telegram.service.js';
 import { SyncResult, SyncSummary } from '../types/notification.type.js';
 import {

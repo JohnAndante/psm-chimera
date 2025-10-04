@@ -4,13 +4,13 @@ export interface UsersFilterProps {
 }
 
 export interface UsersFilterState {
-    search: string;
+    name: string;
     role: "ALL" | "ADMIN" | "USER";
     active: "ALL" | "true" | "false";
 }
 
 export interface UsersApiFilters {
-    search?: string;
+    name?: string;
     role?: "ADMIN" | "USER";
     active?: boolean;
 }

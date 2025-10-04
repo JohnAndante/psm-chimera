@@ -7,9 +7,9 @@ import {
     UserWithAuth,
 } from '../types/user.type';
 import { AuthTable, UserTable } from '../types/database';
-import { FilterResult, PaginationResult } from '../types/filter-pagination.type';
 import { applyFilters, applyPagination, applySorting } from '../utils/query-builder.helper';
 import { sql } from 'kysely';
+import { FilterResult, PaginationResult } from '../types/query.type';
 
 class UserService {
 
