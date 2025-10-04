@@ -5,6 +5,7 @@ import { useAuth } from "@/stores/auth"
 import LoginPage from "@/pages/LoginPage"
 import DashboardPage from "@/pages/DashboardPage"
 import UsersPage from "@/pages/UsersPage/components/users-list"
+import StoresPage from "@/pages/StoresPage/components/stores-list"
 import NotificationChannelsPage from "@/pages/NotificationChannelsPage"
 import { CreateChannelPage, EditChannelPage, ChannelDetailsPage } from "@/pages/NotificationChannelsPage/components"
 import IntegrationsPage from "@/pages/IntegrationsPage"
@@ -49,6 +50,12 @@ export default function AppRoutes() {
                 <Route path="/usuarios/novo" element={<UsersPage />} />
                 <Route path="/usuarios/:id" element={<UsersPage />} />
                 <Route path="/usuarios/:id/editar" element={<UsersPage />} />
+
+                {/* Rotas de Lojas */}
+                <Route path="/lojas" element={<StoresPage />} />
+                <Route path="/lojas/novo" element={<StoresPage />} />
+                <Route path="/lojas/:id" element={<StoresPage />} />
+                <Route path="/lojas/:id/editar" element={<StoresPage />} />
 
                 {/* Rotas de Canais de Notificação */}
                 <Route path="/canais-notificacao" element={<NotificationChannelsPage />} />

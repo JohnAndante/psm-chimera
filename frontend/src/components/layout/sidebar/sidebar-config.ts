@@ -1,4 +1,4 @@
-import { LayoutDashboard, Bell, ShieldUser, Link2, RefreshCw, TestTube, FileText } from "lucide-react"
+import { LayoutDashboard, Bell, ShieldUser, Link2, RefreshCw, TestTube, FileText, Store } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
 export interface SidebarItem {
@@ -24,6 +24,13 @@ export const sidebarItems: SidebarItem[] = [
         title: "Usuários",
         icon: ShieldUser,
         href: "/usuarios",
+        exact: true
+    },
+    {
+        id: "lojas",
+        title: "Lojas",
+        icon: Store,
+        href: "/lojas",
         exact: true
     },
     {
