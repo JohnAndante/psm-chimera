@@ -6,11 +6,13 @@ export function PageCard({
     cardExtra,
     children,
     className,
+    contentClassName
 }: {
     cardTitle?: string
     cardExtra?: React.ReactNode
     children?: React.ReactNode
     className?: React.HTMLAttributes<HTMLDivElement>['className']
+    contentClassName?: React.HTMLAttributes<HTMLDivElement>['className']
 }) {
     return (
         <Card className={cn(
@@ -29,7 +31,7 @@ export function PageCard({
 
             {/* Conteúdo */}
             {children && (
-                <CardContent>
+                <CardContent className={cn(contentClassName)}>
                     {children}
                 </CardContent>
             )}

@@ -41,8 +41,7 @@ class UserService {
                     'users.deletedAt',
                     sql<boolean>`CASE WHEN authentications.id IS NOT NULL THEN true ELSE false END`.as('hasPassword'),
                 ])
-                .where('users.deletedAt', 'is', null)
-                .orderBy('users.createdAt', 'desc');
+                .where('users.deletedAt', 'is', null);
 
 
             // Aplicar filtros
@@ -57,7 +56,7 @@ class UserService {
             // Aplicar ordenação (padrão: createdAt desc)
             query = applySorting(
                 query,
-                sorting || { createdAt: 'desc' },
+                sorting || { createdAt: 'asc' },
                 columnMapping
             );
 

@@ -218,7 +218,7 @@ export function DataTable<TData, TValue>({
                         key={cell.id}
                         className={cn(
                             "py-1",
-                            cell.column.id === columns[0].id ? "pl-2" : undefined
+                            cell.column.id === columns[0].id ? "pl-4" : undefined
                         )}
                     >
                         <motion.div

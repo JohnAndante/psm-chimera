@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import type { BaseUser } from "@/types/user-api";
 import type { UsersFilterState } from "../types";
-import { UsersActiveFilters } from "./users-active-filters";
+import { UserListFilters } from "./users-list-filters";
 import { UsersFilterControls } from "./users-filter-controls";
 import { ChangePasswordModal } from "./change-password-modal";
 import { EditUserModal } from "./edit-user-modal";
@@ -85,21 +85,9 @@ export default function UsersPage() {
         }
     });
 
-    const handleFilterChange = (key: keyof UsersFilterState, value: string) => {
-        const newFilters = { ...filters, [key]: value };
+    const handleApplyFilters = (newFilters: UsersFilterState) => {
+        console.log("Applying filters:", newFilters);
         setFilters(newFilters);
-    };
-
-    const handleApplyFilters = () => {
-        // O refetch já vai acontecer automaticamente por causa do dependencies
-        // Mas podemos chamar explicitamente se quisermos
-        refetch();
-    };
-
-    const handleRemoveFilter = (key: keyof UsersFilterState, value: string) => {
-        const newFilters = { ...filters, [key]: value };
-        setFilters(newFilters);
-        // O refetch acontece automaticamente pelo dependencies
     };
 
     const getActiveFiltersCount = () => {
@@ -285,18 +273,19 @@ export default function UsersPage() {
             breadcrumbs={breadcrumbs}
             extra={isAdmin(currentUser) ? newUserButton : null}
         >
-            <PageCard cardTitle="Lista de Usuários" cardExtra={(
-                <UsersFilterControls
-                    activeFiltersCount={getActiveFiltersCount()}
-                    onClearFilters={handleClearFilters}
-                    onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
-                />
-            )}>
-                <UsersActiveFilters
+            <PageCard
+                cardTitle="Lista de Usuários"
+                cardExtra={(
+                    <UsersFilterControls
+                        activeFiltersCount={getActiveFiltersCount()}
+                        onClearFilters={handleClearFilters}
+                        onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
+                    />
+                )}
+            >
+                <UserListFilters
                     filters={filters}
-                    onFilterChange={handleFilterChange}
                     onApplyFilters={handleApplyFilters}
-                    onRemoveFilter={handleRemoveFilter}
                     isExpanded={isFiltersExpanded}
                     isLoading={isLoading}
                 />
