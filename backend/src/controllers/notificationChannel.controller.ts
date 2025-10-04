@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from '../utils/auth';
-import { notificationChannelService } from '../services/notificationChannel.service';
+import { notificationChannelService } from '../services/notification-channel.service';
 import { NotificationChannelData, NotificationChannelFilters, NotificationChannelType } from '../types/notification.type';
 
 export class NotificationChannelController {

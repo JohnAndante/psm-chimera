@@ -92,6 +92,7 @@ export function queryMiddleware(config: QueryConfig) {
                     filters[field] = {};
                 }
 
+                // @ts-ignore
                 filters[field][operator] = processedValue;
                 console.log(`📌 Filtro: ${field} ${operator} ${processedValue}`);
             }

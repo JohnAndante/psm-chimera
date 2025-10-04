@@ -18,10 +18,7 @@ router.get('/',
     debugQueryMiddleware,
     UserValidator.getAll,
     queryMiddleware({
-        search: 'string',
-
         name: { type: 'string', sortable: true, filterable: true },
-        email: { type: 'string', sortable: true, filterable: true },
         role: {
             type: 'enum',
             sortable: true,
