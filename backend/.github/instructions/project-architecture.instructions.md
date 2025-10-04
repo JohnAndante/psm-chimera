@@ -29,18 +29,26 @@ backend/
 
 ## 🛠️ **Stack Tecnológica**
 
-### **Obrigatório:**
+### **Stack Atual:**
 - **TypeScript** - Linguagem principal
 - **Express.js** - Framework web
-- **Kysely** - Query builder (NÃO Prisma para queries)
+- **Kysely** - Query builder principal para todo código de produção
+- **Prisma** - Usado APENAS em database/seed.ts
 - **PostgreSQL** - Database
 - **JWT** - Autenticação
 - **bcryptjs** - Hash de senhas
+- **queryMiddleware** - Sistema unificado de filtros/paginação
 
-### **🚫 NÃO USAR:**
-- ❌ **Prisma Client** para queries (apenas para tipos)
-- ❌ **async/await** - Use Promises com `.then()/.catch()`
-- ❌ **try/catch** - Use `.then()/.catch()`
+### **🚫 PADRÕES PROIBIDOS:**
+- ❌ **Prisma em Services/Controllers** - Use apenas Kysely
+- ❌ **try/catch em Controllers** - Use `.then()/.catch()` nos controllers
+- ❌ **Lógica de negócio em Controllers** - Delegue para services
+- ❌ **Queries diretas em Controllers** - Use services
+
+### **✅ PADRÕES PERMITIDOS:**
+- **ORM**: Kysely para todos os services e controllers
+- **Prisma**: APENAS em database/seed.ts
+- **Async Pattern**: Services podem usar async/await, Controllers usam promises
 
 ## 📐 **Arquitetura em Camadas**
 
@@ -98,6 +106,14 @@ try {
 ### **Database Queries:**
 ```typescript
 // ✅ USAR - Kysely via db factory
+return db.selectFrom('users')
+    .selectAll()
+    .where('active', '=', true)
+    .where('deletedAt', 'is', null)
+    .execute();
+
+// ❌ NÃO USAR - Prisma (exceto em seed)
+// const users = await prisma.user.findMany({ where: { active: true } });
 import { db } from '../factory/database.factory.js';
 
 db.selectFrom('table')

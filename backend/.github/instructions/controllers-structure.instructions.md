@@ -11,24 +11,59 @@ description: 'Guidelines for structuring controller files in the backend project
 
 ```typescript
 import { Request, Response } from 'express';
-import { AuthenticatedRequest } from '../utils/auth.js';
-import { serviceName } from '../services/service-name.service.js';
+import { AuthenticatedRequest } from '../utils/auth';
+import { serviceName } from '../services/service-name.service';
 
 export class EntityController {
 
-    // GET /api/v1/entities
-    static async getAll(req: AuthenticatedRequest, res: Response) {
-        return serviceName.findAll()
-            .then(entities => {
-                res.status(200).json({
-                    message: 'Entidades recuperadas com sucesso',
-                    entities
+    // GET /api/v1/entities - Com queryMiddleware
+    static getAll(req: AuthenticatedRequest, res: Response) {
+        const filters = req.filters || {};
+        const pagination = req.pagination || { limit: 10, offset: 0 };
+        const sorting = req.sorting || { createdAt: 'desc' };
+
+        return serviceName.getAllEntities(filters, pagination, sorting)
+            .then(result => {
+                const { data, total } = result;
+
+                return res.status(200).json({
+                    data,
+                    pagination: {
+                        limit: pagination.limit,
+                        offset: pagination.offset,
+                        total: total,
+                    }
                 });
             })
             .catch(error => {
                 console.error('Erro ao buscar entidades:', error);
                 res.status(500).json({
-                    error: 'Erro interno do servidor'
+                    error: 'Erro interno do servidor ao buscar entidades'
+                });
+            });
+    }
+
+    // GET /api/v1/entities/:id
+    static getById(req: AuthenticatedRequest, res: Response) {
+        const id = parseInt(req.params.id);
+
+        return serviceName.getEntityById(id)
+            .then(entity => {
+                if (!entity) {
+                    return res.status(404).json({
+                        error: 'Entidade não encontrada'
+                    });
+                }
+
+                res.status(200).json({
+                    message: 'Entidade recuperada com sucesso',
+                    entity
+                });
+            })
+            .catch(error => {
+                console.error('Erro ao buscar entidade:', error);
+                res.status(500).json({
+                    error: 'Erro interno do servidor ao buscar entidade'
                 });
             });
     }
@@ -38,16 +73,20 @@ export class EntityController {
 ```
 
 ### **🚫 NÃO FAZER:**
-- ❌ `try/catch` - SEMPRE use `.then()/.catch()`
-- ❌ `async/await` no controller principal - Use promise chains
-- ❌ Definir `AuthenticatedRequest` localmente
-- ❌ Mensagens em inglês
-- ❌ Response format `{ success: true, data: ... }`
+- ❌ `try/catch` nos controllers - SEMPRE use `.then()/.catch()`
+- ❌ `async` nos métodos principais do controller - Use promise chains
+- ❌ Definir `AuthenticatedRequest` localmente - Importe de `../utils/auth`
+- ❌ Mensagens em inglês - Use português
+- ❌ Response format `{ success: true, data: ... }` - Use formato direto
+- ❌ Lógica de negócio no controller - Delegue para services
 
 ### **✅ FAZER:**
 - ✅ **OBRIGATÓRIO**: `.then()/.catch()` pattern para todas as operações
-- ✅ **OBRIGATÓRIO**: Promise chains ao invés de async/await
+- ✅ **OBRIGATÓRIO**: Promise chains ao invés de async/await nos controllers
 - ✅ Import `AuthenticatedRequest` de `../utils/auth`
+- ✅ **QueryMiddleware**: Use `req.filters`, `req.pagination`, `req.sorting` quando disponíveis
+- ✅ **Response Format**: Use `{ data, pagination: { limit, offset, total } }` para listagens
+- ✅ **Error Handling**: Console.error + status apropriado + mensagem em português
 - ✅ Mensagens em português
 - ✅ Response format `{ message: '...', entities/entity: ... }`
 - ✅ `console.error` para logs de erro

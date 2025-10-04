@@ -11,6 +11,7 @@
 
 ### **Services Pattern**  
 - ✅ **Singleton Pattern**: Services principais seguem padrão singleton
+- ✅ **Kysely Migration**: Todos os services migrados de Prisma para Kysely
 - ✅ **Promise Chains**: A maioria dos services usa promise chains
 - ✅ **Type Organization**: Interfaces reorganizadas para pasta `/types`
 - ✅ **Export Instances**: Services exportam instâncias singleton
@@ -44,6 +45,7 @@
 | Controllers | No Try/Catch | ✅ 95% (SSE exception) |
 | Controllers | Delegate to Services | ✅ 100% |
 | Services | Singleton Pattern | ✅ 70% (justified exceptions) |
+| **Services** | **Kysely Migration** | **✅ 100% (Prisma removed)** |
 | Types | Organized in /types | ✅ 100% |
 | Git Workflow | Atomic Commits | ✅ 100% |
 

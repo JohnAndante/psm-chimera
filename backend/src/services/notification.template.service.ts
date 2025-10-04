@@ -1,4 +1,3 @@
-import { SyncExecution } from '../../database/generated/prisma';
 import { SyncResult, CompareResult, SyncSummary } from '../types/notification.type';
 
 /**

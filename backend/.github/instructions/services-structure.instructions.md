@@ -10,28 +10,74 @@ description: 'Guidelines for structuring service files in the backend project.'
 ### **✅ Estrutura Base**
 
 ```typescript
-import { db } from '../factory/database.factory.js';
-import { EntityTable } from '../types/database.js';
+import { db } from '../factory/database.factory';
+import { EntityTable, EntityListData } from '../types/database';
+import { applyFilters, applyPagination, applySorting } from '../utils/query-builder.helper';
+import { FilterResult, PaginationResult } from '../types/query.type';
 
 class EntityService {
 
-    async findAll(): Promise<EntityTable[]> {
+    // Método com sistema de query unificado
+    getAllEntities(filters: FilterResult, pagination: PaginationResult, sorting?: Record<string, 'asc' | 'desc'>): Promise<EntityListData> {
+        const columnMapping = {
+            'name': 'entities.name',
+            'active': 'entities.active',
+            'createdAt': 'entities.created_at',
+            'updatedAt': 'entities.updated_at'
+        };
+
+        const searchFields = ['entities.name', 'entities.description'];
+
         return new Promise((resolve, reject) => {
-            db.selectFrom('entities')
+            let query = db
+                .selectFrom('entities')
                 .selectAll()
-                .where('deletedAt', 'is', null)
-                .orderBy('created_at', 'desc')
-                .execute()
-                .then(entities => {
-                    resolve(entities);
-                })
-                .catch(error => {
-                    reject(error);
+                .where('entities.deletedAt', 'is', null)
+                .orderBy('entities.created_at', 'desc');
+
+            // Aplicar filtros
+            query = applyFilters({
+                query,
+                filters,
+                columnMapping: columnMapping,
+                searchFields: searchFields
+            });
+
+            // Aplicar ordenação
+            query = applySorting(query, sorting || { createdAt: 'desc' }, columnMapping);
+
+            // Query de contagem
+            let countQuery = db
+                .selectFrom('entities')
+                .select(db.fn.count('entities.id').as('total'))
+                .where('entities.deletedAt', 'is', null);
+
+            countQuery = applyFilters({
+                query: countQuery,
+                filters,
+                columnMapping: columnMapping,
+                searchFields: searchFields
+            });
+
+            // Aplicar paginação
+            query = applyPagination(query, pagination);
+
+            // Executar em paralelo
+            Promise.all([
+                countQuery.executeTakeFirstOrThrow(),
+                query.execute()
+            ])
+            .then(([countResult, data]) => {
+                resolve({
+                    data,
+                    total: Number(countResult.total)
                 });
+            })
+            .catch(reject);
         });
     }
 
-    async findById(id: number): Promise<EntityTable | null> {
+    findById(id: number): Promise<EntityTable | null> {
         return new Promise((resolve, reject) => {
             if (!id) {
                 return reject(new Error('ID é obrigatório'));
@@ -58,19 +104,27 @@ export const entityService = new EntityService();
 ```
 
 ### **🚫 NÃO FAZER:**
-- ❌ Usar Prisma diretamente - Use `db` (Kysely)
-- ❌ `try/catch` - SEMPRE use `.then()/.catch()`
-- ❌ `async/await` nas funções principais - Use promise chains
-- ❌ Mensagens de erro em inglês
+- ❌ **Prisma em Services** - Use APENAS Kysely
+- ❌ `try/catch` em métodos principais - SEMPRE use `.then()/.catch()`
+- ❌ Definir interfaces localmente - Use `/types`
+- ❌ Hardcoded strings - Use constantes
+- ❌ Direct database queries sem validação
+
+### **✅ PADRÕES PERMITIDOS:**
+- **async/await**: Permitido em services (especialmente integrações)
+- **Promise chains**: Preferido mas não obrigatório
+- **Kysely APENAS**: Todos os services devem usar Kysely via `db` factory
 
 ### **✅ FAZER:**
-- ✅ **OBRIGATÓRIO**: usar `db` (Kysely) de `../factory/database.factory`
-- ✅ **OBRIGATÓRIO**: Retornar `Promise` com `.then()/.catch()`  
-- ✅ **OBRIGATÓRIO**: Promise chains ao invés de async/await
-- ✅ Validação de parâmetros obrigatórios
-- ✅ Mensagens de erro em português
-- ✅ Export como singleton: `export const entityService = new EntityService()`
-- ✅ Tipos importados de `../types/database`
+- ✅ **Sistema de Query Unificado**: Use `applyFilters`, `applyPagination`, `applySorting`
+- ✅ **Column Mapping**: Mapeie campos da API para colunas do banco
+- ✅ **Search Fields**: Configure campos para busca global
+- ✅ **Validação de entrada**: Sempre validar parâmetros
+- ✅ Import interfaces de `../types/`
+- ✅ Use `db` factory para queries Kysely
+- ✅ Singleton pattern quando apropriado
+- ✅ **Promise chains**: Preferido nos novos services
+- ✅ **Parallel queries**: Count + data para performance
 
 ### **📝 CRUD Patterns:**
 

@@ -46,8 +46,10 @@ O **PSM Chimera** é um ecossistema de automação empresarial composto por múl
 **Características:**
 
 - **Framework:** Node.js + TypeScript + Express
-- **ORM:** Prisma com PostgreSQL
-- **Propósito:** Nova arquitetura para expansão futura
+- **Database Layer:** Kysely ORM com PostgreSQL
+- **Query System:** Middleware unificado para filtros, paginação e ordenação
+- **Architecture:** Layered architecture com separação clara de responsabilidades
+- **Propósito:** Nova arquitetura moderna para expansão e manutenibilidade
 - **Status:** Em desenvolvimento inicial
 
 ### 2. Server-Node-Fill (Atual)
@@ -195,10 +197,11 @@ sequenceDiagram
 | Runtime | Node.js | 20+ | Execução JavaScript |
 | Language | TypeScript | 5.3+ | Type safety |
 | Framework | Express | 4.18+ | Web server |
-| ORM | Prisma | 6.16+ | Database access |
+| ORM | Kysely | 0.27+ | Type-safe SQL query builder |
 | Database | PostgreSQL | 17.0 | Data persistence |
 | Container | Docker | Latest | Containerization |
 | Scheduler | node-cron | 3.0+ | Task scheduling |
+| Query System | Custom Middleware | - | Unified query processing |
 
 ### Integration Technologies
 
@@ -220,11 +223,13 @@ sequenceDiagram
 ┌─────────────────────────┐
 │     Presentation        │  Routes, Controllers
 ├─────────────────────────┤
+│      Middleware         │  Query Middleware, Auth, Validation
+├─────────────────────────┤
 │      Business Logic     │  Services, Use Cases
 ├─────────────────────────┤
-│     Data Access         │  Repositories, ORM
+│     Data Access         │  Query Builders, ORM (Kysely)
 ├─────────────────────────┤
-│      Database           │  PostgreSQL, SQLite
+│      Database           │  PostgreSQL
 └─────────────────────────┘
 ```
 
@@ -235,11 +240,19 @@ sequenceDiagram
 - **Retry Pattern:** Automatic retry with exponential backoff
 - **Observer Pattern:** Event-driven notifications via Telegram
 
-### 3. Data Patterns
+### 3. Query Processing Patterns
+
+- **Unified Middleware:** Single middleware for filters, pagination, and sorting
+- **Column Mapping:** Database column abstraction from API fields
+- **Type-Safe Queries:** Kysely-based type-safe query building
+- **Case-Insensitive Search:** ILIKE operator for PostgreSQL text search
+
+### 4. Data Patterns
 
 - **Repository Pattern:** Abstraction for data access
 - **Unit of Work:** Transaction management
 - **Command Query Separation:** Separate read/write operations
+- **Query Builder Pattern:** Reusable query construction helpers
 
 ---
 
@@ -397,9 +410,12 @@ flowchart TD
 
 2. **API Performance**
 
-   - Request caching where appropriate
-   - Pagination for large datasets
-   - Parallel processing of independent operations
+   - Unified query middleware for consistent processing
+   - Type-safe queries with Kysely
+   - Efficient pagination with offset/limit
+   - Case-insensitive search with PostgreSQL ILIKE
+   - Parallel query execution for count and data
+   - Column mapping for flexible API design
 
 3. **Memory Management**
 
@@ -427,10 +443,12 @@ flowchart TD
 
 ### Phase 2: New Backend (In Progress)
 
-- 🚧 Modern TypeScript backend
+- ✅ Modern TypeScript backend with Express
+- ✅ Kysely ORM for type-safe database operations
+- ✅ Unified query middleware system
+- ✅ Enhanced API design with consistent patterns
 - 🚧 Docker containerization
 - 🚧 Improved database schema
-- 🚧 Enhanced API design
 
 ### Phase 3: Enhancement (Planned)
 
@@ -462,7 +480,9 @@ O **PSM Chimera** representa uma solução empresarial robusta que demonstra:
 ### Características Técnicas
 
 - **Arquitetura Modular:** Componentes bem definidos e separados
-- **Padrões Modernos:** TypeScript, Prisma, Docker
+- **Padrões Modernos:** TypeScript, Kysely, Docker, Unified Middleware
+- **Type Safety:** Queries type-safe com validação em tempo de execução
+- **Query System:** Sistema unificado de filtros, paginação e ordenação
 - **Observabilidade:** Logging detalhado e alertas em tempo real
 - **Manutenibilidade:** Código limpo e documentação completa
 
@@ -476,4 +496,4 @@ O **PSM Chimera** representa uma solução empresarial robusta que demonstra:
 ---
 
 *Documentação da arquitetura PSM Chimera*
-*Última atualização: 22 de setembro de 2025*
+*Última atualização: 23 de dezembro de 2024*

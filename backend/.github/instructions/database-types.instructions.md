@@ -11,13 +11,71 @@ description: 'Typescript interfaces and types for database tables in PSM Chimera
 
 ### **✅ Interfaces de Tabela**
 
-#### **UserTable:**
+### **🔍 Tipos do Sistema de Query**
+
+#### **FilterResult e PaginationResult:**
+```typescript
+// Em src/types/query.type.ts
+export interface FilterResult {
+    search?: { eq: string };
+    [field: string]: {
+        eq?: any;
+        ne?: any;
+        gt?: any;
+        gte?: any;
+        lt?: any;
+        lte?: any;
+        in?: any[];
+        nin?: any[];
+        like?: string;
+        ilike?: string;
+        contains?: string;
+        startsWith?: string;
+        endsWith?: string;
+        isNull?: boolean;
+        isNotNull?: boolean;
+    };
+}
+
+export interface PaginationResult {
+    limit: number;
+    offset: number;
+}
+
+// Extensão do Express Request
+declare global {
+    namespace Express {
+        interface Request {
+            filters?: FilterResult;
+            pagination?: PaginationResult;
+            sorting?: Record<string, 'asc' | 'desc'>;
+        }
+    }
+}
+```
+
+#### **Tipos de Resposta para Listagens:**
+```typescript
+// Para listagens com paginação
+export interface UserListData {
+    data: UserTable[];
+    total: number;
+}
+
+export interface EntityListData {
+    data: EntityTable[];
+    total: number;
+}
+```
+
+#### **StoreTable:**
 ```typescript
 export interface UserTable {
     id?: number;        // Optional para INSERT, obrigatório para SELECT
     email: string;
     name: string | null;
     role: UserType;     // Enum: 'ADMIN' | 'USER'
+    active: boolean;    // Status ativo/inativo
     createdAt: Date;
     updatedAt: Date;
     deletedAt: Date | null;  // Soft delete

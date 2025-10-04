@@ -14,15 +14,21 @@ import { Router } from 'express';
 import { EntityController } from '../controllers/entity.controller';
 import { authenticateToken, requireAdmin } from '../utils/auth';
 import { EntityValidator } from '../validators/entity.validator';
+import { queryMiddleware } from '../middlewares/query.middleware';
 
 const router = Router();
 
 // Middleware de autenticação global (se necessário)
 router.use(authenticateToken);
 
-// GET /api/v1/entities
+// GET /api/v1/entities - Com filtros, paginação e ordenação
 router.get('/',
     EntityValidator.getAll,
+    queryMiddleware({
+        name: { type: 'string', sortable: true, filterable: true },
+        active: { type: 'boolean', sortable: true, filterable: true },
+        createdAt: { type: 'date', sortable: true, filterable: false }
+    }),
     EntityController.getAll
 );
 

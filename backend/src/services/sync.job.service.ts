@@ -1,4 +1,5 @@
-import { PrismaClient, ExecutionStatus } from '../../database/generated/prisma';
+import { db } from '../factory/database.factory';
+import { ExecutionStatus } from '../types/database';
 import { RPIntegrationService } from './rp.integration.service';
 import { CresceVendasIntegrationService } from './crescevendas.integration.service';
 import { TelegramService } from './telegram.service';
@@ -12,23 +13,26 @@ import {
 import { randomUUID } from 'crypto';
 
 interface ProductData {
+    id: string;
     code: number;
     price: number;
     final_price: number;
     limit: number;
     store_id: number;
-    starts_at?: string;
-    expires_at?: string;
+    starts_at: string | null;
+    expires_at: string | null;
+    created_at: Date;
+    updated_at: Date;
+    deleted_at: Date | null;
 }
 
 export class SyncJobService {
-    private prisma: PrismaClient;
     private rpService?: RPIntegrationService;
     private cresceVendasService?: CresceVendasIntegrationService;
     private telegramService?: TelegramService;
 
     constructor() {
-        this.prisma = new PrismaClient();
+        // Usando Kysely via factory
     }
 
     /**
@@ -186,9 +190,13 @@ export class SyncJobService {
         try {
             await this.initializeServices(request);
 
-            const store = await this.prisma.store.findFirst({
-                where: { id: storeId, active: true }
-            });
+            const store = await db
+                .selectFrom('stores')
+                .selectAll()
+                .where('id', '=', storeId)
+                .where('active', '=', true)
+                .where('deleted_at', 'is', null)
+                .executeTakeFirst();
 
             if (!store) {
                 throw new Error(`Loja com ID ${storeId} não encontrada ou inativa`);
@@ -213,33 +221,53 @@ export class SyncJobService {
      * Get sync execution history
      */
     public async getExecutionHistory(limit: number = 50): Promise<any[]> {
-        return await this.prisma.syncExecution.findMany({
-            take: limit,
-            orderBy: { started_at: 'desc' },
-            include: {
-                sync_config: {
-                    select: {
-                        id: true,
-                        name: true
-                    }
-                }
-            }
-        });
+        return await db
+            .selectFrom('sync_executions')
+            .leftJoin('sync_configurations', 'sync_executions.sync_config_id', 'sync_configurations.id')
+            .select([
+                'sync_executions.id',
+                'sync_executions.status',
+                'sync_executions.started_at',
+                'sync_executions.finished_at',
+                'sync_executions.stores_processed',
+                'sync_executions.summary',
+                'sync_configurations.id as sync_config_id',
+                'sync_configurations.name as sync_config_name'
+            ])
+            .orderBy('sync_executions.started_at', 'desc')
+            .limit(limit)
+            .execute();
     }
 
     // Private helper methods
 
     private async initializeServices(request: SyncExecutionRequest): Promise<void> {
         // Get integrations
-        const sourceIntegration = await this.prisma.integration.findUnique({
-            where: { id: request.source_integration_id },
-            include: { integrationKey: true }
-        });
+        const sourceIntegration = await db
+            .selectFrom('integrations')
+            .leftJoin('integration_keys', 'integrations.id', 'integration_keys.integration_id')
+            .select([
+                'integrations.id',
+                'integrations.type',
+                'integrations.config',
+                'integration_keys.key'
+            ])
+            .where('integrations.id', '=', request.source_integration_id)
+            .where('integrations.deleted_at', 'is', null)
+            .executeTakeFirst();
 
-        const targetIntegration = await this.prisma.integration.findUnique({
-            where: { id: request.target_integration_id },
-            include: { integrationKey: true }
-        });
+        const targetIntegration = await db
+            .selectFrom('integrations')
+            .leftJoin('integration_keys', 'integrations.id', 'integration_keys.integration_id')
+            .select([
+                'integrations.id',
+                'integrations.type',
+                'integrations.config',
+                'integration_keys.key'
+            ])
+            .where('integrations.id', '=', request.target_integration_id)
+            .where('integrations.deleted_at', 'is', null)
+            .executeTakeFirst();
 
         if (!sourceIntegration || !targetIntegration) {
             throw new Error('Integrações não encontradas');
@@ -257,9 +285,12 @@ export class SyncJobService {
 
         // Initialize Telegram service if notification channel is provided
         if (request.notification_channel_id) {
-            const notificationChannel = await this.prisma.notificationChannel.findUnique({
-                where: { id: request.notification_channel_id }
-            });
+            const notificationChannel = await db
+                .selectFrom('notification_channels')
+                .select(['id', 'type', 'config'])
+                .where('id', '=', request.notification_channel_id)
+                .where('deleted_at', 'is', null)
+                .executeTakeFirst();
 
             if (notificationChannel && notificationChannel.type === 'TELEGRAM') {
                 this.telegramService = new TelegramService(notificationChannel.config as any);
@@ -268,22 +299,23 @@ export class SyncJobService {
     }
 
     private async getStoresToProcess(storeIds?: number[]): Promise<any[]> {
-        const whereClause: any = { active: true };
+        let query = db
+            .selectFrom('stores')
+            .select([
+                'id',
+                'name',
+                'registration',
+                'document',
+                'active'
+            ])
+            .where('active', '=', true)
+            .where('deleted_at', 'is', null);
 
         if (storeIds && storeIds.length > 0) {
-            whereClause.id = { in: storeIds };
+            query = query.where('id', 'in', storeIds);
         }
 
-        return await this.prisma.store.findMany({
-            where: whereClause,
-            select: {
-                id: true,
-                name: true,
-                registration: true,
-                document: true,
-                active: true
-            }
-        });
+        return await query.execute();
     }
 
     private async processSingleStore(store: any): Promise<StoreResult> {
@@ -309,15 +341,19 @@ export class SyncJobService {
             }
 
             // 2. Clear old products from local database
-            await this.prisma.product.deleteMany({
-                where: { store_id: store.id }
-            });
+            await db
+                .deleteFrom('products')
+                .where('store_id', '=', store.id)
+                .execute();
 
             // 3. Save products to local database
             const parsedProducts = this.parseRPProducts(rpProducts, store.id);
-            const createdProducts = await this.prisma.product.createMany({
-                data: parsedProducts
-            });
+            const createdProductsResult = await db
+                .insertInto('products')
+                .values(parsedProducts)
+                .execute();
+            
+            const createdProducts = { count: createdProductsResult.length };
 
             // 4. Send products to CresceVendas
             const cresceVendasProducts = CresceVendasIntegrationService.parseProducts(parsedProducts);
@@ -358,9 +394,12 @@ export class SyncJobService {
             }
 
             // Get local products
-            const localProducts = await this.prisma.product.findMany({
-                where: { store_id: store.id }
-            });
+            const localProducts = await db
+                .selectFrom('products')
+                .selectAll()
+                .where('store_id', '=', store.id)
+                .where('deleted_at', 'is', null)
+                .execute();
 
             // Get CresceVendas products
             const cresceVendasResponse = await this.cresceVendasService.getActiveProducts(store.registration);
@@ -465,42 +504,53 @@ export class SyncJobService {
     }
 
     private parseRPProducts(rpProducts: any[], storeId: number): ProductData[] {
+        const now = new Date();
         return rpProducts.map(product => ({
+            id: randomUUID(),
             code: product.codigo || product.code,
             price: product.preco || product.price,
             final_price: product.precoVenda2 || product.final_price,
             limit: 1000,
             store_id: storeId,
-            starts_at: `${new Date().toISOString().slice(0, 10)}T06:00:00.000Z`,
-            expires_at: `${new Date().toISOString().slice(0, 10)}T23:59:59.000Z`
+            starts_at: `${now.toISOString().slice(0, 10)}T06:00:00.000Z`,
+            expires_at: `${now.toISOString().slice(0, 10)}T23:59:59.000Z`,
+            created_at: now,
+            updated_at: now,
+            deleted_at: null
         }));
     }
 
     private async createSyncExecution(executionId: string, request: SyncExecutionRequest, startTime: Date): Promise<void> {
-        await this.prisma.syncExecution.create({
-            data: {
+        await db
+            .insertInto('sync_executions')
+            .values({
                 id: executionId,
-                sync_config_id: request.sync_config_id,
-                status: ExecutionStatus.RUNNING,
+                sync_config_id: request.sync_config_id || null,
+                status: 'RUNNING' as ExecutionStatus,
                 started_at: startTime,
-                stores_processed: [],
-                summary: {},
-                execution_logs: `Iniciando sincronização às ${startTime.toISOString()}`
-            }
-        });
+                finished_at: null,
+                stores_processed: JSON.stringify([]),
+                summary: JSON.stringify({}),
+                comparison_results: null,
+                execution_logs: `Iniciando sincronização às ${startTime.toISOString()}`,
+                error_details: null,
+                created_at: new Date()
+            })
+            .execute();
     }
 
     private async updateSyncExecution(executionId: string, result: SyncExecutionResult, error?: string): Promise<void> {
-        await this.prisma.syncExecution.update({
-            where: { id: executionId },
-            data: {
-                status: result.status === 'SUCCESS' ? ExecutionStatus.SUCCESS : ExecutionStatus.FAILED,
-                finished_at: result.finished_at,
-                stores_processed: result.stores_processed,
-                summary: result.summary,
-                error_details: error ? { error } : undefined
-            }
-        });
+        await db
+            .updateTable('sync_executions')
+            .set({
+                status: (result.status === 'SUCCESS' ? 'SUCCESS' : 'FAILED') as ExecutionStatus,
+                finished_at: result.finished_at || null,
+                stores_processed: JSON.stringify(result.stores_processed),
+                summary: JSON.stringify(result.summary),
+                error_details: error ? JSON.stringify({ error }) : null
+            })
+            .where('id', '=', executionId)
+            .execute();
     }
 
     // Notification methods
@@ -560,9 +610,10 @@ export class SyncJobService {
     }
 
     /**
-     * Close database connection
+     * Close database connection - Kysely connections are managed by the factory
      */
     public async disconnect(): Promise<void> {
-        await this.prisma.$disconnect();
+        // Kysely connections are managed by the database factory
+        // No explicit disconnect needed
     }
 }

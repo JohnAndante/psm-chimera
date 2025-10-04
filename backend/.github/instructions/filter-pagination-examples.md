@@ -1,25 +1,19 @@
-# ⚠️ DOCUMENTO DESATUALIZADO
+# ⚠️ DOCUMENTO MIGRADO
 
-**Este documento está desatualizado. O sistema de filtros e paginação foi migrado para o queryMiddleware unificado.**
+**Este documento foi substituído pelo sistema queryMiddleware unificado.**
 
-👉 **Consulte a documentação atualizada:** [unified-query-system.md](../../docs/unified-query-system.md)
+👉 **Consulte a documentação completa:** [unified-query-system.md](../../../docs/unified-query-system.md)
 
 ---
 
-## ~~Middlewares de Filtro e Paginação - Exemplos de Uso~~
+## 📋 Sistema Atual: queryMiddleware
 
-~~Este documento mostra como usar os middlewares de filtro e paginação implementados.~~
-
-## Sistema Atual: queryMiddleware
-
-O sistema atual utiliza o **queryMiddleware** que unifica filtros, paginação e ordenação:
-
-### Configuração Atual
+### ✅ Configuração Atual
 
 ```typescript
 import { queryMiddleware } from '../middlewares/query.middleware';
 
-// Aplicando o middleware unificado
+// Exemplo de uso em rotas
 router.get('/',
     authenticateToken,
     queryMiddleware({
@@ -38,75 +32,49 @@ router.get('/',
 );
 ```
 
+### ✅ No Controller
+
+```typescript
+static getAll(req: AuthenticatedRequest, res: Response) {
+    const filters = req.filters || {};
+    const pagination = req.pagination || { limit: 10, offset: 0 };
+    const sorting = req.sorting || { createdAt: 'desc' };
+
+    return service.getAllEntities(filters, pagination, sorting)
+        .then(result => {
+            const { data, total } = result;
+            return res.status(200).json({
+                data,
+                pagination: { limit: pagination.limit, offset: pagination.offset, total }
+            });
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            res.status(500).json({ error: 'Erro interno do servidor' });
+        });
+}
+```
+
+### ✅ No Service
+
+```typescript
+getAllEntities(filters: FilterResult, pagination: PaginationResult, sorting?: Record<string, 'asc' | 'desc'>) {
+    const columnMapping = {
+        'name': 'entities.name',
+        'active': 'entities.active',
+        'createdAt': 'entities.created_at'
+    };
+    const searchFields = ['entities.name'];
+
+    // Use applyFilters, applyPagination, applySorting
+    // Veja documentação completa no link acima
+}
+```
+
 ---
 
-## ~~Configuração Básica (DESATUALIZADA)~~
-
-~~### 1. Importações Necessárias~~
-
-```typescript
-// ❌ DESATUALIZADO - Não use mais
-// import { filterMiddleware } from '../middlewares/filter.middleware';
-// import { paginationMiddleware } from '../middlewares/pagination.middleware';
-
-// ✅ ATUAL - Use isto:
-import { queryMiddleware } from '../middlewares/query.middleware';
-import { applyFilters, applyPagination, applySorting } from '../utils/query-builder.helper';
-```
-
-~~### 2. Definindo Filtros na Rota~~
-
-```typescript
-// ❌ DESATUALIZADO - Configuração antiga
-/*
-const storeFiltersConfig = {
-    name: 'string' as const,
-    active: 'boolean' as const,
-    integration_type: {
-        type: 'enum' as const,
-        enumValues: ['crescevendas', 'rp']
-    },
-    created_at: 'date' as const,
-    updated_at: 'date' as const,
-    price: {
-        type: 'number' as const,
-        operators: ['eq', 'gt', 'gte', 'lt', 'lte', 'between']
-    }
-};
-
-const paginationConfig = {
-    defaultLimit: 10,
-    maxLimit: 100,
-    allowUnlimited: false
-};
-
-// Aplicando os middlewares ANTIGOS
-router.get('/',
-    filterMiddleware(storeFiltersConfig),
-    paginationMiddleware(paginationConfig),
-    Controller.getAll
-);
-*/
-
-// ✅ ATUAL - Configuração unificada
-router.get('/',
-    authenticateToken,
-    queryMiddleware({
-        name: 'string',  // Atalho para { type: 'string', sortable: true, filterable: true }
-        active: 'boolean',
-        integration_type: {
-            type: 'enum',
-            enumValues: ['crescevendas', 'rp'],
-            sortable: true,
-            filterable: true
-        },
-        price: { type: 'number', sortable: true, filterable: true },
-        createdAt: { type: 'date', sortable: true, filterable: false },
-        updatedAt: { type: 'date', sortable: true, filterable: false }
-    }),
-    Controller.getAll
-);
-```
+**📚 Para exemplos completos, sintaxe de URL, e implementação detalhada:**
+**👉 [Documentação do Sistema de Query Unificado](../../../docs/unified-query-system.md)**
 
 ## Exemplos de Requests
 
