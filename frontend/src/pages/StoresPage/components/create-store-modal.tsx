@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { useForm } from "react-hook-form";
 import { Store as StoreIcon } from "lucide-react";
@@ -157,29 +156,12 @@ export function CreateStoreModal({
                             control={form.control}
                             name="document"
                             rules={{
-                                required: "Documento é obrigatório",
-                                minLength: { value: 2, message: "Documento deve ter pelo menos 2 caracteres" }
+                                required: "CNPJ é obrigatório",
+                                minLength: { value: 2, message: "CNPJ deve ter pelo menos 2 caracteres" }
                             }}
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Documento *</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Digite o documento da loja"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="cnpj"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>CNPJ (Opcional)</FormLabel>
+                                    <FormLabel>CNPJ *</FormLabel>
                                     <FormControl>
                                         <Input
                                             placeholder="Digite o CNPJ da loja"
@@ -213,12 +195,6 @@ export function CreateStoreModal({
                                 </FormItem>
                             )}
                         />
-
-                        <Alert>
-                            <AlertDescription>
-                                Os campos marcados com * são obrigatórios.
-                            </AlertDescription>
-                        </Alert>
 
                         <div className="flex justify-end gap-2 pt-4">
                             <Button

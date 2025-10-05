@@ -175,7 +175,7 @@ export default function StoresPage() {
         },
         {
             id: 'document',
-            header: 'Documento',
+            header: 'CNPJ',
             accessorKey: 'document',
             enableSorting: true,
         },
