@@ -88,7 +88,15 @@ class NotificationChannelService {
             // Buscar canal
             const channelQuery = db
                 .selectFrom('notification_channels')
-                .selectAll()
+                .select([
+                    'id',
+                    'name',
+                    'type',
+                    'config',
+                    'active',
+                    'created_at as createdAt',
+                    'updated_at as updatedAt'
+                ])
                 .where('notification_channels.id', '=', id)
                 .where('notification_channels.deleted_at', 'is', null)
                 .executeTakeFirst();
