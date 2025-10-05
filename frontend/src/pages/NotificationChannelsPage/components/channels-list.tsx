@@ -1,6 +1,6 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings, TestTube, Trash2, Eye, Loader2 } from "lucide-react";
+import { Plus, TestTube, Trash2, Eye, Loader2, Edit } from "lucide-react";
 import { PageCard } from "@/components/layout/page-card";
 import { useState, useCallback, useMemo } from "react";
 import { notificationChannelsApi } from "@/controllers/notification-channels-api";
@@ -198,7 +198,7 @@ export function NotificationChannelsList() {
                                 className="cursor-pointer hover:text-blue-500"
                                 onClick={() => handleEditChannel(channel)}
                             >
-                                <Settings className="h-4 w-4" />
+                                <Edit className="h-4 w-4" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>

@@ -1,9 +1,9 @@
-import { Alert } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { notificationChannelsApi } from "@/controllers/notification-channels-api";
 import { useToast } from "@/hooks/use-toast";
 import type { NotificationChannelData } from "@/types/notification-channel";
 import { Dialog, DialogTitle, DialogHeader, DialogContent } from "@/components/ui/dialog";
-import { Trash2, AlertTriangle } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -59,13 +59,8 @@ export function DeleteChannelModal({
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="mt-4">
-                    <Alert variant="destructive">
-                        <AlertTriangle className="h-4 w-4" />
-                        Tem certeza que deseja deletar o canal <strong>{channel.name}</strong>?
-                    </Alert>
-
-                    <div className="space-y-2">
+                <div>
+                    <div className="space-y-2 mt-2">
                         <p className="text-sm text-muted-foreground">
                             Você está prestes a deletar o seguinte canal de notificação:
                         </p>
@@ -75,6 +70,10 @@ export function DeleteChannelModal({
                             <p><strong>Status:</strong> {channel.active ? "Ativo" : "Inativo"}</p>
                         </div>
                     </div>
+
+                    <Alert variant="destructive" className="mt-4">
+                        <AlertDescription>Esta ação não pode ser desfeita.</AlertDescription>
+                    </Alert>
 
                     <div className="flex justify-end gap-2 pt-4">
                         <Button
@@ -91,7 +90,7 @@ export function DeleteChannelModal({
                             onClick={handleConfirmDelete}
                             loading={isLoading}
                         >
-                            Deletar Usuário
+                            Deletar Canal
                         </Button>
                     </div>
                 </div>

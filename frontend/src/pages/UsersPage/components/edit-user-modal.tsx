@@ -98,8 +98,6 @@ export function EditUserModal({
         onClose();
     };
 
-    if (!user) return null;
-
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
             <DialogContent className="sm:max-w-md">
@@ -110,100 +108,108 @@ export function EditUserModal({
                     </DialogTitle>
                 </DialogHeader>
 
-                <Form {...form}>
-                    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            rules={{
-                                required: "Nome é obrigatório",
-                                minLength: {
-                                    value: 2,
-                                    message: "Nome deve ter pelo menos 2 caracteres"
-                                }
-                            }}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nome Completo</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            placeholder="Digite o nome completo"
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="email"
-                            rules={{
-                                required: "Email é obrigatório",
-                                pattern: {
-                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                    message: "Email inválido"
-                                }
-                            }}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Email</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            type="email"
-                                            placeholder="Digite o email"
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="role"
-                            rules={{
-                                required: "Cargo é obrigatório"
-                            }}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Cargo</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                {/* If user is not provided yet, render a placeholder skeleton so the
+                    Dialog remains mounted and Radix can run open/close animations. */}
+                {!user ? (
+                    <div className="h-40 flex items-center justify-center text-sm text-muted-foreground">
+                        Carregando dados do usuário...
+                    </div>
+                ) : (
+                    <Form {...form}>
+                        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="name"
+                                rules={{
+                                    required: "Nome é obrigatório",
+                                    minLength: {
+                                        value: 2,
+                                        message: "Nome deve ter pelo menos 2 caracteres"
+                                    }
+                                }}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Nome Completo</FormLabel>
                                         <FormControl>
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Selecione o cargo" />
-                                            </SelectTrigger>
+                                            <Input
+                                                {...field}
+                                                placeholder="Digite o nome completo"
+                                            />
                                         </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="USER">Usuário</SelectItem>
-                                            <SelectItem value="ADMIN">Administrador</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
-                        <div className="flex justify-end gap-2 pt-4">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleClose}
-                                disabled={isLoading}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                type="submit"
-                                loading={isLoading}
-                            >
-                                Salvar Alterações
-                            </Button>
-                        </div>
-                    </form>
-                </Form>
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                rules={{
+                                    required: "Email é obrigatório",
+                                    pattern: {
+                                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                        message: "Email inválido"
+                                    }
+                                }}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Email</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                {...field}
+                                                type="email"
+                                                placeholder="Digite o email"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="role"
+                                rules={{
+                                    required: "Cargo é obrigatório"
+                                }}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Cargo</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="Selecione o cargo" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="USER">Usuário</SelectItem>
+                                                <SelectItem value="ADMIN">Administrador</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <div className="flex justify-end gap-2 pt-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleClose}
+                                    disabled={isLoading}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    loading={isLoading}
+                                >
+                                    Salvar Alterações
+                                </Button>
+                            </div>
+                        </form>
+                    </Form>
+                )}
             </DialogContent>
         </Dialog>
     );
