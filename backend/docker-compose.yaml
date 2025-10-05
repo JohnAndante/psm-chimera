@@ -33,6 +33,7 @@ services:
     restart: "no"
     environment:
       NODE_ENV: production
+      TZ: UTC
       DATABASE_URL: postgresql://postgres:masterkey@postgres:5432/psm_chimera
     depends_on:
       postgres:
@@ -57,6 +58,7 @@ services:
   #   restart: unless-stopped
   #   environment:
   #     NODE_ENV: production
+  #     TZ: UTC
   #     DATABASE_URL: postgresql://postgres:masterkey@postgres:5432/psm_chimera
   #     JWT_SECRET: ${JWT_SECRET:-psm-chimera-secret-key-production}
   #     SERVER_PORT: 3000

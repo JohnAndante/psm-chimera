@@ -4,8 +4,12 @@
 
 FROM node:20-alpine AS base
 
-# Instalar dependências necessárias
-RUN apk add --no-cache openssl curl postgresql-client
+# Instalar dependências necessárias e configurar timezone (UTC)
+ENV TZ=UTC
+RUN apk add --no-cache openssl curl postgresql-client tzdata \
+	&& cp /usr/share/zoneinfo/UTC /etc/localtime \
+	&& echo "UTC" > /etc/timezone \
+	&& apk del tzdata
 
 WORKDIR /app
 
