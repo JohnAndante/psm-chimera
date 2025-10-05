@@ -13,7 +13,6 @@ import { FilterResult, PaginationResult } from '../types/query.type';
 
 class UserService {
 
-
     getAllUsers(filters: FilterResult, pagination: PaginationResult, sorting?: Record<string, 'asc' | 'desc'>): Promise<UserListData> {
         const columnMapping = {
             'active': 'users.active',

@@ -6,16 +6,11 @@ import { queryMiddleware } from '../middlewares/query.middleware';
 
 const router = Router();
 
-function debugQueryMiddleware(req: Request, res: Response, next: NextFunction) {
-    console.log('🔍 Query Parameters:', req.query);
-    console.log('🔍 URL:', req.originalUrl);
-    next();
-}
+// Todas as rotas requerem autenticação
+router.use(authenticateToken);
 
 // GET /api/v1/users - Listar usuários (requer autenticação)
 router.get('/',
-    authenticateToken,
-    debugQueryMiddleware,
     UserValidator.getAll,
     queryMiddleware({
         name: { type: 'string', sortable: true, filterable: true },
@@ -34,14 +29,12 @@ router.get('/',
 
 // GET /api/v1/users/:id - Buscar usuário por ID (requer autenticação)
 router.get('/:id',
-    authenticateToken,
     UserValidator.getById,
     UserController.getById
 );
 
 // POST /api/v1/users - Criar usuário (requer admin)
 router.post('/',
-    authenticateToken,
     requireAdmin,
     UserValidator.create,
     UserController.create
@@ -49,7 +42,6 @@ router.post('/',
 
 // PUT /api/v1/users/:id - Atualizar usuário (requer admin)
 router.put('/:id',
-    authenticateToken,
     requireAdmin,
     UserValidator.update,
     UserController.update
@@ -57,7 +49,6 @@ router.put('/:id',
 
 // DELETE /api/v1/users/:id - Deletar usuário (requer admin)
 router.delete('/:id',
-    authenticateToken,
     requireAdmin,
     UserValidator.delete,
     UserController.delete
@@ -65,7 +56,6 @@ router.delete('/:id',
 
 // PUT /api/v1/users/:id/change-password - Alterar senha (requer admin)
 router.put('/:id/change-password',
-    authenticateToken,
     requireAdmin,
     UserValidator.changePassword,
     UserController.changePassword
