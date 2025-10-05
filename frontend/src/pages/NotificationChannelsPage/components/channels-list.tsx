@@ -1,79 +1,103 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
-import { Bell, Plus, Settings, TestTube, Trash2, Eye } from "lucide-react";
+import { Plus, Settings, TestTube, Trash2, Eye, Loader2 } from "lucide-react";
 import { PageCard } from "@/components/layout/page-card";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { notificationChannelsApi } from "@/controllers/notification-channels-api";
 import { useToast } from "@/hooks/use-toast";
 import { DataTable } from "@/components/data-table/custom-table";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
-import type { NotificationChannelData } from "@/types/notification-channel";
-import type { NotificationChannelFilterState, NotificationChannelApiFilters } from "../types";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/stores/auth";
 import { isAdmin } from "@/utils/permissions";
-import type { ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AnimatedWrapper } from "@/components/animated-wrapper";
+import { useTableData } from "@/hooks/use-table-data";
+import { FilterControls, FilterFields } from "@/components/data-table";
+import { DeleteChannelModal } from "./delete-channel-modal";
+import { ChannelListFilterFields } from "./channel-list-filter-fields";
+import { formatDateToBR } from "@/utils/string";
+import type { NotificationChannelData } from "@/types/notification-channel";
+import type { NotificationChannelFilterState } from "@/pages/NotificationChannelsPage/types";
+import type { FilterConfig } from "@/types/filter-api";
 
-export default function ChannelsList() {
-    const [channels, setChannels] = useState<NotificationChannelData[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+export function NotificationChannelsList() {
+    const defaultFilters: NotificationChannelFilterState = {
+        name: "",
+        type: "ALL",
+        active: "ALL"
+    };
+
+    const [filters, setFilters] = useState<NotificationChannelFilterState>(defaultFilters);
+    const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
+
     const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; channel: NotificationChannelData | null }>({ isOpen: false, channel: null });
-    const [isDeleting, setIsDeleting] = useState(false);
+    const [isTesting, setIsTesting] = useState(false);
+
     const { user } = useAuth();
     const navigate = useNavigate();
 
     // Funções para navegação
     const handleCreateChannel = () => navigate('/canais-notificacao/novo');
-    const handleEditChannel = (channel: NotificationChannelData) => navigate(`/canais-notificacao/${channel.id}/editar`);
-    const handleViewChannel = (channel: NotificationChannelData) => navigate(`/canais-notificacao/${channel.id}`);
+    const handleEditChannel = useCallback((channel: NotificationChannelData) => navigate(`/canais-notificacao/${channel.id}/editar`), [navigate]);
+    const handleViewChannel = useCallback((channel: NotificationChannelData) => navigate(`/canais-notificacao/${channel.id}`), [navigate]);
     const handleDeleteChannel = (channel: NotificationChannelData) => setDeleteModal({ isOpen: true, channel });
-
-    const [filters] = useState<NotificationChannelFilterState>({
-        search: "",
-        type: "ALL",
-        active: "ALL"
-    });
 
     const { toast } = useToast();
 
-    const loadChannels = useCallback(() => {
-        setIsLoading(true);
+    const filterConfig = useMemo<FilterConfig>(() => {
+        const config: FilterConfig = {};
 
-        const apiFilters: NotificationChannelApiFilters = {};
-
-        if (filters.search && filters.search.trim()) {
-            apiFilters.search = filters.search.trim();
+        // Construir filtros aninhados seguindo o formato FilterConfig.filter
+        if (filters.name && filters.name.trim()) {
+            if (!config.filter) config.filter = {};
+            config.filter.name = { ilike: filters.name.trim() };
         }
 
         if (filters.type !== "ALL") {
-            apiFilters.type = filters.type;
+            if (!config.filter) config.filter = {};
+            config.filter.type = { eq: filters.type };
         }
 
         if (filters.active !== "ALL") {
-            apiFilters.active = filters.active === "true";
+            if (!config.filter) config.filter = {};
+            config.filter.active = { eq: filters.active === "true" };
         }
 
-        notificationChannelsApi.list(apiFilters)
-            .then((data) => {
-                setChannels(data);
-            })
-            .catch((error) => {
-                toast.error("Erro ao carregar canais", {
-                    description: error?.message || "Não foi possível carregar a lista de canais."
-                });
-                setChannels([]);
-            })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }, [filters, toast]);
+        return config;
+    }, [filters.name, filters.type, filters.active]);
 
-    useEffect(() => {
-        loadChannels();
+    const {
+        data: channels,
+        isLoading,
+        pagination,
+        metadata,
+        sorting,
+        handlePaginationChange,
+        handleSortingChange,
+        refetch
+    } = useTableData<NotificationChannelData>({
+        fetchFn: async (config) => {
+            const response = await notificationChannelsApi.list(config);
+            return {
+                data: response.data ?? [],
+                metadata: response.metadata!
+            };
+        },
+        initialFilters: filterConfig,
+        onError: (error) => {
+            toast.error("Erro ao carregar canais", {
+                description: error.message || 'Erro desconhecido'
+            });
+        }
+    });
+
+    const handleApplyFilters = useCallback((newFilters: NotificationChannelFilterState) => {
+        setFilters(newFilters);
+    }, []);
+
+    const handleClearFilters = useCallback(() => {
+        setFilters(defaultFilters);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -94,8 +118,9 @@ export default function ChannelsList() {
         );
     };
 
-    const handleTest = async (channel: NotificationChannelData) => {
+    const handleTest = useCallback(async (channel: NotificationChannelData) => {
         try {
+            setIsTesting(true);
             const result = await notificationChannelsApi.test(channel.id);
 
             if (result.testResult.success) {
@@ -113,30 +138,18 @@ export default function ChannelsList() {
             toast.error("Erro ao testar canal", {
                 description: "Não foi possível realizar o teste do canal."
             });
-        }
-    };
-
-    const confirmDeleteChannel = async () => {
-        if (!deleteModal.channel) return;
-
-        setIsDeleting(true);
-        try {
-            await notificationChannelsApi.delete(deleteModal.channel.id);
-            toast.success("Canal excluído com sucesso", {
-                description: `O canal "${deleteModal.channel.name}" foi removido.`
-            });
-            loadChannels(); // Recarregar a lista
-        } catch (error) {
-            toast.error("Erro ao excluir canal", {
-                description: (error as Error)?.message || "Não foi possível excluir o canal."
-            });
         } finally {
-            setIsDeleting(false);
-            setDeleteModal({ isOpen: false, channel: null });
+            setIsTesting(false);
         }
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    const actionsCell = (channel: NotificationChannelData) => (
+    const handleModalSuccess = useCallback(() => {
+        refetch();
+    }, [refetch]);
+
+
+    const getActionButtons = useCallback((channel: NotificationChannelData) => (
         <>
             {isAdmin(user) && (
                 <>
@@ -146,9 +159,14 @@ export default function ChannelsList() {
                                 variant="ghost"
                                 size="sm"
                                 className="cursor-pointer"
+                                disabled={isTesting}
                                 onClick={() => handleTest(channel)}
                             >
-                                <TestTube className="h-4 w-4" />
+                                {isTesting ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <TestTube className="h-4 w-4" />
+                                )}
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -206,47 +224,46 @@ export default function ChannelsList() {
                 </>
             )}
         </>
-    );
+    ), [handleEditChannel, handleTest, handleViewChannel, isTesting, user]);
 
-    const columns: ColumnDef<NotificationChannelData>[] = [
+    type CellProps = { row: { original: NotificationChannelData } };
+
+    const tableColumns = useMemo(() => [
         {
-            accessorKey: "name",
+            id: "name",
             header: "Nome",
-            cell: ({ row }) => (
-                <div className="flex items-center space-x-2">
-                    <Bell className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{row.getValue("name")}</span>
-                </div>
-            ),
+            accessorKey: "name",
+            enableSorting: true,
         },
         {
-            accessorKey: "type",
+            id: "type",
             header: "Tipo",
-            cell: ({ row }) => (
+            accessorKey: "type",
+            cell: ({ row }: CellProps) => (
                 <Badge variant="outline">
-                    {getChannelTypeLabel(row.getValue("type"))}
+                    {getChannelTypeLabel(row.original.type)}
                 </Badge>
             ),
         },
         {
-            accessorKey: "active",
+            id: "active",
             header: "Status",
-            cell: ({ row }) => getActiveStatus(row.getValue("active")),
+            accessorKey: "active",
+            cell: ({ row }) => getActiveStatus(row.original.active),
         },
         {
-            accessorKey: "created_at",
+            id: "created_at",
             header: "Criado em",
-            cell: ({ row }) => {
-                const date = new Date(row.getValue("created_at"));
-                return date.toLocaleDateString('pt-BR');
-            },
+            accessorKey: "created_at",
+            cell: ({ row }) => formatDateToBR(row.original.createdAt),
         },
         {
             id: "actions",
             header: "Ações",
-            cell: ({ row }) => actionsCell(row.original),
+            accessorKey: "actions",
+            cell: ({ row }) => getActionButtons(row.original),
         },
-    ];
+    ], [getActionButtons]); // Recalcular apenas se o usuário mudar
 
     const breadcrumbs = [
         { label: "Dashboard", to: "/" },
@@ -261,61 +278,54 @@ export default function ChannelsList() {
     ) : null;
 
     return (
-        <>
-            <PageContainer
-                title="Canais de Notificação"
-                subtitle="Gerencie os canais de notificação do sistema"
-                breadcrumbs={breadcrumbs}
-                extra={newChannelButton}
+        <PageContainer
+            title="Canais de Notificação"
+            subtitle="Gerencie os canais de notificação do sistema"
+            breadcrumbs={breadcrumbs}
+            extra={newChannelButton}
+        >
+            <PageCard
+                cardTitle="Lista de Canais"
+                cardExtra={(
+                    <FilterControls
+                        currentFilters={filters}
+                        defaultFilters={defaultFilters}
+                        onClearFilters={handleClearFilters}
+                        onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
+                    />
+                )}
             >
-                <AnimatedWrapper preset="fadeInUp" duration={0.3}>
-                    <PageCard cardTitle="Lista de Canais">
-                        <DataTable
-                            data={channels}
-                            columns={columns}
-                            isLoading={isLoading}
-                            showPagination
-                        />
-                    </PageCard>
-                </AnimatedWrapper>
-            </PageContainer>
+                <FilterFields
+                    filters={filters}
+                    onFilterChange={handleApplyFilters}
+                    isExpanded={isFiltersExpanded}
+                    filterFields={<ChannelListFilterFields isLoading={isLoading} />}
+                />
 
-            {/* Modal de Confirmação de Exclusão */}
-            <Dialog open={deleteModal.isOpen} onOpenChange={(open) => setDeleteModal({ isOpen: open, channel: deleteModal.channel })}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Confirmar exclusão</DialogTitle>
-                        <DialogDescription>
-                            Tem certeza que deseja excluir o canal "{deleteModal.channel?.name}"?
-                            Esta ação não pode ser desfeita e o canal será removido permanentemente.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setDeleteModal({ isOpen: false, channel: null })}
-                            disabled={isDeleting}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={confirmDeleteChannel}
-                            disabled={isDeleting}
-                        >
-                            {isDeleting ? (
-                                <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                                    Excluindo...
-                                </>
-                            ) : (
-                                "Excluir Canal"
-                            )}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </>
+                <DataTable
+                    columns={tableColumns}
+                    data={channels}
+                    isLoading={isLoading}
+                    showPagination={true}
+                    manualPagination={true}
+                    pageCount={metadata ? Math.ceil(metadata.total / pagination.limit) : 0}
+                    totalRecords={metadata?.total ?? 0}
+                    pagination={pagination}
+                    onPaginationChange={handlePaginationChange}
+                    manualSorting={true}
+                    sorting={sorting}
+                    onSortingChange={handleSortingChange}
+                />
+            </PageCard>
+
+            <DeleteChannelModal
+                isOpen={deleteModal.isOpen}
+                channel={deleteModal.channel}
+                onClose={() => setDeleteModal({ isOpen: false, channel: null })}
+                onSuccess={handleModalSuccess}
+            />
+
+        </PageContainer>
     );
 }
 
