@@ -10,9 +10,8 @@ interface UserListFilterFieldsProps {
 export const UserListFilterFields = ({ isLoading }: UserListFilterFieldsProps) => (
     <>
         <FormField
-            // control={form.control}
-            disabled={isLoading}
             name="name"
+            disabled={isLoading}
             render={({ field }) => (
                 <FormItem>
                     <Label htmlFor="name-filter">Nome</Label>
@@ -23,12 +22,6 @@ export const UserListFilterFields = ({ isLoading }: UserListFilterFieldsProps) =
                             {...field}
                             onChange={(e) => {
                                 field.onChange(e);
-                            }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    // submitFilters(e);
-                                }
                             }}
                         />
                     </FormControl>
