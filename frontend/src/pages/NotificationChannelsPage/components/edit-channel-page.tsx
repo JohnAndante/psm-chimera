@@ -42,7 +42,7 @@ interface EditChannelFormData {
     timeout?: number;
 }
 
-export default function EditChannelPage() {
+export function EditChannelPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingChannel, setIsLoadingChannel] = useState(true);
     const [allowedUsers, setAllowedUsers] = useState<TelegramAllowedUser[]>([]);

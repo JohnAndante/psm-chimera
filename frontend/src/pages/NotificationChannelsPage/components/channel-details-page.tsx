@@ -14,7 +14,7 @@ import { useAuth } from "@/stores/auth";
 import { isAdmin } from "@/utils/permissions";
 import { AnimatedWrapper } from "@/components/animated-wrapper";
 
-export default function ChannelDetailsPage() {
+export function ChannelDetailsPage() {
     const [channel, setChannel] = useState<NotificationChannelData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isTestingChannel, setIsTestingChannel] = useState(false);

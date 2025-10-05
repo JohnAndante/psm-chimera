@@ -1,4 +1,4 @@
-export { default as ChannelsList } from './channels-list';
-export { default as CreateChannelPage } from './create-channel-page';
-export { default as EditChannelPage } from './edit-channel-page';
-export { default as ChannelDetailsPage } from './channel-details-page';
+export { NotificationChannelsList as NotificationChannelsList } from './channels-list';
+export { CreateChannelPage } from './create-channel-page';
+export { EditChannelPage } from './edit-channel-page';
+export { ChannelDetailsPage } from './channel-details-page';

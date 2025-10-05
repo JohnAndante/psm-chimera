@@ -42,7 +42,7 @@ interface CreateChannelFormData {
     timeout?: number;
 }
 
-export default function CreateChannelPage() {
+export function CreateChannelPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [allowedUsers, setAllowedUsers] = useState<TelegramAllowedUser[]>([]);
     const [newUserName, setNewUserName] = useState('');
