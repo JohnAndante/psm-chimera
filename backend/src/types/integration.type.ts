@@ -5,6 +5,11 @@ export interface IntegrationLite {
     active: boolean;
 }
 
+export interface IntegrationListData {
+    total: number;
+    data: IntegrationLite[];
+}
+
 // Configuração específica para integração RP
 export interface RPIntegrationConfig {
     auth_method: 'TOKEN' | 'LOGIN';

@@ -7,10 +7,16 @@ export class IntegrationController {
     // GET /api/v1/integrations
     static async getAll(req: AuthenticatedRequest, res: Response) {
         return integrationService.findAll()
-            .then(integrations => {
+            .then(result => {
+                const { data, total } = result;
                 res.status(200).json({
                     message: 'Integrações recuperadas com sucesso',
-                    integrations
+                    data,
+                    metadata: {
+                        total,
+                        limit: data.length,
+                        offset: 0
+                    }
                 });
             })
             .catch(error => {

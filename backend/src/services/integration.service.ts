@@ -1,12 +1,12 @@
 import { db } from '../factory/database.factory';
 import { IntegrationType } from "../types/database";
-import { IntegrationLite } from '../types/integration.type';
+import { IntegrationListData } from '../types/integration.type';
 
 class IntegrationService {
 
-    async findAll(): Promise<IntegrationLite[]> {
+    async findAll(): Promise<IntegrationListData> {
         return new Promise((resolve, reject) => {
-            db.selectFrom('integrations')
+            let query = db.selectFrom('integrations')
                 .select([
                     'id',
                     'name',
@@ -14,24 +14,30 @@ class IntegrationService {
                     'active',
                 ])
                 .where('deleted_at', 'is', null)
-                .orderBy('created_at', 'desc')
-                .execute()
-                .then(rows => {
-                    // Agrupar resultados por integração
-                    const integrationsMap = new Map();
+                .orderBy('created_at', 'asc');
 
-                    rows.forEach(row => {
-                        if (!integrationsMap.has(row.id)) {
-                            integrationsMap.set(row.id, {
-                                id: row.id,
-                                name: row.name,
-                                type: row.type,
-                                active: row.active,
-                            });
-                        }
-                    });
+            // Count query para total
+            const countQuery = db.selectFrom('integrations')
+                .where('deleted_at', 'is', null)
+                .select([
+                    db.fn.count('id').as('total')
+                ]);
 
-                    resolve(Array.from(integrationsMap.values()));
+            Promise.all([
+                countQuery.executeTakeFirstOrThrow(),
+                query.execute(),
+            ])
+                .then(([countResult, rows]) => {
+                    const total = Number(countResult.total || 0);
+
+                    const mappedData = rows.map(row => ({
+                        id: row.id!,
+                        name: row.name,
+                        type: row.type,
+                        active: row.active,
+                    }));
+
+                    return resolve({ total, data: mappedData })
                 })
                 .catch(err => {
                     reject(err);
