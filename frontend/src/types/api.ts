@@ -19,6 +19,8 @@ export interface PaginationMetadata {
  * Resposta genérica da API com tipagem
  */
 export interface ApiResponse<T> {
+    /** HTTP status code returned by the API (optional) */
+    status?: number;
     data?: T;
     error?: ApiError;
     metadata?: PaginationMetadata;

@@ -19,7 +19,7 @@ class StoreApi {
     }
 
     list(filters?: StoreFilters) {
-        return new Promise<ApiResponse>((resolve, reject) => {
+        return new Promise<ApiResponse<Store[]>>((resolve, reject) => {
             const url = buildApiUrl('v1/stores', filters);
 
             this.axiosInstance.get(url)

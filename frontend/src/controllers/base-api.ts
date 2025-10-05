@@ -12,7 +12,6 @@ import { getCurrentToken } from '@/lib/auth';
  */
 export function handleAxiosResponse<T>(response: AxiosResponse<T>): ApiResponse<T> {
     return {
-        status: response.status,
         data: response.data,
     };
 }
