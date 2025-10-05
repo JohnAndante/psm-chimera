@@ -31,6 +31,8 @@ export function FilterControls({
                     <motion.div
                         initial={{ opacity: 0, width: 0 }}
                         animate={{
+                            opacity: activeFiltersCount > 0 ? 1 : 0,
+                            width: activeFiltersCount > 0 ? "auto" : 0,
                             scale: activeFiltersCount > 0 ? 1.1 : 1,
                         }}
                         transition={{
