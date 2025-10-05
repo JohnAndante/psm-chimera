@@ -228,8 +228,17 @@ export function useTableData<T>({
     }, [metadata]);
 
     /**
+     * Efeito separado para reagir a mudanças nos initialFilters
+     * Quando mudam, atualiza o estado interno
+     */
+    useEffect(() => {
+        setFilters(initialFilters);
+        setPagination(prev => ({ ...prev, page: 1 })); // Volta para primeira página
+    }, [initialFilters]);
+
+    /**
      * Efeito para recarregar dados quando mudam os parâmetros
-     * IMPORTANTE: Monitora valores primitivos (page, limit) E sorting
+     * IMPORTANTE: Monitora valores primitivos (page, limit), sorting E filters
      * O fetchFn deve ser estável (não deve mudar a cada render)
      */
     useEffect(() => {
@@ -237,16 +246,7 @@ export function useTableData<T>({
             fetchData();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pagination.page, pagination.limit, sorting, autoFetch]);
-
-    /**
-     * Efeito separado para reagir a mudanças nos initialFilters
-     * Quando mudam, atualiza o estado interno e refaz o fetch
-     */
-    useEffect(() => {
-        setFilters(initialFilters);
-        setPagination(prev => ({ ...prev, page: 1 })); // Volta para primeira página
-    }, [initialFilters]);
+    }, [pagination.page, pagination.limit, sorting, filters, autoFetch]);
 
     return {
         data,
