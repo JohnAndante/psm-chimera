@@ -166,25 +166,21 @@ export default function StoresPage() {
             id: 'name',
             header: 'Nome',
             accessorKey: 'name',
-            enableSorting: true,
         },
         {
             id: 'registration',
             header: 'Registro',
             accessorKey: 'registration',
-            enableSorting: true,
         },
         {
             id: 'document',
             header: 'CNPJ',
             accessorKey: 'document',
-            enableSorting: true,
         },
         {
             id: 'active',
             header: 'Status',
             accessorKey: 'active',
-            enableSorting: true,
             cell: ({ row }: CellProps) => (
                 getActiveBadge(row.original.active)
             )
@@ -193,7 +189,6 @@ export default function StoresPage() {
             id: 'createdAt',
             header: 'Criado em',
             accessorKey: 'createdAt',
-            enableSorting: true,
             cell: ({ row }: CellProps) => formatDateToBR(row.original.createdAt)
         },
         {

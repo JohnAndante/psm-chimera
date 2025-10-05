@@ -189,19 +189,16 @@ export default function UsersPage() {
             id: 'name',
             header: 'Nome',
             accessorKey: 'name',
-            enableSorting: true,
         },
         {
             id: 'email',
             header: 'Email',
             accessorKey: 'email',
-            enableSorting: true,
         },
         {
             id: 'role',
             header: 'Cargo',
             accessorKey: 'role',
-            enableSorting: true,
             cell: ({ row }: CellProps) => (
                 getRoleLabel(row.original.role)
             )
@@ -210,7 +207,6 @@ export default function UsersPage() {
             id: 'active',
             header: 'Ativo',
             accessorKey: 'active',
-            enableSorting: true,
             cell: ({ row }: CellProps) => (
                 row.original.active ? 'Sim' : 'Não'
             )
@@ -219,7 +215,6 @@ export default function UsersPage() {
             id: 'createdAt',
             header: 'Criado em',
             accessorKey: 'createdAt',
-            enableSorting: true,
             cell: ({ row }: CellProps) => formatDateToBR(row.original.createdAt)
         },
         {

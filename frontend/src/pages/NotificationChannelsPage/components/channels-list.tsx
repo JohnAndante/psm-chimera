@@ -233,7 +233,6 @@ export function NotificationChannelsList() {
             id: "name",
             header: "Nome",
             accessorKey: "name",
-            enableSorting: true,
         },
         {
             id: "type",
@@ -249,19 +248,20 @@ export function NotificationChannelsList() {
             id: "active",
             header: "Status",
             accessorKey: "active",
-            cell: ({ row }) => getActiveStatus(row.original.active),
+            cell: ({ row }: CellProps) => getActiveStatus(row.original.active),
         },
         {
             id: "created_at",
             header: "Criado em",
             accessorKey: "created_at",
-            cell: ({ row }) => formatDateToBR(row.original.createdAt),
+            cell: ({ row }: CellProps) => formatDateToBR(row.original.createdAt),
         },
         {
             id: "actions",
             header: "Ações",
             accessorKey: "actions",
-            cell: ({ row }) => getActionButtons(row.original),
+            cell: ({ row }: CellProps) => getActionButtons(row.original),
+            enableSorting: false,
         },
     ], [getActionButtons]); // Recalcular apenas se o usuário mudar
 
