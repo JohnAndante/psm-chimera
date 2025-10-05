@@ -4,12 +4,14 @@ import type {
     NotificationChannelData,
     CreateNotificationChannelData,
     UpdateNotificationChannelData,
-    NotificationChannelApiFilters,
     NotificationChannelResponse,
     NotificationTestResponse,
     TestNotificationChannelData
 } from "@/types/notification-channel";
 import { processApiError } from "@/utils/api-error";
+import type { FilterConfig } from '@/types/filter-api';
+import { buildApiUrl } from '@/utils/build-api-url';
+import type { ApiResponse } from '@/types';
 
 class NotificationChannelsApi {
     private axiosInstance: AxiosInstance;
@@ -21,29 +23,14 @@ class NotificationChannelsApi {
     /**
      * Lista todos os canais de notificação com filtros opcionais
      */
-    list(filters?: NotificationChannelApiFilters) {
-        return new Promise<NotificationChannelData[]>((resolve, reject) => {
-            const params = new URLSearchParams();
-
-            if (filters?.search?.trim()) {
-                params.append('search', filters.search.trim());
-            }
-
-            if (filters?.type) {
-                params.append('type', filters.type);
-            }
-
-            if (filters?.active !== undefined) {
-                params.append('active', filters.active.toString());
-            }
-
-            const queryString = params.toString();
-            const url = queryString ? `v1/notifications/channels?${queryString}` : 'v1/notifications/channels';
+    list(filters?: FilterConfig) {
+        return new Promise<ApiResponse<NotificationChannelData[]>>((resolve, reject) => {
+            const url = buildApiUrl('v1/notifications/channels', filters);
 
             this.axiosInstance.get(url)
                 .then(response => {
-                    const { channels } = response.data as NotificationChannelResponse;
-                    resolve(channels || []);
+                    const { data, metadata } = response.data;
+                    resolve({ data, metadata });
                 })
                 .catch(error => {
                     reject(processApiError(error));
