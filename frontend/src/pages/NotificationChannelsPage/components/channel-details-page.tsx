@@ -9,17 +9,17 @@ import { ArrowLeft, Edit, TestTube, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { notificationChannelsApi } from "@/controllers/notification-channels-api";
 import { NotificationChannelType, type NotificationChannelData, type TelegramConfig, type EmailConfig, type WebhookConfig } from "@/types/notification-channel";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/stores/auth";
 import { isAdmin } from "@/utils/permissions";
 import { AnimatedWrapper } from "@/components/animated-wrapper";
+import { DeleteChannelModal } from "./delete-channel-modal";
+import { formatDateToBR } from "@/utils/string";
 
 export function ChannelDetailsPage() {
     const [channel, setChannel] = useState<NotificationChannelData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isTestingChannel, setIsTestingChannel] = useState(false);
-    const [deleteModal, setDeleteModal] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; channel: NotificationChannelData | null }>({ isOpen: false, channel: null });
 
     const navigate = useNavigate();
     const { toast } = useToast();
@@ -36,16 +36,15 @@ export function ChannelDetailsPage() {
 
             try {
                 setIsLoading(true);
-                const channels = await notificationChannelsApi.list();
-                const foundChannel = channels.find(c => c.id === parseInt(id));
+                const data = await notificationChannelsApi.getById(parseInt(id));
 
-                if (!foundChannel) {
+                if (!data) {
                     toast.error("Canal não encontrado");
                     navigate('/canais-notificacao');
                     return;
                 }
 
-                setChannel(foundChannel);
+                setChannel(data);
             } catch (error) {
                 toast.error("Erro ao carregar canal", {
                     description: (error as Error)?.message || "Não foi possível carregar os dados do canal."
@@ -86,26 +85,6 @@ export function ChannelDetailsPage() {
         }
     };
 
-    const handleDeleteChannel = async () => {
-        if (!channel) return;
-
-        setIsDeleting(true);
-        try {
-            await notificationChannelsApi.delete(channel.id);
-            toast.success("Canal excluído com sucesso", {
-                description: `O canal "${channel.name}" foi removido.`
-            });
-            navigate('/canais-notificacao');
-        } catch (error) {
-            toast.error("Erro ao excluir canal", {
-                description: (error as Error)?.message || "Não foi possível excluir o canal."
-            });
-        } finally {
-            setIsDeleting(false);
-            setDeleteModal(false);
-        }
-    };
-
     if (isLoading) {
         return (
             <AnimatedWrapper preset="fadeIn" duration={0.3}>
@@ -124,6 +103,10 @@ export function ChannelDetailsPage() {
     if (!channel) {
         return null;
     }
+
+    const handleModalSuccess = () => {
+        navigate('/canais-notificacao');
+    };
 
     const renderChannelConfig = () => {
         switch (channel.type) {
@@ -334,11 +317,11 @@ export function ChannelDetailsPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Criado em</p>
-                                    <p className="text-sm">{new Date(channel.created_at).toLocaleString('pt-BR')}</p>
+                                    <p className="text-sm">{formatDateToBR(channel.createdAt)}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">Última atualização</p>
-                                    <p className="text-sm">{new Date(channel.updated_at).toLocaleString('pt-BR')}</p>
+                                    <p className="text-sm">{formatDateToBR(channel.updatedAt)}</p>
                                 </div>
                             </div>
                         </PageCard>
@@ -404,7 +387,7 @@ export function ChannelDetailsPage() {
                                 variant="destructive"
                                 size="lg"
                                 className="shadow-lg hover:shadow-xl transition-shadow"
-                                onClick={() => setDeleteModal(true)}
+                                onClick={() => setDeleteModal({ isOpen: true, channel })}
                             >
                                 <Trash2 className="h-5 w-5 mr-2" />
                                 Excluir
@@ -415,40 +398,12 @@ export function ChannelDetailsPage() {
             </AnimatedWrapper>
 
             {/* Modal de Confirmação de Exclusão */}
-            <Dialog open={deleteModal} onOpenChange={setDeleteModal}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Confirmar exclusão</DialogTitle>
-                        <DialogDescription>
-                            Tem certeza que deseja excluir o canal "{channel.name}"?
-                            Esta ação não pode ser desfeita e o canal será removido permanentemente.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setDeleteModal(false)}
-                            disabled={isDeleting}
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDeleteChannel}
-                            disabled={isDeleting}
-                        >
-                            {isDeleting ? (
-                                <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                                    Excluindo...
-                                </>
-                            ) : (
-                                "Excluir Canal"
-                            )}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <DeleteChannelModal
+                isOpen={deleteModal.isOpen}
+                channel={deleteModal.channel}
+                onClose={() => setDeleteModal({ isOpen: false, channel: null })}
+                onSuccess={handleModalSuccess}
+            />
         </>
     );
 }
