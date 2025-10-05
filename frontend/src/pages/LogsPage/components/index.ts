@@ -1,4 +1,4 @@
-export { LogViewer } from './LogViewer';
-export { LogFilters } from './LogFilters';
-export { LogStatisticsCard } from './LogStatisticsCard';
-export { LogSessionList } from './LogSessionList';
+export { LogViewer } from './log-viewer';
+export { LogFilters } from './log-filters';
+export { LogStatisticsCard } from './log-statistic-card';
+export { LogSessionList } from './log-session-list';

@@ -6,50 +6,47 @@ import {
     Square,
     Download,
     Trash2,
-    TestTube,
-    BarChart3,
-    Tag,
-    Hash
+    TestTube
 } from 'lucide-react';
 
-import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { PageContainer } from '@/components/layout/page-container';
+import { PageCard } from '@/components/layout/page-card';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { LogAPIController } from '../../controllers/log.controller';
 import type {
     LogEntry,
     LogFilters as LogFiltersType,
     LogStatistics,
-    LogViewerConfig,
     LogLevel
 } from '../../types/log';
 
-import { LogViewer } from './components/LogViewer';
-import { LogFilters } from './components/LogFilters';
-import { LogStatisticsCard } from './components/LogStatisticsCard';
-import { LogSessionList } from './components/LogSessionList';
+import { LogViewer } from './components/log-viewer';
+import { LogFilters } from './components/log-filters';
+import { LogStatisticsCard } from './components/log-statistic-card';
+import { LogSessionList } from './components/log-session-list';
 
-export function LogsPage() {
+export default function LogsPage() {
     // State management
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [loading, setLoading] = useState(false);
     const [realTimeActive, setRealTimeActive] = useState(false);
     const [statistics, setStatistics] = useState<LogStatistics | null>(null);
-    const [categories, setCategories] = useState<string[]>([]);
     const [filters, setFilters] = useState<LogFiltersType>({
         limit: 100,
         offset: 0
     });
 
-    const [viewerConfig, setViewerConfig] = useState<LogViewerConfig>({
+    const viewerConfig = {
         realTime: false,
         maxLogs: 100,
         autoScroll: true,
         showMetadata: false,
         groupBySessions: false
-    });
+    };
 
     // Refs
     const eventSourceRef = useRef<EventSource | null>(null);
@@ -94,18 +91,6 @@ export function LogsPage() {
             setStatistics(stats);
         } catch (error) {
             console.error('Failed to load statistics:', error);
-        }
-    }, []);
-
-    /**
-     * Load categories
-     */
-    const loadCategories = useCallback(async () => {
-        try {
-            const cats = await LogAPIController.getCategories();
-            setCategories(cats);
-        } catch (error) {
-            console.error('Failed to load categories:', error);
         }
     }, []);
 
@@ -208,31 +193,18 @@ export function LogsPage() {
     /**
      * Handle filter changes
      */
-    const handleFiltersChange = useCallback((newFilters: LogFilters) => {
+    const handleFiltersChange = useCallback((newFilters: LogFiltersType) => {
         setFilters((prev: LogFiltersType) => ({ ...prev, ...newFilters, offset: 0 }));
     }, []);
-
-    /**
-     * Load more logs (pagination)
-     */
-    const loadMore = useCallback(() => {
-        if (!loading) {
-            setFilters((prev: LogFiltersType) => ({
-                ...prev,
-                offset: (prev.offset || 0) + (prev.limit || 100)
-            }));
-        }
-    }, [loading]);
 
     // Effects
     useEffect(() => {
         loadLogs();
-    }, [loadLogs]);
+    }, []);
 
     useEffect(() => {
         loadStatistics();
-        loadCategories();
-    }, [loadStatistics, loadCategories]);
+    }, []);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -243,8 +215,20 @@ export function LogsPage() {
         };
     }, []);
 
+    const breadcrumbs = [
+        { label: 'Dashboard', to: '/' },
+        { label: 'Logs' }
+    ];
+
+    const newTestButton = (
+        <Button variant="default" size="sm" onClick={createTestLog} className="flex items-center gap-2">
+            <TestTube className="w-4 h-4" />
+            Criar Log de Teste
+        </Button>
+    );
+
     return (
-        <div className="container mx-auto p-6 space-y-6">
+        <PageContainer title="Logs" subtitle="Visualização unificada de logs" breadcrumbs={breadcrumbs} extra={newTestButton}>
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div>
@@ -312,42 +296,9 @@ export function LogsPage() {
                 </div>
             </div>
 
-            {/* Statistics Cards */}
+            {/* Statistics */}
             {statistics && (
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <LogStatisticsCard
-                        title="Total de Logs"
-                        value={statistics.totalLogs}
-                        icon={<Hash className="w-4 h-4" />}
-                    />
-
-                    <LogStatisticsCard
-                        title="Categorias"
-                        value={Object.keys(statistics.logsByCategory).length}
-                        icon={<Tag className="w-4 h-4" />}
-                        subtitle={`Mais comum: ${Object.entries(statistics.logsByCategory)[0]?.[0] || 'N/A'}`}
-                    />
-
-                    <LogStatisticsCard
-                        title="Sessões Recentes"
-                        value={statistics.recentSessions.length}
-                        icon={<BarChart3 className="w-4 h-4" />}
-                    />
-
-                    <LogStatisticsCard
-                        title="Errors"
-                        value={statistics.logsByLevel.ERROR || 0}
-                        icon={<span className="text-red-500">❌</span>}
-                        className="text-red-600"
-                    />
-
-                    <LogStatisticsCard
-                        title="Success"
-                        value={statistics.logsByLevel.SUCCESS || 0}
-                        icon={<span className="text-green-500">✅</span>}
-                        className="text-green-600"
-                    />
-                </div>
+                <LogStatisticsCard statistics={statistics} />
             )}
 
             <Tabs defaultValue="logs" className="w-full">
@@ -358,70 +309,20 @@ export function LogsPage() {
                 </TabsList>
 
                 <TabsContent value="logs" className="space-y-4">
-                    {/* Filters */}
-                    <LogFilters
-                        filters={filters}
-                        categories={categories}
-                        onFiltersChange={handleFiltersChange}
-                        onClear={() => setFilters({ limit: 100, offset: 0 })}
-                    />
-
-                    {/* Status Indicator */}
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            {realTimeActive && (
-                                <Badge variant="default" className="bg-green-500 animate-pulse">
-                                    🔴 Tempo Real Ativo
-                                </Badge>
-                            )}
-
-                            <span className="text-sm text-gray-500">
-                                {logs.length} logs carregados
-                                {filters.search && ` • Filtro: "${filters.search}"`}
-                                {filters.category && ` • Categoria: ${filters.category}`}
-                                {filters.level && ` • Nível: ${filters.level}`}
-                            </span>
+                    <PageCard cardTitle="Logs" cardExtra={(
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" onClick={() => loadLogs()} disabled={loading}>
+                                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                                Atualizar
+                            </Button>
                         </div>
+                    )}>
+                        <LogFilters filters={filters} onFiltersChange={handleFiltersChange} onClear={() => setFilters({ limit: 100, offset: 0 })} />
 
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <input
-                                type="checkbox"
-                                id="autoScroll"
-                                checked={viewerConfig.autoScroll}
-                                onChange={(e) => setViewerConfig((prev: LogViewerConfig) => ({
-                                    ...prev,
-                                    autoScroll: e.target.checked
-                                }))}
-                            />
-                            <label htmlFor="autoScroll">Auto-scroll</label>
-
-                            <input
-                                type="checkbox"
-                                id="showMetadata"
-                                checked={viewerConfig.showMetadata}
-                                onChange={(e) => setViewerConfig((prev: LogViewerConfig) => ({
-                                    ...prev,
-                                    showMetadata: e.target.checked
-                                }))}
-                                className="ml-4"
-                            />
-                            <label htmlFor="showMetadata">Mostrar metadata</label>
+                        <div className="mt-4">
+                            <LogViewer logs={logs} loading={loading} className="" />
                         </div>
-                    </div>
-
-                    {/* Log Viewer */}
-                    <Card>
-                        <CardContent className="p-0">
-                            <LogViewer
-                                logs={logs}
-                                loading={loading}
-                                realTime={realTimeActive}
-                                config={viewerConfig}
-                                onLoadMore={loadMore}
-                                ref={logsContainerRef}
-                            />
-                        </CardContent>
-                    </Card>
+                    </PageCard>
                 </TabsContent>
 
                 <TabsContent value="sessions" className="space-y-4">
@@ -479,6 +380,6 @@ export function LogsPage() {
                     </div>
                 </TabsContent>
             </Tabs>
-        </div>
+        </PageContainer>
     );
 }
