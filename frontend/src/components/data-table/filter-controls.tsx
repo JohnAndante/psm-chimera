@@ -5,9 +5,9 @@ import { Badge } from "@/components/ui/badge";
 
 interface FilterControlsProps {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    currentFilters: Record<string, any>[];
+    currentFilters: Record<string, any>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    defaultFilters: Record<string, any>[];
+    defaultFilters: Record<string, any>;
 
     onToggleExpanded: () => void;
     onClearFilters: () => void;
@@ -20,10 +20,11 @@ export function FilterControls({
     onClearFilters
 }: FilterControlsProps) {
     // Compara o currentFilters com defaultFilters para contar os filtros ativos
-    const activeFiltersCount = currentFilters.reduce((count, filter, index) => {
-        const defaultFilter = defaultFilters[index] || {};
-        // Conta como ativo se o filtro atual for diferente do padrão
-        return count + (JSON.stringify(filter) !== JSON.stringify(defaultFilter) ? 1 : 0);
+    const activeFiltersCount = Object.keys(currentFilters).reduce((count, key) => {
+        if (currentFilters[key] !== defaultFilters[key]) {
+            return count + 1;
+        }
+        return count;
     }, 0);
 
     return (

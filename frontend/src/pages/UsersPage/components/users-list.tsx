@@ -271,8 +271,8 @@ export default function UsersPage() {
                 cardTitle="Lista de Usuários"
                 cardExtra={(
                     <FilterControls
-                        currentFilters={[filters]}
-                        defaultFilters={[defaultFilters]}
+                        currentFilters={filters}
+                        defaultFilters={defaultFilters}
                         onClearFilters={handleClearFilters}
                         onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
                     />
