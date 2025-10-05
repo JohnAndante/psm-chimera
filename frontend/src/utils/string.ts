@@ -17,3 +17,18 @@ export const normalizePhone = (phone: string): string => {
     const cleaned = phone.replace(/[^\d\s\-()]/g, '')
     return cleaned.trim()
 }
+
+/**
+ * Formatador de datas para a Timezone e formato brasileiro
+ */
+export const formatDateToBR = (date: Date | string): string => {
+    const options: Intl.DateTimeFormatOptions = {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Sao_Paulo'
+    };
+    return new Date(date).toLocaleDateString('pt-BR', options);
+}
