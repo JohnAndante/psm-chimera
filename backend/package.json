@@ -8,9 +8,9 @@
     "license": "ISC",
     "type": "module",
     "scripts": {
-    "build": "npx tsc",
-    "start": "TZ=UTC tsx dist/index.js",
-    "dev": "TZ=UTC nodemon src/index.ts",
+        "build": "npx tsc",
+        "start": "TZ=UTC tsx dist/index.js",
+        "dev": "TZ=UTC nodemon src/index.ts",
         "db:generate": "npx prisma generate --schema=./database/prisma/schema.prisma",
         "db:migrate": "prisma migrate deploy --schema=./database/prisma/schema.prisma",
         "db:seed": "tsx database/prisma/seed.ts",
