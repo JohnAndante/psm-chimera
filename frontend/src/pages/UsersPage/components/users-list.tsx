@@ -16,6 +16,7 @@ import {
 import type { BaseUser } from "@/types/user-api";
 import type { UsersFilterState } from "@/pages/UsersPage/types";
 import type { FilterConfig } from "@/types/filter-api";
+import { formatDateToBR } from "@/utils/string";
 
 export default function UsersPage() {
     const defaultFilters: UsersFilterState = {
@@ -222,15 +223,7 @@ export default function UsersPage() {
             header: 'Criado em',
             accessorKey: 'createdAt',
             enableSorting: true,
-            cell: ({ row }: CellProps) => (
-                new Date(row.original.createdAt).toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })
-            )
+            cell: ({ row }: CellProps) => formatDateToBR(row.original.createdAt)
         },
         {
             id: 'actions',

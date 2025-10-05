@@ -19,6 +19,7 @@ import { EditStoreModal } from "@/pages/StoresPage/components/edit-store-modal";
 import { useTableData } from "@/hooks/use-table-data";
 import { FilterControls, FilterFields } from "@/components/data-table";
 import { StoreListFilterFields } from "./stores-list-filter-fields";
+import { formatDateToBR } from "@/utils/string";
 
 export default function StoresPage() {
     const defaultFilters: StoresFilterState = {
@@ -193,15 +194,7 @@ export default function StoresPage() {
             header: 'Criado em',
             accessorKey: 'createdAt',
             enableSorting: true,
-            cell: ({ row }: CellProps) => (
-                new Date(row.original.createdAt).toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })
-            )
+            cell: ({ row }: CellProps) => formatDateToBR(row.original.createdAt)
         },
         {
             id: 'actions',
