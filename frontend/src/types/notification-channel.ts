@@ -14,9 +14,9 @@ export interface NotificationChannelData {
     type: NotificationChannelType;
     config: TelegramConfig | EmailConfig | WebhookConfig;
     active: boolean;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string | null;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
 }
 
 // Configuração do Telegram

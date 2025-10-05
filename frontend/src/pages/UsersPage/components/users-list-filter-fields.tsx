@@ -30,7 +30,6 @@ export const UserListFilterFields = ({ isLoading }: UserListFilterFieldsProps) =
         />
 
         <FormField
-            // control={form.control}
             disabled={isLoading}
             name="role"
             render={({ field }) => (
@@ -58,7 +57,6 @@ export const UserListFilterFields = ({ isLoading }: UserListFilterFieldsProps) =
         />
 
         <FormField
-            // control={form.control}
             disabled={isLoading}
             name="active"
             render={({ field }) => (

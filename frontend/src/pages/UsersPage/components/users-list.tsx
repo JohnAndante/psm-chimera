@@ -94,11 +94,8 @@ export default function UsersPage() {
     }, []);
 
     const handleClearFilters = useCallback(() => {
-        setFilters({
-            name: "",
-            role: "ALL",
-            active: "ALL"
-        });
+        setFilters(defaultFilters);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleChangePassword = useCallback((user: BaseUser) => {

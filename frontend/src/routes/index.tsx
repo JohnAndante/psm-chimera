@@ -6,8 +6,7 @@ import LoginPage from "@/pages/LoginPage"
 import DashboardPage from "@/pages/DashboardPage"
 import UsersPage from "@/pages/UsersPage/components/users-list"
 import StoresPage from "@/pages/StoresPage/components/stores-list"
-import NotificationChannelsPage from "@/pages/NotificationChannelsPage"
-import { CreateChannelPage, EditChannelPage, ChannelDetailsPage } from "@/pages/NotificationChannelsPage/components"
+import { CreateChannelPage, EditChannelPage, ChannelDetailsPage, NotificationChannelsList } from "@/pages/NotificationChannelsPage/components"
 import IntegrationsPage from "@/pages/IntegrationsPage"
 import { CreateIntegrationPage, EditIntegrationPage, IntegrationDetailsPage } from "@/pages/IntegrationsPage/components"
 import SyncPage from "@/pages/SyncPage"
@@ -58,7 +57,7 @@ export default function AppRoutes() {
                 <Route path="/lojas/:id/editar" element={<StoresPage />} />
 
                 {/* Rotas de Canais de Notificação */}
-                <Route path="/canais-notificacao" element={<NotificationChannelsPage />} />
+                <Route path="/canais-notificacao" element={<NotificationChannelsList />} />
                 <Route path="/canais-notificacao/novo" element={<CreateChannelPage />} />
                 <Route path="/canais-notificacao/:id" element={<ChannelDetailsPage />} />
                 <Route path="/canais-notificacao/:id/editar" element={<EditChannelPage />} />

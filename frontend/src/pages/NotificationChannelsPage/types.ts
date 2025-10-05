@@ -2,7 +2,7 @@ import type { NotificationChannelType } from "@/types/notification-channel";
 
 // Estado dos filtros na UI
 export interface NotificationChannelFilterState {
-    search: string;
+    name: string;
     type: "ALL" | NotificationChannelType;
     active: "ALL" | "true" | "false";
 }
