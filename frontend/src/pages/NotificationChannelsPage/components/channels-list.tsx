@@ -102,12 +102,28 @@ export function NotificationChannelsList() {
     }, []);
 
     const getChannelTypeLabel = (type: string) => {
+        let color = "gray";
+        const text = String(type).toLowerCase().replace(/^\w/, c => c.toUpperCase());
+
         switch (type) {
-            case "TELEGRAM": return "Telegram";
-            case "EMAIL": return "Email";
-            case "WEBHOOK": return "Webhook";
-            default: return type;
+            case "TELEGRAM":
+                color = "blue";
+                break;
+            case "EMAIL":
+                color = "red";
+                break;
+            case "WEBHOOK":
+                color = "green";
+                break;
+            default:
+                break;
         }
+
+        return (
+            <Badge className={`bg-${color}-500/20 text-${color}-500`}>
+                {text}
+            </Badge>
+        );
     };
 
     const getActiveStatus = (active: boolean) => {
@@ -238,11 +254,7 @@ export function NotificationChannelsList() {
             id: "type",
             header: "Tipo",
             accessorKey: "type",
-            cell: ({ row }: CellProps) => (
-                <Badge variant="outline">
-                    {getChannelTypeLabel(row.original.type)}
-                </Badge>
-            ),
+            cell: ({ row }: CellProps) => getChannelTypeLabel(row.original.type)
         },
         {
             id: "active",

@@ -131,7 +131,7 @@ export default function StoresPage() {
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:text-blue-500"
                         onClick={() => handleEditStore(store)}
                     >
                         <SquarePen size={16} />
@@ -146,7 +146,7 @@ export default function StoresPage() {
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="cursor-pointer text-red-500/70 hover:text-red-500 transition-colors"
                         onClick={() => handleDeleteStore(store)}
                     >
                         <Trash2 size={16} />

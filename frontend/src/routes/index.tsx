@@ -12,7 +12,6 @@ import { CreateIntegrationPage, EditIntegrationPage, IntegrationDetailsPage } fr
 import SyncPage from "@/pages/SyncPage"
 import { CreateSyncConfigPage } from "@/pages/SyncPage/components"
 import CronTestPage from "@/pages/CronTestPage"
-import LogsPage from "@/pages/LogsPage"
 
 function ProtectedRoute() {
     const { isAuthenticated, validateToken } = useAuth()
@@ -74,9 +73,6 @@ export default function AppRoutes() {
 
                 {/* Rota de Teste do Cron */}
                 <Route path="/teste-cron" element={<CronTestPage />} />
-
-                {/* Rota de Logs */}
-                <Route path="/logs" element={<LogsPage />} />
             </Route>
             <Route path="*" element={<RedirectToDashboard />} />
         </Routes>
