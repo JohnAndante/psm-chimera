@@ -8,24 +8,22 @@ export class StoreController {
 
     // GET /api/v1/stores
     static getAll(req: AuthenticatedRequest, res: Response) {
-        const { active, search } = req.query;
+        const filters = req.filters || {};
+        const pagination = req.pagination || { limit: 10, offset: 0 };
+        const sorting = req.sorting || { createdAt: 'asc' };
 
-        const filters: StoreFilters = {};
+        storeService.getAllStores(filters, pagination, sorting)
+            .then(result => {
+                const { data, total } = result;
 
-        // Validação já foi feita pelo middleware
-        if (active !== undefined) {
-            filters.active = active === 'true';
-        }
-
-        if (search && typeof search === 'string') {
-            filters.search = search;
-        }
-
-        storeService.getAllStores(filters)
-            .then((stores) => {
-                res.json({
-                    message: 'Lojas listadas com sucesso',
-                    data: stores
+                return res.status(200).json({
+                    data,
+                    metadata: {
+                        limit: pagination.limit,
+                        offset: pagination.offset,
+                        total: total,
+                    },
+                    message: 'Lojas recuperados com sucesso'
                 });
             })
             .catch((error) => {
