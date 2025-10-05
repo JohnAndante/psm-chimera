@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { PageCard } from "@/components/layout/page-card";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { IntegrationController } from "@/controllers/integration.controller";
+import { integrationAPI } from "@/controllers/integration-api";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save } from "lucide-react";
 import { AnimatedWrapper } from "@/components/animated-wrapper";
@@ -45,7 +45,7 @@ export default function CreateIntegrationPage() {
                 active: formData.active
             };
 
-            await IntegrationController.createIntegration(request);
+            await integrationAPI.createIntegration(request);
             toast.success('Integração criada com sucesso');
             navigate('/integracoes');
         } catch (error: any) {  // eslint-disable-line @typescript-eslint/no-explicit-any

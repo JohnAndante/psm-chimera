@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { PageCard } from "@/components/layout/page-card";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { IntegrationController } from "@/controllers/integration.controller";
+import { integrationAPI } from "@/controllers/integration-api";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save } from "lucide-react";
 import { AnimatedWrapper } from "@/components/animated-wrapper";
@@ -35,7 +35,7 @@ export default function EditIntegrationPage() {
 
         const loadIntegration = async () => {
             try {
-                const data = await IntegrationController.getIntegrationById(parseInt(id));
+                const data = await integrationAPI.getIntegrationById(parseInt(id));
                 setIntegration(data);
                 setFormData({
                     name: data.name,
@@ -75,7 +75,7 @@ export default function EditIntegrationPage() {
                 active: formData.active
             };
 
-            await IntegrationController.updateIntegration(integration.id, request);
+            await integrationAPI.updateIntegration(integration.id, request);
             toast.success('Integração atualizada com sucesso');
             navigate('/integracoes');
         } catch (error: any) {  // eslint-disable-line @typescript-eslint/no-explicit-any

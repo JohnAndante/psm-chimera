@@ -12,7 +12,7 @@ import { CreateIntegrationPage, EditIntegrationPage, IntegrationDetailsPage } fr
 import SyncPage from "@/pages/SyncPage"
 import { CreateSyncConfigPage } from "@/pages/SyncPage/components"
 import CronTestPage from "@/pages/CronTestPage"
-import { LogsPage } from "@/pages/LogsPage"
+import LogsPage from "@/pages/LogsPage"
 
 function ProtectedRoute() {
     const { isAuthenticated, validateToken } = useAuth()

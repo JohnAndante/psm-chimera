@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { PageCard } from "@/components/layout/page-card";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { IntegrationController } from "@/controllers/integration.controller";
+import { integrationAPI } from "@/controllers/integration-api";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Settings, TestTube, Power, PowerOff } from "lucide-react";
 import { AnimatedWrapper } from "@/components/animated-wrapper";
@@ -29,7 +29,7 @@ export default function IntegrationDetailsPage() {
 
         const loadIntegration = async () => {
             try {
-                const data = await IntegrationController.getIntegrationById(parseInt(id));
+                const data = await integrationAPI.getIntegrationById(parseInt(id));
                 setIntegration(data);
             } catch (error: any) {  // eslint-disable-line @typescript-eslint/no-explicit-any
                 toast.error('Erro ao carregar integração', {
@@ -48,7 +48,7 @@ export default function IntegrationDetailsPage() {
         if (!integration) return;
 
         try {
-            await IntegrationController.updateIntegration(integration.id, {
+            await integrationAPI.updateIntegration(integration.id, {
                 active: !integration.active
             });
 
@@ -68,7 +68,7 @@ export default function IntegrationDetailsPage() {
         if (!integration) return;
 
         try {
-            const result = await IntegrationController.testConnection(integration.id);
+            const result = await integrationAPI.testConnection(integration.id);
             if (result.success) {
                 toast.success('Conexão bem-sucedida!', {
                     description: result.message
