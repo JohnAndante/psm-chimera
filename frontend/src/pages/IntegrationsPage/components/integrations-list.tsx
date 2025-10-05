@@ -5,7 +5,7 @@ import { PageCard } from "@/components/layout/page-card";
 import { useEffect, useState, useCallback } from "react";
 import { IntegrationController } from "@/controllers/integration.controller";
 import { useToast } from "@/hooks/use-toast";
-import { DataTable } from "@/components/data-table";
+import { DataTable } from "@/components/data-table/custom-table";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import type { Integration } from "@/types/integration";
