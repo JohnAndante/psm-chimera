@@ -25,7 +25,7 @@ O sistema de DataTable foi projetado para fornecer uma solução completa e perf
 
 ### Componentes Principais
 
-```
+```plaintxt
 📦 Sistema DataTable
 ├── 🎨 Componentes UI
 │   ├── DataTable (custom-table.tsx)
@@ -44,32 +44,32 @@ O sistema de DataTable foi projetado para fornecer uma solução completa e perf
 
 ### Fluxo de Dados
 
-```
+```plaintxt
 ┌─────────────────────────────────────────────────────────────┐
-│                      Componente de Página                    │
-│  (ex: UsersPage)                                             │
-│                                                               │
-│  1. Define defaultFilters                                    │
-│  2. Gerencia estado de filtros (filters)                     │
-│  3. Cria filterConfig com useMemo                            │
-│  4. Usa useTableData hook                                    │
+│                      Componente de Página                   │
+│  (ex: UsersPage)                                            │
+│                                                             │
+│  1. Define defaultFilters                                   │
+│  2. Gerencia estado de filtros (filters)                    │
+│  3. Cria filterConfig com useMemo                           │
+│  4. Usa useTableData hook                                   │
 └─────────────────────────────────────────────────────────────┘
                              │
                              ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     Hook useTableData                        │
-│                                                               │
-│  • Gerencia paginação                                        │
-│  • Gerencia ordenação                                        │
-│  • Monitora mudanças de filtros                              │
-│  • Faz fetch dos dados                                       │
-│  • Retorna dados + metadata + handlers                       │
+│                     Hook useTableData                       │
+│                                                             │
+│  • Gerencia paginação                                       │
+│  • Gerencia ordenação                                       │
+│  • Monitora mudanças de filtros                             │
+│  • Faz fetch dos dados                                      │
+│  • Retorna dados + metadata + handlers                      │
 └─────────────────────────────────────────────────────────────┘
                              │
                              ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    Componentes de UI                         │
-│                                                               │
+│                    Componentes de UI                        │
+│                                                             │
 │  FilterControls  →  Mostra botão de filtros + contador      │
 │  FilterFields    →  Renderiza campos de filtro              │
 │  DataTable       →  Renderiza tabela com dados              │
@@ -90,16 +90,16 @@ O sistema de DataTable foi projetado para fornecer uma solução completa e perf
 interface DataTableProps<TData, TValue> {
     // Definição das colunas (obrigatório)
     columns: ColumnDef<TData, TValue>[]
-    
+
     // Dados a serem exibidos (obrigatório)
     data: TData[]
-    
+
     // Estado de loading
     isLoading?: boolean
-    
+
     // Mostrar paginação
     showPagination?: boolean
-    
+
     // Classes CSS customizadas
     className?: string
 
@@ -125,14 +125,14 @@ interface DataTableProps<TData, TValue> {
     data={users}
     isLoading={isLoading}
     showPagination={true}
-    
+
     // Paginação server-side
     manualPagination={true}
     pageCount={metadata ? Math.ceil(metadata.total / pagination.limit) : 0}
     totalRecords={metadata?.total ?? 0}
     pagination={pagination}
     onPaginationChange={handlePaginationChange}
-    
+
     // Ordenação server-side
     manualSorting={true}
     sorting={sorting}
@@ -150,13 +150,13 @@ interface DataTableProps<TData, TValue> {
 interface FilterControlsProps {
     // Filtros atuais (array para suportar múltiplos objetos de filtro)
     currentFilters: Record<string, any>[]
-    
+
     // Filtros padrão para comparação
     defaultFilters: Record<string, any>[]
-    
+
     // Toggle de expansão dos campos de filtro
     onToggleExpanded: () => void
-    
+
     // Callback para limpar filtros
     onClearFilters: () => void
 }
@@ -174,6 +174,7 @@ interface FilterControlsProps {
 ```
 
 **Como funciona o contador:**
+
 - Compara `currentFilters` com `defaultFilters` usando JSON.stringify
 - Conta quantos filtros são diferentes dos valores padrão
 - Exibe badge animado com o número de filtros ativos
@@ -188,16 +189,16 @@ interface FilterControlsProps {
 interface FilterFieldsProps<T> {
     // Valores atuais dos filtros
     filters: Partial<T>
-    
+
     // Callback quando filtros são aplicados
     onFilterChange: (values: T) => void
-    
+
     // Controle de expansão
     isExpanded: boolean
-    
+
     // Estado de loading
     isLoading?: boolean
-    
+
     // Campos de filtro a serem renderizados
     filterFields: React.ReactNode
 }
@@ -263,7 +264,7 @@ interface UseTableDataReturn<T> {
     filters: FilterConfig;              // Filtros ativos
     pageCount: number;                  // Total de páginas
     totalRecords: number;               // Total de registros
-    
+
     // Handlers
     handlePaginationChange: (updater: Partial<PaginationState>) => void;
     handleSortingChange: (sorting: SortingState[]) => void;
@@ -281,22 +282,22 @@ interface UseTableDataReturn<T> {
 
 ### Ciclo de Vida
 
-```
+```plaintxt
 ┌──────────────────────────────────────────────────────────┐
-│ 1. initialFilters muda                                    │
-│    ↓                                                      │
+│ 1. initialFilters muda                                   │
+│    ↓                                                     │
 │ 2. useEffect atualiza filters internos                   │
-│    ↓                                                      │
+│    ↓                                                     │
 │ 3. Volta para página 1                                   │
-│    ↓                                                      │
+│    ↓                                                     │
 │ 4. Outro useEffect detecta mudança em filters            │
-│    ↓                                                      │
+│    ↓                                                     │
 │ 5. fetchData() é chamado                                 │
-│    ↓                                                      │
+│    ↓                                                     │
 │ 6. API retorna dados + metadata                          │
-│    ↓                                                      │
+│    ↓                                                     │
 │ 7. Estados são atualizados                               │
-│    ↓                                                      │
+│    ↓                                                     │
 │ 8. Componentes re-renderizam com novos dados             │
 └──────────────────────────────────────────────────────────┘
 ```
@@ -513,11 +514,11 @@ const [filters, setFilters] = useState(defaultFilters);
 
 const filterConfig = useMemo<FilterConfig>(() => {
     const config: FilterConfig = {};
-    
+
     if (filters.name?.trim()) {
         config.filter = { name: { ilike: filters.name.trim() } };
     }
-    
+
     return config;
 }, [filters.name]);
 ```
@@ -529,7 +530,7 @@ const filterConfig = useMemo<FilterConfig>(() => {
     const config: FilterConfig = {};
 
     if (filters.search?.trim()) {
-        config.filter = { 
+        config.filter = {
             OR: [
                 { name: { ilike: filters.search } },
                 { email: { ilike: filters.search } }
@@ -602,6 +603,7 @@ const tableColumns = useMemo(() => [
 **Causa:** `filterConfig` não está sendo atualizado ou `initialFilters` não está mudando.
 
 **Solução:** Certifique-se de que:
+
 1. `filterConfig` usa `useMemo` com dependências corretas
 2. `filters` está sendo atualizado no `handleApplyFilters`
 3. `useTableData` recebe `initialFilters: filterConfig`
@@ -611,6 +613,7 @@ const tableColumns = useMemo(() => [
 **Causa:** Dependências incorretas causando re-renders em cascata.
 
 **Solução:**
+
 1. Use `useCallback` em todos os handlers
 2. Use `useMemo` em `filterConfig` e `tableColumns`
 3. Certifique-se que `fetchFn` é estável (não muda a cada render)
@@ -620,6 +623,7 @@ const tableColumns = useMemo(() => [
 **Causa:** Animação do `FilterControls` ou comparação de filtros falhando.
 
 **Solução:** Verifique se:
+
 1. `currentFilters` e `defaultFilters` são arrays
 2. Valores padrão correspondem aos valores iniciais
 3. Badge está sendo renderizado condicionalmente
@@ -635,6 +639,7 @@ const tableColumns = useMemo(() => [
 **Causa:** `isLoading` do `useTableData` não está sendo passado corretamente.
 
 **Solução:**
+
 ```typescript
 const { isLoading } = useTableData(...);
 
