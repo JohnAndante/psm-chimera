@@ -1,25 +1,21 @@
-import { PageContainer } from "@/components/layout/page-container";
-import { Button } from "@/components/ui/button";
-import { KeyRound, Plus, SquarePen, Trash2 } from "lucide-react";
-import { PageCard } from "@/components/layout/page-card";
 import { useState, useCallback } from "react";
+import { PageContainer } from "@/components/layout/page-container";
+import { KeyRound, Plus, SquarePen, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { PageCard } from "@/components/layout/page-card";
 import { usersApi } from "@/controllers/users-api";
 import { useToast } from "@/hooks/use-toast";
-import { DataTable } from "@/components/data-table";
-import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
-import { TooltipTrigger } from "@radix-ui/react-tooltip";
-import type { BaseUser } from "@/types/user-api";
-import type { UsersFilterState } from "../types";
-import { UserListFilters } from "./users-list-filters";
-import { UsersFilterControls } from "./users-filter-controls";
-import { ChangePasswordModal } from "./change-password-modal";
-import { EditUserModal } from "./edit-user-modal";
-import { CreateUserModal } from "./create-user-modal";
-import { DeleteUserModal } from "./delete-user-modal";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { isAdmin } from "@/utils/permissions";
 import { useAuth } from "@/stores/auth";
-import type { FilterConfig } from "@/types/filter-api";
 import { useTableData } from "@/hooks/use-table-data";
+import { DataTable, FilterControls, FilterFields } from "@/components/data-table";
+import {
+    UserListFilterFields, DeleteUserModal, CreateUserModal, ChangePasswordModal, EditUserModal
+} from "@/pages/UsersPage/components";
+import type { BaseUser } from "@/types/user-api";
+import type { UsersFilterState } from "@/pages/UsersPage/types";
+import type { FilterConfig } from "@/types/filter-api";
 
 export default function UsersPage() {
     const [filters, setFilters] = useState<UsersFilterState>({
@@ -276,17 +272,18 @@ export default function UsersPage() {
             <PageCard
                 cardTitle="Lista de Usuários"
                 cardExtra={(
-                    <UsersFilterControls
+                    <FilterControls
                         activeFiltersCount={getActiveFiltersCount()}
                         onClearFilters={handleClearFilters}
                         onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
                     />
                 )}
             >
-                <UserListFilters
+                <FilterFields
                     filters={filters}
-                    onApplyFilters={handleApplyFilters}
+                    onFilterChange={handleApplyFilters}
                     isExpanded={isFiltersExpanded}
+                    filterFields={(<UserListFilterFields isLoading={isLoading} />)}
                     isLoading={isLoading}
                 />
 
