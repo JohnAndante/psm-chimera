@@ -229,15 +229,24 @@ export function useTableData<T>({
 
     /**
      * Efeito para recarregar dados quando mudam os parâmetros
-     * IMPORTANTE: Monitora valores primitivos (page, limit) E fetchFn (para detectar mudança de filtros)
-     * O fetchFn deve ser memoizado no componente com useCallback para evitar loops infinitos
+     * IMPORTANTE: Monitora valores primitivos (page, limit) E sorting
+     * O fetchFn deve ser estável (não deve mudar a cada render)
      */
     useEffect(() => {
         if (autoFetch) {
             fetchData();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pagination.page, pagination.limit, sorting, autoFetch, fetchFn]);
+    }, [pagination.page, pagination.limit, sorting, autoFetch]);
+
+    /**
+     * Efeito separado para reagir a mudanças nos initialFilters
+     * Quando mudam, atualiza o estado interno e refaz o fetch
+     */
+    useEffect(() => {
+        setFilters(initialFilters);
+        setPagination(prev => ({ ...prev, page: 1 })); // Volta para primeira página
+    }, [initialFilters]);
 
     return {
         data,

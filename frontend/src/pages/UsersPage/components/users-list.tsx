@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { PageContainer } from "@/components/layout/page-container";
 import { KeyRound, Plus, SquarePen, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,33 +33,30 @@ export default function UsersPage() {
     const { toast } = useToast();
     const { user: currentUser } = useAuth();
 
-    // Função de fetch memoizada para evitar recriações desnecessárias
-    const fetchUsers = useCallback(async (filterConfig: FilterConfig) => {
+    // Construir FilterConfig baseado nos filtros ativos
+    const filterConfig = useMemo<FilterConfig>(() => {
+        const config: FilterConfig = {};
+
         // Adicionar filtro de name
         if (filters.name && filters.name.trim()) {
-            if (!filterConfig.filter) filterConfig.filter = {};
-            filterConfig.filter.name = { ilike: filters.name.trim() };
+            if (!config.filter) config.filter = {};
+            config.filter.name = { ilike: filters.name.trim() };
         }
 
         // Adicionar filtro de role
         if (filters.role !== "ALL") {
-            if (!filterConfig.filter) filterConfig.filter = {};
-            filterConfig.filter.role = { eq: filters.role };
+            if (!config.filter) config.filter = {};
+            config.filter.role = { eq: filters.role };
         }
 
         // Adicionar filtro de active/inactive
         if (filters.active !== "ALL") {
-            if (!filterConfig.filter) filterConfig.filter = {};
+            if (!config.filter) config.filter = {};
             const activeValue = filters.active === "true";
-            filterConfig.filter.active = { eq: activeValue };
+            config.filter.active = { eq: activeValue };
         }
 
-        const response = await usersApi.list(filterConfig);
-
-        return {
-            data: response.data ?? [],
-            metadata: response.metadata!
-        };
+        return config;
     }, [filters.name, filters.role, filters.active]);
 
     // Usar o hook useTableData para gerenciar dados, paginação e filtros
@@ -73,7 +70,14 @@ export default function UsersPage() {
         handleSortingChange,
         refetch
     } = useTableData<BaseUser>({
-        fetchFn: fetchUsers,
+        fetchFn: async (config) => {
+            const response = await usersApi.list(config);
+            return {
+                data: response.data ?? [],
+                metadata: response.metadata!
+            };
+        },
+        initialFilters: filterConfig,
         onError: (error) => {
             toast.error("Erro ao carregar usuários", {
                 description: error.message || 'Erro desconhecido'
@@ -81,10 +85,10 @@ export default function UsersPage() {
         }
     });
 
-    const handleApplyFilters = (newFilters: UsersFilterState) => {
+    const handleApplyFilters = useCallback((newFilters: UsersFilterState) => {
         console.log("Applying filters:", newFilters);
         setFilters(newFilters);
-    };
+    }, []);
 
     const getActiveFiltersCount = () => {
         let count = 0;
@@ -94,29 +98,29 @@ export default function UsersPage() {
         return count;
     };
 
-    const handleClearFilters = () => {
+    const handleClearFilters = useCallback(() => {
         setFilters({
             name: "",
             role: "ALL",
             active: "ALL"
         });
-    };
+    }, []);
 
-    const handleChangePassword = (user: BaseUser) => {
+    const handleChangePassword = useCallback((user: BaseUser) => {
         setChangePasswordModal({ isOpen: true, user });
-    };
+    }, []);
 
-    const handleEditUser = (user: BaseUser) => {
+    const handleEditUser = useCallback((user: BaseUser) => {
         setEditUserModal({ isOpen: true, user });
-    };
+    }, []);
 
-    const handleDeleteUser = (user: BaseUser) => {
+    const handleDeleteUser = useCallback((user: BaseUser) => {
         setDeleteUserModal({ isOpen: true, user });
-    };
+    }, []);
 
-    const handleModalSuccess = () => {
+    const handleModalSuccess = useCallback(() => {
         refetch();
-    };
+    }, [refetch]);
 
     const getRoleLabel = (role: "ADMIN" | "USER") => {
         const colors = {
@@ -136,7 +140,7 @@ export default function UsersPage() {
         );
     }
 
-    const getActionButtons = (user: BaseUser) => (
+    const getActionButtons = useCallback((user: BaseUser) => (
         <>
             <Tooltip>
                 <TooltipTrigger asChild>
@@ -184,11 +188,11 @@ export default function UsersPage() {
                 </TooltipContent>
             </Tooltip>
         </>
-    )
+    ), [handleChangePassword, handleEditUser, handleDeleteUser]);
 
     type CellProps = { row: { original: BaseUser } };
 
-    const tableColumns = [
+    const tableColumns = useMemo(() => [
         {
             id: 'name',
             header: 'Nome',
@@ -243,7 +247,7 @@ export default function UsersPage() {
                 isAdmin(currentUser) ? getActionButtons(row.original) : '-'
             )
         }
-    ];
+    ], [currentUser, getActionButtons]);
 
     const breadcrumbs = [
         { label: "Dashboard", to: "/" },
