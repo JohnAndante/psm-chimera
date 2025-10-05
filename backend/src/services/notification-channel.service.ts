@@ -34,8 +34,8 @@ class NotificationChannelService {
                     'notification_channels.type',
                     'notification_channels.config',
                     'notification_channels.active',
-                    'notification_channels.created_at',
-                    'notification_channels.updated_at',
+                    'notification_channels.created_at as createdAt',
+                    'notification_channels.updated_at as updatedAt',
                 ])
                 .where('notification_channels.deleted_at', 'is', null);
 
