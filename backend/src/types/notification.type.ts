@@ -12,7 +12,12 @@ export interface NotificationChannelData {
     active: boolean;
     created_at: Date;
     updated_at: Date;
-    deleted_at: Date | null;
+    deleted_at?: Date | null;
+}
+
+export interface NotificationsChannelsListData {
+    total: number;
+    data: NotificationChannelData[];
 }
 
 export interface CreateNotificationChannelData {

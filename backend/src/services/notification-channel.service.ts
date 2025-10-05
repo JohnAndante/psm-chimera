@@ -4,76 +4,80 @@ import {
     NotificationChannelData,
     CreateNotificationChannelData,
     UpdateNotificationChannelData,
-    NotificationChannelFilters,
     NotificationChannelWithJobs,
     NotificationTestResult,
     NotificationChannelType,
     TelegramConfig,
     EmailConfig,
-    WebhookConfig
+    WebhookConfig,
+    NotificationsChannelsListData
 } from '../types/notification.type';
+import { FilterResult, PaginationResult } from '../types/query.type';
+import { applyFilters, applyPagination, applySorting } from '../utils/query-builder.helper';
 
 class NotificationChannelService {
 
-    getAllChannels(filters: NotificationChannelFilters = {}): Promise<NotificationChannelWithJobs[]> {
+    getAllChannels(filters: FilterResult, pagination: PaginationResult, sorting?: Record<string, 'asc' | 'desc'>): Promise<NotificationsChannelsListData> {
+        const columnMapping = {
+            'name': 'notification_channels.name',
+            'type': 'notification_channels.type',
+            'active': 'notification_channels.active',
+            'createdAt': 'notification_channels.created_at'
+        };
+
         return new Promise((resolve, reject) => {
             let query = db
                 .selectFrom('notification_channels')
-                .selectAll('notification_channels')
+                .select([
+                    'notification_channels.id',
+                    'notification_channels.name',
+                    'notification_channels.type',
+                    'notification_channels.config',
+                    'notification_channels.active',
+                    'notification_channels.created_at',
+                    'notification_channels.updated_at',
+                ])
                 .where('notification_channels.deleted_at', 'is', null);
 
-            // Filtro por tipo
-            if (filters.type) {
-                query = query.where('notification_channels.type', '=', filters.type);
-            }
+            // Aplicar filtros
+            query = applyFilters({
+                query,
+                filters,
+                columnMapping
+            });
 
-            // Filtro por status ativo
-            if (filters.active !== undefined) {
-                query = query.where('notification_channels.active', '=', filters.active);
-            }
+            // Aplicar ordenação
+            query = applySorting(
+                query,
+                sorting || { createdAt: 'asc' },
+                columnMapping
+            );
 
-            // Busca por nome
-            if (filters.search) {
-                const searchTerm = `%${filters.search}%`;
-                query = query.where('notification_channels.name', 'ilike', searchTerm);
-            }
+            // Count query para total
+            let countQuery = db
+                .selectFrom('notification_channels')
+                .select(db.fn.countAll().as('total'))
+                .where('notification_channels.deleted_at', 'is', null);
 
-            query
-                .orderBy('notification_channels.created_at', 'desc')
-                .execute()
-                .then((channels: any[]) => {
-                    // Para cada canal, buscar jobs associados
-                    const channelPromises = channels.map(channel => {
-                        return db
-                            .selectFrom('job_notifications')
-                            .leftJoin('job_configurations', 'job_notifications.job_config_id', 'job_configurations.id')
-                            .select([
-                                'job_notifications.job_config_id',
-                                'job_configurations.id as job_id',
-                                'job_configurations.name as job_name',
-                                'job_configurations.active as job_active',
-                                'job_configurations.cron_pattern'
-                            ])
-                            .where('job_notifications.notification_channel_id', '=', channel.id)
-                            .where('job_configurations.deleted_at', 'is', null)
-                            .execute()
-                            .then((jobNotifications: any[]) => ({
-                                ...channel,
-                                job_notifications: jobNotifications.map(jn => ({
-                                    job_config_id: jn.job_config_id,
-                                    job_config: {
-                                        id: jn.job_id,
-                                        name: jn.job_name,
-                                        active: jn.job_active,
-                                        cron_pattern: jn.cron_pattern
-                                    }
-                                }))
-                            }));
-                    });
+            // Aplicar mesmos filtros na contagem
+            countQuery = applyFilters({
+                query: countQuery,
+                filters,
+                columnMapping
+            });
 
-                    Promise.all(channelPromises)
-                        .then(resolve)
-                        .catch(reject);
+            // Aplica paginação
+            query = applyPagination(query, pagination);
+
+            // Executar ambas as queries em paralelo
+            Promise.all([
+                query.execute(),
+                countQuery.executeTakeFirst()
+            ])
+                .then(([data, countResult]: [any[], any]) => {
+                    const total = countResult ? parseInt(countResult.total, 10) : 0;
+
+                    resolve({ data, total });
                 })
                 .catch(reject);
         });

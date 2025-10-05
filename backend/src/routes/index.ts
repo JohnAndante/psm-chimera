@@ -6,7 +6,7 @@ import authRoutes from './auth.route';
 import integrationRoutes from './integrations.route';
 import storeRoutes from './stores.route';
 import syncRoutes from './sync.route';
-import notificationChannelRoutes from './notificationChannels.route';
+import notificationChannelRoutes from './notification-channels.route';
 import userRoutes from './user.route';
 import cronTestRoutes from './cron-test.route';
 import { logRoutes } from './log.route';
