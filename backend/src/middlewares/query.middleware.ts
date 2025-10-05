@@ -27,6 +27,10 @@ export interface ParsedQuery {
 export function queryMiddleware(config: QueryConfig) {
     return (req: Request, res: Response, next: NextFunction) => {
         const errors: string[] = [];
+        const query = req.query || {};
+
+        // ==================== CONFIGURAÇÃO ====================
+        // Validar e normalizar configuração
 
         // Normalizar configuração (converter strings em objetos completos)
         const normalizedConfig: Record<string, QueryFieldConfig> = {};
@@ -47,23 +51,23 @@ export function queryMiddleware(config: QueryConfig) {
         }
 
         console.log('🔧 Query Middleware - Configuração:', normalizedConfig);
-        console.log('🔍 Query Parameters:', req.query);
+        console.log('🔍 Query Parameters:', query);
 
         // ==================== FILTROS ====================
         const filters: FilterResult = {};
 
         // Processar search simples
-        if (req.query.search && typeof req.query.search === 'string') {
-            filters.search = { eq: req.query.search };
-            console.log(`🔎 Search term: "${req.query.search}"`);
+        if (query.search && typeof query.search === 'string') {
+            filters.search = { eq: query.search };
+            console.log(`🔎 Search term: "${query.search}"`);
         }
 
         // Processar filtros aninhados filter[field][operator]
-        Object.keys(req.query).forEach(key => {
+        Object.keys(query).forEach(key => {
             const match = key.match(/^filter\[(.+?)\]\[(.+?)\]$/);
             if (match) {
                 const [, field, operator] = match;
-                const value = req.query[key] as string;
+                const value = query[key] as string;
 
                 // Verificar se o campo existe e é filtrável
                 const fieldConfig = normalizedConfig[field];
@@ -101,8 +105,8 @@ export function queryMiddleware(config: QueryConfig) {
         req.filters = filters;
 
         // ==================== PAGINAÇÃO ====================
-        const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
-        const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+        const page = query.page ? parseInt(query.page as string, 10) : 1;
+        const limit = query.limit ? parseInt(query.limit as string, 10) : 10;
 
         if (isNaN(page) || page < 1) {
             errors.push('page deve ser um número inteiro maior ou igual a 1');
@@ -128,11 +132,11 @@ export function queryMiddleware(config: QueryConfig) {
         // ==================== ORDENAÇÃO ====================
         const sorting: Record<string, 'asc' | 'desc'> = {};
 
-        Object.keys(req.query).forEach(key => {
+        Object.keys(query).forEach(key => {
             const match = key.match(/^order\[(.+?)\]$/);
             if (match) {
                 const [, field] = match;
-                const direction = req.query[key] as string;
+                const direction = query[key] as string;
 
                 // Verificar se o campo existe e é ordenável
                 const fieldConfig = normalizedConfig[field];
