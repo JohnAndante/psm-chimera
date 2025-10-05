@@ -18,11 +18,13 @@ import type { UsersFilterState } from "@/pages/UsersPage/types";
 import type { FilterConfig } from "@/types/filter-api";
 
 export default function UsersPage() {
-    const [filters, setFilters] = useState<UsersFilterState>({
+    const defaultFilters: UsersFilterState = {
         name: "",
         role: "ALL",
         active: "ALL"
-    });
+    };
+
+    const [filters, setFilters] = useState<UsersFilterState>(defaultFilters);
     const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
 
     const [createUserModal, setCreateUserModal] = useState(false);
@@ -89,14 +91,6 @@ export default function UsersPage() {
         console.log("Applying filters:", newFilters);
         setFilters(newFilters);
     }, []);
-
-    const getActiveFiltersCount = () => {
-        let count = 0;
-        if (filters.name) count++;
-        if (filters.role !== "ALL") count++;
-        if (filters.active !== "ALL") count++;
-        return count;
-    };
 
     const handleClearFilters = useCallback(() => {
         setFilters({
@@ -277,7 +271,8 @@ export default function UsersPage() {
                 cardTitle="Lista de Usuários"
                 cardExtra={(
                     <FilterControls
-                        activeFiltersCount={getActiveFiltersCount()}
+                        currentFilters={[filters]}
+                        defaultFilters={[defaultFilters]}
                         onClearFilters={handleClearFilters}
                         onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
                     />
