@@ -1,6 +1,8 @@
 import { db } from '../factory/database.factory';
 import { StoreTable } from '../types/database';
-import { StoreFilters, CreateStoreData, UpdateStoreData } from '../types/store.types';
+import { FilterResult, PaginationResult } from '../types/query.type';
+import { StoreFilters, CreateStoreData, UpdateStoreData, StoreListData } from '../types/store.types';
+import { applyFilters, applySorting } from '../utils/query-builder.helper';
 
 // Tipo local para paginação
 interface PaginationOptions {
@@ -10,34 +12,78 @@ interface PaginationOptions {
 
 class StoreService {
 
-    getAllStores(filters: StoreFilters = {}): Promise<StoreTable[]> {
+    getAllStores(filters: FilterResult, pagination: PaginationResult, sorting?: Record<string, 'asc' | 'desc'>): Promise<StoreListData> {
+        const columnMapping = {
+            'name': 'stores.name',
+            'registration': 'stores.registration',
+            'active': 'stores.active',
+            'createdAt': 'stores.created_at'
+        };
+
         return new Promise((resolve, reject) => {
             let query = db
                 .selectFrom('stores')
-                .selectAll()
-                .where('deleted_at', 'is', null);
+                .select([
+                    'stores.id',
+                    'stores.name',
+                    'stores.registration',
+                    'stores.document',
+                    'stores.active',
+                    'stores.created_at',
+                    'stores.updated_at'
+                ])
+                .where('stores.deleted_at', 'is', null);
 
-            // Filtro por status ativo
-            if (filters.active !== undefined) {
-                query = query.where('active', '=', filters.active);
-            }
+            // Aplicar filtros
+            query = applyFilters({
+                query,
+                filters,
+                columnMapping,
+            })
 
-            // Busca por nome, registration ou document
-            if (filters.search) {
-                const searchTerm = `%${filters.search}%`;
-                query = query.where((eb: any) =>
-                    eb.or([
-                        eb('name', 'ilike', searchTerm),
-                        eb('registration', 'ilike', searchTerm),
-                        eb('document', 'ilike', searchTerm)
-                    ])
-                );
-            }
 
-            query
-                .orderBy('name', 'asc')
-                .execute()
-                .then(resolve)
+            // Aplicar ordenação (padrão: createdAt desc)
+            query = applySorting(
+                query,
+                sorting || { createdAt: 'asc' },
+                columnMapping
+            );
+
+            let countQuery = db
+                .selectFrom('stores')
+                .select(db.fn.count('id').as('count'))
+                .where('stores.deleted_at', 'is', null);
+
+            // Aplicar mesmos filtros na contagem
+            countQuery = applyFilters({
+                query: countQuery,
+                filters,
+                columnMapping,
+            });
+
+            // Executar ambas as queries em paralelo
+            Promise.all([
+                query
+                    .limit(pagination.limit)
+                    .offset(pagination.offset)
+                    .execute(),
+                countQuery.executeTakeFirst()
+            ])
+                .then(([data, countResult]) => {
+                    const total = Number(countResult?.count || 0);
+
+                    const mappedData = data.map(row => ({
+                        id: row.id,
+                        name: row.name,
+                        registration: row.registration,
+                        document: row.document,
+                        active: row.active,
+                        createdAt: row.created_at,
+                        updatedAt: row.updated_at
+                    }))
+
+                    resolve({ data: mappedData, total });
+                })
                 .catch(reject);
         });
     }
