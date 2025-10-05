@@ -32,7 +32,7 @@ export function NotificationChannelsList() {
     const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
 
     const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; channel: NotificationChannelData | null }>({ isOpen: false, channel: null });
-    const [isTesting, setIsTesting] = useState(false);
+    const [isTesting, setIsTesting] = useState({ channelId: null as number | null, loading: false });
 
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -120,7 +120,7 @@ export function NotificationChannelsList() {
 
     const handleTest = useCallback(async (channel: NotificationChannelData) => {
         try {
-            setIsTesting(true);
+            setIsTesting({ channelId: channel.id, loading: true });
             const result = await notificationChannelsApi.test(channel.id);
 
             if (result.testResult.success) {
@@ -139,7 +139,7 @@ export function NotificationChannelsList() {
                 description: "Não foi possível realizar o teste do canal."
             });
         } finally {
-            setIsTesting(false);
+            setIsTesting({ channelId: null, loading: false });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -158,11 +158,11 @@ export function NotificationChannelsList() {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="cursor-pointer"
-                                disabled={isTesting}
+                                className="cursor-pointer hover:text-green-500"
+                                disabled={isTesting.loading && isTesting.channelId === channel.id}
                                 onClick={() => handleTest(channel)}
                             >
-                                {isTesting ? (
+                                {isTesting.loading && isTesting.channelId === channel.id ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
                                     <TestTube className="h-4 w-4" />
@@ -179,7 +179,7 @@ export function NotificationChannelsList() {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="cursor-pointer"
+                                className="cursor-pointer hover:text-blue-500"
                                 onClick={() => handleViewChannel(channel)}
                             >
                                 <Eye className="h-4 w-4" />
@@ -195,7 +195,7 @@ export function NotificationChannelsList() {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="cursor-pointer"
+                                className="cursor-pointer hover:text-blue-500"
                                 onClick={() => handleEditChannel(channel)}
                             >
                                 <Settings className="h-4 w-4" />
@@ -211,7 +211,7 @@ export function NotificationChannelsList() {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="cursor-pointer text-destructive hover:text-destructive"
+                                className="cursor-pointer text-destructive hover:text-red-500"
                                 onClick={() => handleDeleteChannel(channel)}
                             >
                                 <Trash2 className="h-4 w-4" />

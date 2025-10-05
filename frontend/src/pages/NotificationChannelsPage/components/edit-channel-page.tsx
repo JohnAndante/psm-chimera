@@ -13,34 +13,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Plus, Trash2, Save, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { notificationChannelsApi } from "@/controllers/notification-channels-api";
-import { NotificationChannelType, type UpdateNotificationChannelData, type TelegramConfig, type EmailConfig, type WebhookConfig, type TelegramAllowedUser, type NotificationChannelData } from "@/types/notification-channel";
+import { NotificationChannelType, type UpdateNotificationChannelData, type TelegramConfig, type EmailConfig, type WebhookConfig, type TelegramAllowedUser, type NotificationChannelData, type EditChannelFormData } from "@/types/notification-channel";
 import { AnimatedWrapper } from "@/components/animated-wrapper";
 
-interface EditChannelFormData {
-    name: string;
-    type: NotificationChannelType;
-    active: boolean;
-
-    // Telegram fields
-    bot_token?: string;
-    chat_id?: string;
-    enable_interactive?: boolean;
-    webhook_url?: string;
-
-    // Email fields
-    smtp_host?: string;
-    smtp_port?: number;
-    smtp_user?: string;
-    smtp_password?: string;
-    from_email?: string;
-    from_name?: string;
-    use_tls?: boolean;
-
-    // Webhook fields
-    webhook_url_field?: string;
-    method?: 'POST' | 'PUT' | 'PATCH';
-    timeout?: number;
-}
 
 export function EditChannelPage() {
     const [isLoading, setIsLoading] = useState(false);
@@ -108,27 +83,26 @@ export function EditChannelPage() {
 
             try {
                 setIsLoadingChannel(true);
-                const channels = await notificationChannelsApi.list();
-                const foundChannel = channels.find(c => c.id === parseInt(id));
+                const channel = await notificationChannelsApi.getById(parseInt(id));
 
-                if (!foundChannel) {
+                if (!channel) {
                     toast.error("Canal não encontrado");
                     navigate('/canais-notificacao');
                     return;
                 }
 
-                setChannel(foundChannel);
+                setChannel(channel);
 
                 // Preencher formulário com dados do canal
                 const formData: EditChannelFormData = {
-                    name: foundChannel.name,
-                    type: foundChannel.type,
-                    active: foundChannel.active
+                    name: channel.name,
+                    type: channel.type,
+                    active: channel.active
                 };
 
                 // Preencher configurações específicas por tipo
-                if (foundChannel.type === NotificationChannelType.TELEGRAM) {
-                    const config = foundChannel.config as TelegramConfig;
+                if (channel.type === NotificationChannelType.TELEGRAM) {
+                    const config = channel.config as TelegramConfig;
                     formData.bot_token = config.bot_token;
                     formData.chat_id = config.chat_id;
                     formData.enable_interactive = config.enable_interactive;
@@ -137,8 +111,8 @@ export function EditChannelPage() {
                     if (config.allowed_users) {
                         setAllowedUsers(config.allowed_users);
                     }
-                } else if (foundChannel.type === NotificationChannelType.EMAIL) {
-                    const config = foundChannel.config as EmailConfig;
+                } else if (channel.type === NotificationChannelType.EMAIL) {
+                    const config = channel.config as EmailConfig;
                     formData.smtp_host = config.smtp_host;
                     formData.smtp_port = config.smtp_port;
                     formData.smtp_user = config.smtp_user;
@@ -146,8 +120,8 @@ export function EditChannelPage() {
                     formData.from_email = config.from_email;
                     formData.from_name = config.from_name;
                     formData.use_tls = config.use_tls;
-                } else if (foundChannel.type === NotificationChannelType.WEBHOOK) {
-                    const config = foundChannel.config as WebhookConfig;
+                } else if (channel.type === NotificationChannelType.WEBHOOK) {
+                    const config = channel.config as WebhookConfig;
                     formData.webhook_url_field = config.webhook_url;
                     formData.method = config.method;
                     formData.timeout = config.timeout;

@@ -127,3 +127,29 @@ export interface NotificationChannelApiFilters {
     type?: NotificationChannelType;
     active?: boolean;
 }
+
+export interface EditChannelFormData {
+    name: string;
+    type: NotificationChannelType;
+    active: boolean;
+
+    // Telegram fields
+    bot_token?: string;
+    chat_id?: string;
+    enable_interactive?: boolean;
+    webhook_url?: string;
+
+    // Email fields
+    smtp_host?: string;
+    smtp_port?: number;
+    smtp_user?: string;
+    smtp_password?: string;
+    from_email?: string;
+    from_name?: string;
+    use_tls?: boolean;
+
+    // Webhook fields
+    webhook_url_field?: string;
+    method?: 'POST' | 'PUT' | 'PATCH';
+    timeout?: number;
+}
