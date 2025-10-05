@@ -3,11 +3,9 @@ export interface Store {
     name: string;
     registration: string;
     document: string;
-    cnpj?: string;
     active: boolean;
-    created_at: string;
-    updated_at: string;
-    deleted_at?: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface StoreFilters {

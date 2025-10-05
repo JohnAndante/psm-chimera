@@ -2,7 +2,7 @@ import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
 import { SquarePen, Trash2, Plus } from "lucide-react";
 import { PageCard } from "@/components/layout/page-card";
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { storeApi } from "@/controllers/store-api";
 import { useToast } from "@/hooks/use-toast";
 import { DataTable } from "@/components/data-table/custom-table";
@@ -16,18 +16,18 @@ import type { FilterConfig } from "@/types/filter-api";
 import { CreateStoreModal } from "@/pages/StoresPage/components/create-store-modal";
 import { DeleteStoreModal } from "@/pages/StoresPage/components/delete-store-modal";
 import { EditStoreModal } from "@/pages/StoresPage/components/edit-store-modal";
-import { StoresActiveFilters } from "@/pages/StoresPage/components/stores-active-filters";
-import { StoresFilterControls } from "@/pages/StoresPage/components/stores-filter-controls";
+import { useTableData } from "@/hooks/use-table-data";
+import { FilterControls, FilterFields } from "@/components/data-table";
+import { StoreListFilterFields } from "./stores-list-filter-fields";
 
 export default function StoresPage() {
-    const [stores, setStores] = useState<Store[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-
-    const [filters, setFilters] = useState<StoresFilterState>({
+    const defaultFilters: StoresFilterState = {
         name: "",
         registration: "",
         active: "ALL"
-    });
+    };
+
+    const [filters, setFilters] = useState<StoresFilterState>(defaultFilters);
     const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
 
     const [createStoreModal, setCreateStoreModal] = useState(false);
@@ -37,99 +37,77 @@ export default function StoresPage() {
     const { toast } = useToast();
     const { user: currentUser } = useAuth();
 
-    const loadStores = useCallback((currentFilters: StoresFilterState) => {
-        setIsLoading(true);
+    const filterConfig = useMemo<FilterConfig>(() => {
+        const config: FilterConfig = {};
 
-        const apiFilters: FilterConfig = {
-            filter: {}
-        };
-
-        // Adicionar filtro de name
-        if (currentFilters.name && currentFilters.name.trim()) {
-            apiFilters.filter!.name = { ilike: currentFilters.name.trim() };
+        if (filters.name && filters.name.trim()) {
+            config.filter = {
+                ...config.filter,
+                name: { ilike: filters.name.trim() }
+            };
         }
 
-        // Adicionar filtro de registration
-        if (currentFilters.registration && currentFilters.registration.trim()) {
-            apiFilters.filter!.registration = { ilike: currentFilters.registration.trim() };
+        if (filters.registration && filters.registration.trim()) {
+            config.filter = {
+                ...config.filter,
+                registration: { ilike: filters.registration.trim() }
+            };
         }
 
-        // Adicionar filtro de active/inactive
-        if (currentFilters.active !== "ALL") {
-            const activeValue = currentFilters.active === "true";
-            apiFilters.filter!.active = { eq: activeValue };
+        if (filters.active !== "ALL") {
+            const activeValue = filters.active === "true";
+            config.filter = {
+                ...config.filter,
+                active: { eq: activeValue }
+            };
         }
 
-        // Se não tiver filtros, remover o objeto vazio
-        if (Object.keys(apiFilters.filter!).length === 0) {
-            delete apiFilters.filter;
-        }
+        return config;
+    }, [filters]);
 
-        storeApi.list(apiFilters.filter)
-            .then(response => {
-                setStores(response ?? []);
-            })
-            .catch(error => {
-                toast.error("Erro ao carregar lojas", {
-                    description: error.message || 'Erro desconhecido'
-                });
-            })
-            .finally(() => {
-                setIsLoading(false);
+    const {
+        data: stores,
+        isLoading,
+        pagination,
+        metadata,
+        sorting,
+        handlePaginationChange,
+        handleSortingChange,
+        refetch,
+    } = useTableData<Store>({
+        fetchFn: async (config) => {
+            const { data, metadata } = await storeApi.list(config);
+            return { data, metadata };
+        },
+        initialFilters: filterConfig,
+        onError: (error) => {
+            toast.error("Erro ao carregar lojas", {
+                description: error.message || 'Erro desconhecido'
             });
+        }
+    })
+
+    const handleApplyFilters = useCallback((newFilters: StoresFilterState) => {
+        setFilters(newFilters);
+    }, []);
+
+    const handleClearFilters = useCallback(() => {
+        setFilters(defaultFilters);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
-        loadStores({
-            name: "",
-            registration: "",
-            active: "ALL"
-        });
-    }, [loadStores]);
-
-    const handleFilterChange = (key: keyof StoresFilterState, value: string) => {
-        const newFilters = { ...filters, [key]: value };
-        setFilters(newFilters);
-    };
-
-    const handleApplyFilters = () => {
-        loadStores(filters);
-    };
-
-    const handleRemoveFilter = (key: keyof StoresFilterState, value: string) => {
-        const newFilters = { ...filters, [key]: value };
-        setFilters(newFilters);
-        loadStores(newFilters);
-    };
-
-    const getActiveFiltersCount = () => {
-        let count = 0;
-        if (filters.name) count++;
-        if (filters.registration) count++;
-        if (filters.active !== "ALL") count++;
-        return count;
-    };
-
-    const handleClearFilters = () => {
-        setFilters({
-            name: "",
-            registration: "",
-            active: "ALL"
-        });
-    };
-
     const handleEditStore = (store: Store) => {
         setEditStoreModal({ isOpen: true, store });
-    };
+    }
 
     const handleDeleteStore = (store: Store) => {
         setDeleteStoreModal({ isOpen: true, store });
-    };
+    }
 
     const handleModalSuccess = () => {
-        loadStores(filters);
-    };
+        refetch();
+        toast.success("Operação realizada com sucesso");
+    }
 
     const getActiveBadge = (active: boolean) => {
         const colors = active
@@ -211,12 +189,12 @@ export default function StoresPage() {
             )
         },
         {
-            id: 'created_at',
+            id: 'createdAt',
             header: 'Criado em',
-            accessorKey: 'created_at',
+            accessorKey: 'createdAt',
             enableSorting: true,
             cell: ({ row }: CellProps) => (
-                new Date(row.original.created_at).toLocaleDateString('pt-BR', {
+                new Date(row.original.createdAt).toLocaleDateString('pt-BR', {
                     day: '2-digit',
                     month: '2-digit',
                     year: '2-digit',
@@ -260,26 +238,38 @@ export default function StoresPage() {
             breadcrumbs={breadcrumbs}
             extra={isAdmin(currentUser) ? newStoreButton : null}
         >
-            <PageCard cardTitle="Lista de Lojas" cardExtra={(
-                <StoresFilterControls
-                    activeFiltersCount={getActiveFiltersCount()}
-                    onClearFilters={handleClearFilters}
-                    onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
-                />
-            )}>
-                <StoresActiveFilters
+            <PageCard
+                cardTitle="Lista de Lojas"
+                cardExtra={(
+                    <FilterControls
+                        currentFilters={filters}
+                        defaultFilters={defaultFilters}
+                        onClearFilters={handleClearFilters}
+                        onToggleExpanded={() => setIsFiltersExpanded(!isFiltersExpanded)}
+                    />
+                )}
+            >
+                <FilterFields
                     filters={filters}
-                    onFilterChange={handleFilterChange}
-                    onApplyFilters={handleApplyFilters}
-                    onRemoveFilter={handleRemoveFilter}
+                    onFilterChange={handleApplyFilters}
                     isExpanded={isFiltersExpanded}
+                    filterFields={(<StoreListFilterFields isLoading={isLoading} />)}
                     isLoading={isLoading}
                 />
+
                 <DataTable
                     columns={tableColumns}
                     data={stores}
                     isLoading={isLoading}
                     showPagination={true}
+                    manualPagination={true}
+                    pageCount={metadata ? Math.ceil(metadata.total / pagination.limit) : 0}
+                    totalRecords={metadata?.total ?? 0}
+                    pagination={pagination}
+                    onPaginationChange={handlePaginationChange}
+                    manualSorting={true}
+                    sorting={sorting}
+                    onSortingChange={handleSortingChange}
                 />
             </PageCard>
 
