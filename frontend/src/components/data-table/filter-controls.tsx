@@ -4,16 +4,28 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 interface FilterControlsProps {
-    activeFiltersCount: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    currentFilters: Record<string, any>[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    defaultFilters: Record<string, any>[];
+
     onToggleExpanded: () => void;
     onClearFilters: () => void;
 }
 
 export function FilterControls({
-    activeFiltersCount,
+    currentFilters,
+    defaultFilters,
     onToggleExpanded,
     onClearFilters
 }: FilterControlsProps) {
+    // Compara o currentFilters com defaultFilters para contar os filtros ativos
+    const activeFiltersCount = currentFilters.reduce((count, filter, index) => {
+        const defaultFilter = defaultFilters[index] || {};
+        // Conta como ativo se o filtro atual for diferente do padrão
+        return count + (JSON.stringify(filter) !== JSON.stringify(defaultFilter) ? 1 : 0);
+    }, 0);
+
     return (
         <div className="flex items-center mb-2">
             <motion.div
