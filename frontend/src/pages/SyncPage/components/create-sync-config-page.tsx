@@ -10,7 +10,7 @@ import { PageCard } from "@/components/layout/page-card";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { SyncController } from "@/controllers/sync.controller";
-import { IntegrationController } from "@/controllers/integration.controller";
+import { integrationAPI } from "@/controllers/integration-api";
 import { storeApi } from "@/controllers/store-api";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save } from "lucide-react";
@@ -45,10 +45,13 @@ export default function CreateSyncConfigPage() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [integrationsData, storesData] = await Promise.all([
-                    IntegrationController.getAllIntegrations(),
+                const [integrationsResp, storesResp] = await Promise.all([
+                    integrationAPI.getAllIntegrations(),
                     storeApi.list({ active: true })
                 ]);
+
+                const integrationsData = integrationsResp.data ?? [];
+                const storesData = storesResp.data ?? [];
 
                 setIntegrations(integrationsData.filter(i => i.active));
                 setStores(storesData);

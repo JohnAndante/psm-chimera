@@ -1,9 +1,8 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
-import { Link2, Plus, Settings, TestTube, Trash2, Eye } from "lucide-react";
+import { Link2, Settings, TestTube, Eye } from "lucide-react";
 import { PageCard } from "@/components/layout/page-card";
-import { useEffect, useState, useCallback } from "react";
-import { IntegrationController } from "@/controllers/integration.controller";
+import { integrationAPI } from "@/controllers/integration-api";
 import { useToast } from "@/hooks/use-toast";
 import { DataTable } from "@/components/data-table/custom-table";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
@@ -14,69 +13,43 @@ import { useAuth } from "@/stores/auth";
 import { isAdmin } from "@/utils/permissions";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useCallback } from "react";
 import { AnimatedWrapper } from "@/components/animated-wrapper";
+import { useTableData } from "@/hooks/use-table-data";
 
 export default function IntegrationsList() {
-    const [integrations, setIntegrations] = useState<Integration[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; integration: Integration | null }>({ isOpen: false, integration: null });
-    const [isDeleting, setIsDeleting] = useState(false);
     const { user } = useAuth();
     const navigate = useNavigate();
 
     // Funções para navegação
-    const handleCreateIntegration = () => navigate('/integracoes/novo');
     const handleEditIntegration = (integration: Integration) => navigate(`/integracoes/${integration.id}/editar`);
     const handleViewIntegration = (integration: Integration) => navigate(`/integracoes/${integration.id}`);
-    const handleDeleteIntegration = (integration: Integration) => setDeleteModal({ isOpen: true, integration });
 
     const { toast } = useToast();
 
-    const loadIntegrations = useCallback(() => {
-        setIsLoading(true);
-
-        IntegrationController.getAllIntegrations()
-            .then((data) => {
-                setIntegrations(data);
-            })
-            .catch((error) => {
-                console.error('Erro ao carregar integrações:', error);
-                toast.error('Erro ao carregar integrações', {
-                    description: error.message || 'Ocorreu um erro inesperado'
-                });
-            })
-            .finally(() => {
-                setIsLoading(false);
-            });
-    }, [toast]);
-
-    useEffect(() => {
-        loadIntegrations();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+    const fetchIntegrations = useCallback(async (/* filters */) => {
+        const response = await integrationAPI.getAllIntegrations();
+        return {
+            data: response.data ?? [],
+            metadata: response.metadata!
+        };
     }, []);
 
-    const handleToggleActive = async (integration: Integration) => {
-        try {
-            await IntegrationController.updateIntegration(integration.id, {
-                active: !integration.active
-            });
-
-            toast.success('Integração atualizada', {
-                description: `Integração ${integration.active ? 'desativada' : 'ativada'} com sucesso`
-            });
-
-            loadIntegrations();
-        } catch (error: any) {  // eslint-disable-line @typescript-eslint/no-explicit-any
-            toast.error('Erro ao atualizar integração', {
-                description: error.message || 'Ocorreu um erro inesperado'
+    const {
+        data: integrations,
+        isLoading,
+    } = useTableData<Integration>({
+        fetchFn: fetchIntegrations,
+        onError: (error) => {
+            toast.error("Erro ao carregar integrações", {
+                description: error.message || 'Erro desconhecido'
             });
         }
-    };
+    });
 
     const handleTestConnection = async (integration: Integration) => {
         try {
-            const result = await IntegrationController.testConnection(integration.id);
+            const result = await integrationAPI.testConnection(integration.id);
             if (result.success) {
                 toast.success('Conexão bem-sucedida!', {
                     description: result.message
@@ -93,24 +66,6 @@ export default function IntegrationsList() {
         }
     };
 
-    const confirmDelete = async () => {
-        if (!deleteModal.integration) return;
-
-        setIsDeleting(true);
-        try {
-            await IntegrationController.deleteIntegration(deleteModal.integration.id);
-            toast.success('Integração excluída com sucesso');
-            setDeleteModal({ isOpen: false, integration: null });
-            loadIntegrations();
-        } catch (error: any) {  // eslint-disable-line @typescript-eslint/no-explicit-any
-            toast.error('Erro ao excluir integração', {
-                description: error.message || 'Ocorreu um erro inesperado'
-            });
-        } finally {
-            setIsDeleting(false);
-        }
-    };
-
     const getIntegrationTypeColor = (type: string) => {
         switch (type) {
             case 'RP':
@@ -122,7 +77,7 @@ export default function IntegrationsList() {
         }
     };
 
-    const columns: ColumnDef<Integration>[] = [
+    const tableColumns: ColumnDef<Integration>[] = [
         {
             accessorKey: "name",
             header: "Nome",
@@ -150,28 +105,6 @@ export default function IntegrationsList() {
                     <Badge className={getIntegrationTypeColor(integration.type)}>
                         {integration.type}
                     </Badge>
-                );
-            },
-        },
-        {
-            accessorKey: "active",
-            header: "Status",
-            cell: ({ row }) => {
-                const integration = row.original;
-                return (
-                    <div className="flex items-center gap-2">
-                        <Badge variant={integration.active ? "default" : "secondary"}>
-                            {integration.active ? "Ativo" : "Inativo"}
-                        </Badge>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToggleActive(integration)}
-                            className="h-6 w-6 p-0"
-                        >
-                            {integration.active ? "🟢" : "🔴"}
-                        </Button>
-                    </div>
                 );
             },
         },
@@ -226,20 +159,6 @@ export default function IntegrationsList() {
                                     </TooltipTrigger>
                                     <TooltipContent>Editar</TooltipContent>
                                 </Tooltip>
-
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleDeleteIntegration(integration)}
-                                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                        >
-                                            <Trash2 className="h-3 w-3" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Excluir</TooltipContent>
-                                </Tooltip>
                             </>
                         )}
                     </div>
@@ -253,51 +172,14 @@ export default function IntegrationsList() {
             <PageContainer
                 title="Integrações"
                 subtitle="Gerencie as integrações com sistemas externos"
-                extra={
-                    isAdmin(user) ? (
-                        <Button onClick={handleCreateIntegration}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Nova Integração
-                        </Button>
-                    ) : undefined
-                }
             >
-                <PageCard>
+                <PageCard cardTitle="Lista de Integrações">
                     <DataTable
                         data={integrations}
-                        columns={columns}
+                        columns={tableColumns}
                         isLoading={isLoading}
                     />
                 </PageCard>
-
-                {/* Modal de confirmação para exclusão */}
-                <Dialog open={deleteModal.isOpen} modal onOpenChange={(open) => !open && setDeleteModal({ isOpen: false, integration: null })}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Confirmar Exclusão</DialogTitle>
-                            <DialogDescription>
-                                Tem certeza que deseja excluir a integração "{deleteModal.integration?.name}"?
-                                Esta ação não pode ser desfeita.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                            <Button
-                                variant="outline"
-                                onClick={() => setDeleteModal({ isOpen: false, integration: null })}
-                                disabled={isDeleting}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                variant="destructive"
-                                onClick={confirmDelete}
-                                disabled={isDeleting}
-                            >
-                                {isDeleting ? "Excluindo..." : "Excluir"}
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
             </PageContainer>
         </AnimatedWrapper>
     );

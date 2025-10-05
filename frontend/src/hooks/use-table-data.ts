@@ -116,7 +116,7 @@ export interface UseTableDataReturn<T> {
  */
 export function useTableData<T>({
     fetchFn,
-    initialFilters = {},
+    initialFilters,
     initialPage = 1,
     initialLimit = 10,
     initialSorting = [],
@@ -133,7 +133,7 @@ export function useTableData<T>({
     });
 
     const [sorting, setSorting] = useState<SortingState[]>(initialSorting);
-    const [filters, setFilters] = useState<FilterConfig>(initialFilters);
+    const [filters, setFilters] = useState<FilterConfig>(() => initialFilters ?? {});
 
     /**
      * Busca dados da API com os parâmetros atuais
@@ -232,8 +232,12 @@ export function useTableData<T>({
      * Quando mudam, atualiza o estado interno
      */
     useEffect(() => {
-        setFilters(initialFilters);
-        setPagination(prev => ({ ...prev, page: 1 })); // Volta para primeira página
+        // Only update internal filters when an explicit initialFilters value is provided
+        // (prevents an implicit, freshly created empty object from triggering updates).
+        if (initialFilters !== undefined) {
+            setFilters(initialFilters);
+            setPagination(prev => ({ ...prev, page: 1 })); // Volta para primeira página
+        }
     }, [initialFilters]);
 
     /**

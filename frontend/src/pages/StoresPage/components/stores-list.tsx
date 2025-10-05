@@ -77,8 +77,8 @@ export default function StoresPage() {
         refetch,
     } = useTableData<Store>({
         fetchFn: async (config) => {
-            const { data, metadata } = await storeApi.list(config);
-            return { data, metadata };
+            const response = await storeApi.list(config);
+            return { data: response.data ?? [], metadata: response.metadata };
         },
         initialFilters: filterConfig,
         onError: (error) => {
