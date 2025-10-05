@@ -9,7 +9,6 @@ import syncRoutes from './sync.route';
 import notificationChannelRoutes from './notification-channels.route';
 import userRoutes from './user.route';
 import cronTestRoutes from './cron-test.route';
-import { logRoutes } from './log.route';
 
 // Prefixo /api/v1
 
@@ -20,6 +19,5 @@ router.use('/sync', syncRoutes);
 router.use('/notifications/channels', notificationChannelRoutes);
 router.use('/users', userRoutes);
 router.use('/cron-test', cronTestRoutes);
-router.use('/logs', logRoutes);
 
 export default router;
