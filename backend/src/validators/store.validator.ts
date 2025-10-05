@@ -11,14 +11,35 @@ const idParamSchema = Joi.object({
 });
 
 const getAllQuerySchema = Joi.object({
-    active: Joi.string().valid('true', 'false').optional().messages({
-        'any.only': 'active deve ser "true" ou "false"'
+    filter: Joi.object({
+        name: Joi.string().min(1).max(255).optional().messages({
+            'string.base': 'Nome deve ser uma string',
+            'string.min': 'Nome deve ter pelo menos 1 caractere',
+            'string.max': 'Nome deve ter no máximo 255 caracteres'
+        }),
+        registration: Joi.string().min(1).max(50).optional().messages({
+            'string.base': 'Registro deve ser uma string',
+            'string.min': 'Registro deve ter pelo menos 1 caractere',
+            'string.max': 'Registro deve ter no máximo 50 caracteres'
+        }),
+        active: Joi.boolean().optional().messages({
+            'boolean.base': 'Status ativo deve ser verdadeiro ou falso'
+        })
+    }).optional().messages({
+        'object.base': 'filter deve ser um objeto'
     }),
-    search: Joi.string().min(1).max(255).optional().messages({
-        'string.min': 'Busca deve ter pelo menos 1 caractere',
-        'string.max': 'Busca deve ter no máximo 255 caracteres'
-    })
-});
+    page: Joi.number().integer().min(1).default(1).optional().messages({
+        'number.base': 'Página deve ser um número',
+        'number.integer': 'Página deve ser um número inteiro',
+        'number.min': 'Página deve ser pelo menos 1'
+    }),
+    limit: Joi.number().integer().min(1).max(100).default(50).optional().messages({
+        'number.base': 'Limite deve ser um número',
+        'number.integer': 'Limite deve ser um número inteiro',
+        'number.min': 'Limite deve ser pelo menos 1',
+        'number.max': 'Limite deve ser no máximo 100'
+    }),
+}).unknown(true); // Permite parâmetros de ordenação como order[field]
 
 const getProductsQuerySchema = Joi.object({
     page: Joi.number().integer().min(1).default(1).optional().messages({
