@@ -2,6 +2,7 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Loader2 } from "lucide-react"
+import { motion } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 
@@ -50,19 +51,33 @@ function Button({
     asChild?: boolean
     loading?: boolean
   }) {
-  const Comp = asChild ? Slot : "button"
+  const buttonProps = {
+    "data-slot": "button",
+    className: cn(buttonVariants({ variant, size, className })),
+    disabled: disabled || loading,
+    ...props,
+  };
+
+  if (asChild) {
+    return (
+      <Slot {...buttonProps}>
+        {loading && <Loader2 className="animate-spin mr-2" />}
+        {children}
+      </Slot>
+    );
+  }
 
   return (
-    <Comp
-      data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
-      disabled={disabled || loading}
-      {...props}
+    <motion.button
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      {...(buttonProps as any)}
+      whileTap={{ scale: 0.96, duration: 0.05 }}
     >
       {loading && <Loader2 className="animate-spin mr-2" />}
       {children}
-    </Comp>
-  )
+    </motion.button>
+  );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { Button, buttonVariants }
