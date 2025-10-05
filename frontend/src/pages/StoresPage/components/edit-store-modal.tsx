@@ -40,7 +40,6 @@ export function EditStoreModal({
             name: store?.name || "",
             registration: store?.registration || "",
             document: store?.document || "",
-            cnpj: store?.cnpj || "",
             active: store?.active ?? true
         }
     });
@@ -53,7 +52,6 @@ export function EditStoreModal({
                 name: store.name,
                 registration: store.registration,
                 document: store.document,
-                cnpj: store.cnpj || "",
                 active: store.active
             });
         }
@@ -107,7 +105,7 @@ export function EditStoreModal({
     if (!store) return null;
 
     return (
-        <Dialog open={isOpen} onOpenChange={handleClose}>
+        <Dialog open={isOpen} onOpenChange={handleClose} modal>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">

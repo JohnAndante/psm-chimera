@@ -418,7 +418,7 @@ export default function SyncList() {
                 </div>
 
                 {/* Modal de confirmação para exclusão */}
-                <Dialog open={deleteModal.isOpen} onOpenChange={(open) => !open && setDeleteModal({ isOpen: false, config: null })}>
+                <Dialog open={deleteModal.isOpen} modal onOpenChange={(open) => !open && setDeleteModal({ isOpen: false, config: null })}>
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Confirmar Exclusão</DialogTitle>

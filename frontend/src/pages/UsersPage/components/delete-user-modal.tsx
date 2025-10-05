@@ -48,7 +48,7 @@ export function DeleteUserModal({
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose} defaultOpen={false}>
+        <Dialog open={isOpen} onOpenChange={onClose} modal>
             <DialogContent className="sm:max-w-md" aria-describedby="Confirmação para deletar usuário">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">

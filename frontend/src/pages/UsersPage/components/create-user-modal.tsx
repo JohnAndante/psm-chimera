@@ -101,8 +101,8 @@ export function CreateUserModal({
             })
             .catch((apiError: ApiError) => {
                 // Converter message para string (pode ser string ou string[])
-                const errorMessage = Array.isArray(apiError.message) 
-                    ? apiError.message.join(', ') 
+                const errorMessage = Array.isArray(apiError.message)
+                    ? apiError.message.join(', ')
                     : apiError.message;
 
                 // Tratativa específica para conflitos (email já cadastrado)
@@ -120,7 +120,7 @@ export function CreateUserModal({
                     toast.error("Erro ao criar usuário", {
                         description: errorMessage
                     });
-                    
+
                     // Log do tipo de erro para debug
                     console.error(`API Error [${errorType}]:`, apiError);
                 }
@@ -141,7 +141,7 @@ export function CreateUserModal({
     const passwordsMatch = password === confirmPassword && password.length > 0;
 
     return (
-        <Dialog open={isOpen} onOpenChange={handleClose}>
+        <Dialog open={isOpen} onOpenChange={handleClose} modal>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">

@@ -271,7 +271,7 @@ export default function IntegrationsList() {
                 </PageCard>
 
                 {/* Modal de confirmação para exclusão */}
-                <Dialog open={deleteModal.isOpen} onOpenChange={(open) => !open && setDeleteModal({ isOpen: false, integration: null })}>
+                <Dialog open={deleteModal.isOpen} modal onOpenChange={(open) => !open && setDeleteModal({ isOpen: false, integration: null })}>
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Confirmar Exclusão</DialogTitle>
