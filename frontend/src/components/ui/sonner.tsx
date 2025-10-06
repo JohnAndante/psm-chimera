@@ -24,14 +24,16 @@ export const Toaster = ({
         warning: <AlertCircle className="text-yellow-500 dark:text-yellow-400 pr-2" />,
       }}
       toastOptions={{
-        descriptionClassName: "flex items-center text-muted color-foreground",
-        className: "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg font-sans",
+        // ensure description text uses the theme-aware foreground color
+        descriptionClassName: "flex items-center text-foreground",
+        // ensure the toast container also uses foreground so children inherit
+        className: "toast text-foreground group-[.toaster]:bg-background group-[.toaster]:border-border group-[.toaster]:shadow-lg font-sans",
         style: {
           background: 'var(--card)',
           color: 'var(--card-foreground)',
           border: 'none',
           fontFamily: 'Outfit, sans-serif'
-        },
+        }
       }}
       {...props}
     />
