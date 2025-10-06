@@ -10,6 +10,9 @@ import { CreateChannelPage, EditChannelPage, ChannelDetailsPage, NotificationCha
 import IntegrationsPage from "@/pages/IntegrationsPage"
 import { CreateIntegrationPage, EditIntegrationPage, IntegrationDetailsPage } from "@/pages/IntegrationsPage/components"
 import SyncPage from "@/pages/SyncPage"
+import SyncViewPage from "@/pages/SyncPage/components/sync-view"
+import SyncEditPage from "@/pages/SyncPage/components/sync-edit"
+import SyncExecutionDetails from "@/pages/SyncPage/components/execution-details"
 import { CreateSyncConfigPage } from "@/pages/SyncPage/components"
 import CronTestPage from "@/pages/CronTestPage"
 
@@ -70,6 +73,9 @@ export default function AppRoutes() {
                 {/* Rotas de Sincronizações */}
                 <Route path="/sincronizacoes" element={<SyncPage />} />
                 <Route path="/sincronizacoes/novo" element={<CreateSyncConfigPage />} />
+                <Route path="/sincronizacoes/:id" element={<SyncViewPage />} />
+                <Route path="/sincronizacoes/:id/editar" element={<SyncEditPage />} />
+                <Route path="/sincronizacoes/execucoes/:id" element={<SyncExecutionDetails />} />
 
                 {/* Rota de Teste do Cron */}
                 <Route path="/teste-cron" element={<CronTestPage />} />
