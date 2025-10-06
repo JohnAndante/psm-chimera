@@ -2,7 +2,7 @@ import { Loader2, Info, CircleX, CheckCircle2, AlertCircle } from "lucide-react"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { useTheme } from "next-themes"
 
-const Toaster = ({
+export const Toaster = ({
   position = "top-right",
   duration = 5000,
   closeButton = true,
@@ -38,4 +38,4 @@ const Toaster = ({
   )
 }
 
-export { Toaster }
+
