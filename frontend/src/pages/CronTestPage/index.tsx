@@ -26,10 +26,6 @@ export default function CronTestPage() {
         try {
             setIsLoading(true);
             const response = await api.get('v1/cron-test/status');
-            // backend may return these shapes:
-            // { status: { running: boolean, nextExecution?: string } }
-            // { data: { running: boolean, nextExecution?: string } }
-            // or legacy: { status: 'running' }
             const payload = response.data;
             const statusCandidate = payload?.status ?? payload?.data ?? payload;
 
