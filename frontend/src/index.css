@@ -165,3 +165,17 @@ html {
 .gradient-primary {
   background: var(--gradient-primary);
 }
+
+/* Sonner toast overrides
+   The sonner library injects attribute-based styles that set a fixed color for
+   the description. Override them here so toasts follow our theme variables
+   (light/dark) and remain legible. We use !important to beat the library rule
+   which has the same specificity.
+*/
+[data-sonner-toast][data-styled="true"] {
+  color: var(--text-foreground) !important;
+}
+
+[data-sonner-toast][data-styled="true"] [data-description] {
+  color: var(--text-foreground) !important;
+}
