@@ -1,6 +1,6 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Plus, Settings, Play, Eye, Trash2, Pause } from "lucide-react";
+import { RefreshCw, Settings, Play, Eye, Pause } from "lucide-react";
 import { PageCard } from "@/components/layout/page-card";
 import { useEffect, useState, useCallback } from "react";
 import { SyncController } from "@/controllers/sync.controller";
@@ -28,10 +28,8 @@ export default function SyncList() {
     const navigate = useNavigate();
 
     // Funções para navegação
-    const handleCreateConfig = () => navigate('/sincronizacoes/novo');
     const handleEditConfig = (config: SyncConfiguration) => navigate(`/sincronizacoes/${config.id}/editar`);
     const handleViewConfig = (config: SyncConfiguration) => navigate(`/sincronizacoes/${config.id}`);
-    const handleDeleteConfig = (config: SyncConfiguration) => setDeleteModal({ isOpen: true, config });
     const handleViewExecution = (execution: SyncExecution) => navigate(`/sincronizacoes/execucoes/${execution.id}`);
 
     const { toast } = useToast();
@@ -246,20 +244,6 @@ export default function SyncList() {
                                     </TooltipTrigger>
                                     <TooltipContent>Editar</TooltipContent>
                                 </Tooltip>
-
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleDeleteConfig(config)}
-                                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                                        >
-                                            <Trash2 className="h-3 w-3" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Excluir</TooltipContent>
-                                </Tooltip>
                             </>
                         )}
                     </div>
@@ -364,14 +348,6 @@ export default function SyncList() {
             <PageContainer
                 title="Sincronizações"
                 subtitle="Configure e monitore sincronizações entre sistemas"
-                extra={
-                    isAdmin(user) ? (
-                        <Button onClick={handleCreateConfig}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Nova Configuração
-                        </Button>
-                    ) : undefined
-                }
             >
                 {/* Tabs simples */}
                 <div className="space-y-6">

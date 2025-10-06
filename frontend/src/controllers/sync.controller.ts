@@ -45,7 +45,7 @@ export class SyncController {
     static async getAllSyncExecutions(): Promise<SyncExecution[]> {
         try {
             const response = await api.get<{ data: SyncExecution[] }>('v1/sync/executions');
-            return Array.isArray(response.data?.data) ? response.data.data : [];
+            return Array.isArray(response.data?.executions) ? response.data.executions : [];
         } catch (error) {
             console.error('Erro ao buscar execuções de sync:', error);
             return []; // Retornar array vazio em caso de erro
