@@ -59,7 +59,7 @@ export function EditUserModal({
         await usersApi.update(user.id, data)
             .then(() => {
                 toast.success("Usuário atualizado", {
-                    description: `Dados do usuário ${data.name} foram atualizados com sucesso.`
+                    description: `Dados do usuário ${data.name} foram atualizados com sucesso.`,
                 });
 
                 handleClose();
