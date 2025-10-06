@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { PageCard } from "@/components/layout/page-card";
 import { useNavigate, useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { integrationAPI } from "@/controllers/integration-api";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save } from "lucide-react";
@@ -20,6 +20,12 @@ export default function EditIntegrationPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingData, setIsLoadingData] = useState(true);
     const [integration, setIntegration] = useState<Integration | null>(null);
+
+    const toastRef = useRef(toast);
+
+    useEffect(() => {
+        toastRef.current = toast;
+    }, [toast]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -53,7 +59,8 @@ export default function EditIntegrationPage() {
         };
 
         loadIntegration();
-    }, [id, navigate, toast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
