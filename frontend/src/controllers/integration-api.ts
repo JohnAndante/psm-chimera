@@ -18,8 +18,13 @@ class IntegrationController {
     }
 
     async getIntegrationById(id: number): Promise<Integration> {
-        const response = await api.get<{ data: Integration }>(`v1/integrations/${id}`);
-        return response.data.data;
+        const response = await api.get<{
+            message?: string;
+            integration?: Integration;
+            data?: Integration;
+        }>(`v1/integrations/${id}`);
+        // backend returns { message, integration } while some endpoints may use { data }
+        return response.data.integration ?? response.data.data as Integration;
     }
 
     async createIntegration(integration: CreateIntegrationRequest): Promise<Integration> {
