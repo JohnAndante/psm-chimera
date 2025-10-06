@@ -1,6 +1,6 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
-import { Link2, Settings, TestTube, Eye } from "lucide-react";
+import { Settings, TestTube, Eye } from "lucide-react";
 import { PageCard } from "@/components/layout/page-card";
 import { integrationAPI } from "@/controllers/integration-api";
 import { useToast } from "@/hooks/use-toast";
@@ -27,7 +27,7 @@ export default function IntegrationsList() {
 
     const { toast } = useToast();
 
-    const fetchIntegrations = useCallback(async (/* filters */) => {
+    const fetchIntegrations = useCallback(async () => {
         const response = await integrationAPI.getAllIntegrations();
         return {
             data: response.data ?? [],
@@ -79,41 +79,23 @@ export default function IntegrationsList() {
 
     const tableColumns: ColumnDef<Integration>[] = [
         {
-            accessorKey: "name",
-            header: "Nome",
-            cell: ({ row }) => {
-                const integration = row.original;
-                return (
-                    <div className="flex items-center gap-3">
-                        <Link2 className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                            <div className="font-medium">{integration.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                                Criado em {new Date(integration.created_at).toLocaleDateString()}
-                            </div>
-                        </div>
-                    </div>
-                );
-            },
+            id: 'name',
+            header: 'Nome',
+            accessorKey: 'name',
         },
         {
-            accessorKey: "type",
-            header: "Tipo",
-            cell: ({ row }) => {
-                const integration = row.original;
-                return (
-                    <Badge className={getIntegrationTypeColor(integration.type)}>
-                        {integration.type}
-                    </Badge>
-                );
-            },
+            id: 'type',
+            header: 'Tipo',
+            accessorKey: 'type',
+            cell: ({ row }) => (
+                <Badge className={getIntegrationTypeColor(row.original.type)}>{row.original.type}</Badge>
+            )
         },
         {
-            id: "actions",
-            header: "Ações",
+            id: 'actions',
+            header: 'Ações',
             cell: ({ row }) => {
                 const integration = row.original;
-
                 return (
                     <div className="flex items-center gap-1">
                         <Tooltip>
@@ -122,7 +104,7 @@ export default function IntegrationsList() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => handleViewIntegration(integration)}
-                                    className="h-8 w-8 p-0"
+                                    className="cursor-pointer hover:text-blue-500 transition-colors"
                                 >
                                     <Eye className="h-3 w-3" />
                                 </Button>
@@ -136,7 +118,7 @@ export default function IntegrationsList() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => handleTestConnection(integration)}
-                                    className="h-8 w-8 p-0"
+                                    className="cursor-pointer hover:text-green-500 transition-colors"
                                 >
                                     <TestTube className="h-3 w-3" />
                                 </Button>
@@ -145,26 +127,24 @@ export default function IntegrationsList() {
                         </Tooltip>
 
                         {isAdmin(user) && (
-                            <>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleEditIntegration(integration)}
-                                            className="h-8 w-8 p-0"
-                                        >
-                                            <Settings className="h-3 w-3" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Editar</TooltipContent>
-                                </Tooltip>
-                            </>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleEditIntegration(integration)}
+                                        className="cursor-pointer hover:text-blue-500 transition-colors"
+                                    >
+                                        <Settings className="h-3 w-3" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Editar</TooltipContent>
+                            </Tooltip>
                         )}
                     </div>
                 );
-            },
-        },
+            }
+        }
     ];
 
     return (
