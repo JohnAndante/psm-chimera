@@ -1,11 +1,12 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
 import { PageCard } from "@/components/layout/page-card";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Play, Square, RefreshCw, TestTube, Settings, Zap, Trash2 } from "lucide-react";
 import { AnimatedWrapper } from "@/components/animated-wrapper";
 import { createApiInstance } from "@/controllers/base-api";
+import { Badge } from "@/components/ui/badge";
 
 // API instance
 const api = createApiInstance();
@@ -24,8 +25,22 @@ export default function CronTestPage() {
     const checkCronStatus = async () => {
         try {
             setIsLoading(true);
-            const response = await api.get<{ success: boolean; status: CronStatus }>('v1/cron-test/status');
-            setCronStatus(response.data.status);
+            const response = await api.get('v1/cron-test/status');
+            // backend may return these shapes:
+            // { status: { running: boolean, nextExecution?: string } }
+            // { data: { running: boolean, nextExecution?: string } }
+            // or legacy: { status: 'running' }
+            const payload = response.data;
+            const statusCandidate = payload?.status ?? payload?.data ?? payload;
+
+            if (typeof statusCandidate === 'string') {
+                setCronStatus({ running: statusCandidate === 'running' });
+            } else if (statusCandidate && typeof statusCandidate === 'object') {
+                const rec = statusCandidate as Record<string, unknown>;
+                const runningVal = rec['running'];
+                const nextVal = rec['nextExecution'] ?? rec['next_execution'] ?? rec['next'] ?? undefined;
+                setCronStatus({ running: Boolean(runningVal), nextExecution: nextVal as string | undefined });
+            }
         } catch {
             toast.error('Erro ao verificar status', {
                 description: 'Erro ao verificar status do cron'
@@ -35,17 +50,31 @@ export default function CronTestPage() {
         }
     };
 
+    // Fetch current cron status when the page loads
+    useEffect(() => {
+        checkCronStatus();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // Iniciar teste do cron
     const startCronTest = async () => {
         try {
             setIsLoading(true);
-            const response = await api.post<{ success: boolean; message: string; status: CronStatus }>('v1/cron-test/start');
+            const response = await api.post('v1/cron-test/start');
 
             toast.success('Teste iniciado!', {
                 description: response.data.message
             });
 
-            setCronStatus(response.data.status);
+            const payload = response.data;
+            const statusCandidate = payload?.status ?? payload?.data ?? payload;
+
+            if (typeof statusCandidate === 'string') {
+                setCronStatus({ running: statusCandidate === 'running' });
+            } else if (statusCandidate && typeof statusCandidate === 'object') {
+                const rec = statusCandidate as Record<string, unknown>;
+                setCronStatus({ running: Boolean(rec['running']), nextExecution: rec['nextExecution'] as string | undefined });
+            }
         } catch {
             toast.error('Erro ao iniciar teste', {
                 description: 'Não foi possível iniciar o teste do cron'
@@ -59,13 +88,21 @@ export default function CronTestPage() {
     const stopCronTest = async () => {
         try {
             setIsLoading(true);
-            const response = await api.post<{ success: boolean; message: string; status: CronStatus }>('v1/cron-test/stop');
+            const response = await api.post('v1/cron-test/stop');
 
             toast.success('Teste parado!', {
                 description: response.data.message
             });
 
-            setCronStatus(response.data.status);
+            const payload = response.data;
+            const statusCandidate = payload?.status ?? payload?.data ?? payload;
+
+            if (typeof statusCandidate === 'string') {
+                setCronStatus({ running: statusCandidate === 'running' });
+            } else if (statusCandidate && typeof statusCandidate === 'object') {
+                const rec = statusCandidate as Record<string, unknown>;
+                setCronStatus({ running: Boolean(rec['running']), nextExecution: rec['nextExecution'] as string | undefined });
+            }
         } catch {
             toast.error('Erro ao parar teste', {
                 description: 'Não foi possível parar o teste do cron'
@@ -156,19 +193,17 @@ export default function CronTestPage() {
                     <div className="space-y-6">
                         {/* Status */}
                         <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                            <div>
-                                <h3 className="font-medium">Status do Teste</h3>
-                                <p className="text-sm text-muted-foreground">
-                                    {cronStatus.running ? (
-                                        <span className="text-green-600">🟢 Executando a cada minuto</span>
-                                    ) : (
-                                        <span className="text-gray-600">⚪ Parado</span>
-                                    )}
-                                </p>
-                                {cronStatus.nextExecution && (
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        Próxima execução: {cronStatus.nextExecution}
-                                    </p>
+                            <div className="align-middle">
+                                <span className="font-medium">Status do Teste</span>
+                                {' '}
+                                {cronStatus.running ? (
+                                    <Badge className="bg-green-500/20 text-green-500">
+                                        Executando
+                                    </Badge>
+                                ) : (
+                                    <Badge className="bg-gray-500/20 text-gray-500">
+                                        Parado
+                                    </Badge>
                                 )}
                             </div>
                             <Button
@@ -188,12 +223,11 @@ export default function CronTestPage() {
                             <Button
                                 onClick={startCronTest}
                                 disabled={isLoading || cronStatus.running}
-                                className="h-20 flex-col"
+                                className="min-h-20 flex-col p-4"
                                 variant={cronStatus.running ? "secondary" : "default"}
                             >
                                 <Play className="h-6 w-6 mb-2" />
                                 <span>Iniciar Teste</span>
-                                <span className="text-xs">Executa a cada minuto</span>
                             </Button>
 
                             {/* Parar Teste */}
@@ -205,7 +239,6 @@ export default function CronTestPage() {
                             >
                                 <Square className="h-6 w-6 mb-2" />
                                 <span>Parar Teste</span>
-                                <span className="text-xs">Interrompe execução</span>
                             </Button>
 
                             {/* Teste Único */}
@@ -217,7 +250,6 @@ export default function CronTestPage() {
                             >
                                 <TestTube className="h-6 w-6 mb-2" />
                                 <span>Teste Único</span>
-                                <span className="text-xs">Executa uma vez apenas</span>
                             </Button>
                         </div>
 
@@ -234,7 +266,6 @@ export default function CronTestPage() {
                                 >
                                     <Settings className="h-6 w-6 mb-2" />
                                     <span>Criar Config Teste</span>
-                                    <span className="text-xs">Config sincronização</span>
                                 </Button>
 
                                 {/* Executar Sync */}
@@ -246,7 +277,6 @@ export default function CronTestPage() {
                                 >
                                     <Zap className="h-6 w-6 mb-2" />
                                     <span>Executar Sync</span>
-                                    <span className="text-xs">Teste sincronização real</span>
                                 </Button>
 
                                 {/* Limpar Dados */}
@@ -258,7 +288,6 @@ export default function CronTestPage() {
                                 >
                                     <Trash2 className="h-6 w-6 mb-2" />
                                     <span>Limpar Dados</span>
-                                    <span className="text-xs">Remove config teste</span>
                                 </Button>
                             </div>
                         </div>
@@ -285,20 +314,20 @@ export default function CronTestPage() {
 
                         {/* Avisos */}
                         <div className="space-y-3">
-                            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                                <p className="text-sm text-green-800">
-                                    ✅ <strong>Canal Telegram Funcionando:</strong> Notificações sendo enviadas com sucesso! (Formatação corrigida)
+                            <div className="p-4 bg-green-200/50 border border-green-500/30 rounded-lg">
+                                <p className="text-sm">
+                                    ✅ <strong>Canal Telegram Funcionando:</strong> Notificações sendo enviadas com sucesso!
                                 </p>
                             </div>
 
-                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                <p className="text-sm text-blue-800">
+                            <div className="p-4 bg-blue-200/50 border border-blue-500/30 rounded-lg">
+                                <p className="text-sm">
                                     ℹ️ <strong>Testes Avançados:</strong> O sistema criará integrações temporárias automaticamente se necessário, permitindo testar o fluxo completo mesmo sem configurações reais.
                                 </p>
                             </div>
 
-                            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                <p className="text-sm text-yellow-800">
+                            <div className="p-4 bg-yellow-200/50 border border-yellow-500/30 rounded-lg">
+                                <p className="text-sm">
                                     ⚠️ <strong>Aviso:</strong> Este é um teste temporário. Lembre-se de parar o teste quando não precisar mais para evitar spam de notificações.
                                 </p>
                             </div>
