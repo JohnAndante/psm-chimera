@@ -41,7 +41,9 @@ export function Layout({ children }: LayoutProps) {
                     </main>
                 </div>
 
-                <Toaster />
+                <Toaster
+                    closeButton={false}
+                />
             </SidebarProvider>
         </ThemeProvider>
     )
