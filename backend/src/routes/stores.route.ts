@@ -60,11 +60,4 @@ router.delete(
     StoreController.delete,
 );
 
-// POST /api/v1/stores/:id/sync
-router.post(
-    '/:id/sync',
-    requireAdmin,
-    StoreController.syncProducts,
-);
-
 export default router;

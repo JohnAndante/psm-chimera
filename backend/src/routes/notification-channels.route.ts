@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { NotificationChannelController } from '../controllers/notificationChannel.controller';
+import { NotificationChannelController } from '../controllers/notification-channel.controller';
 import { authenticateToken, requireAdmin } from '../utils/auth';
 import { NotificationValidator } from '../validators/notificationChannel.validator';
 import { queryMiddleware } from '../middlewares/query.middleware';

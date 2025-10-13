@@ -9,82 +9,89 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
-  name      String?
-  role      UserType  @default(ADMIN)
+  id    Int      @id @default(autoincrement())
+  email String   @unique
+  name  String?
+  role  UserType @default(ADMIN)
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt
   deletedAt DateTime?
-  active    Boolean   @default(true)
-  auth      Auth?
+
+  active Boolean @default(true)
+  auth   Auth?
 
   @@map("users")
 }
 
 model Auth {
-  id            Int       @id @default(autoincrement())
-  user_id       Int       @unique
-  email         String    @unique
+  id            Int     @id @default(autoincrement())
+  user_id       Int     @unique
+  email         String  @unique
   password_hash String
-  active        Boolean   @default(true)
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @default(now()) @updatedAt
-  deleted_at    DateTime?
-  user          User      @relation(fields: [user_id], references: [id])
+  active        Boolean @default(true)
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+  deleted_at DateTime?
+
+  user User @relation(fields: [user_id], references: [id])
 
   @@map("authentications")
 }
 
 model Integration {
-  id                     Int                 @id @default(autoincrement())
-  name                   String              @unique
-  base_url               String?
-  email                  String?
-  password               String?
-  config                 Json?
-  active                 Boolean             @default(true)
-  created_at             DateTime            @default(now())
-  updated_at             DateTime            @default(now()) @updatedAt
-  deleted_at             DateTime?
-  type                   IntegrationType     @default(RP)
-  integrationKey         IntegrationKey[]
-  job_configs            JobConfiguration[]
-  sync_configs_as_source SyncConfiguration[] @relation("SyncSourceIntegration")
-  sync_configs_as_target SyncConfiguration[] @relation("SyncTargetIntegration")
+  id       Int     @id @default(autoincrement())
+  name     String  @unique
+  base_url String?
+  email    String?
+  password String?
+  config   Json?
+  active   Boolean @default(true)
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+  deleted_at DateTime?
+
+  type            IntegrationType  @default(RP)
+  integration_key IntegrationKey[]
 
   @@map("integrations")
 }
 
 model IntegrationKey {
-  id             Int         @id @default(autoincrement())
+  id             Int       @id @default(autoincrement())
   integration_id Int
-  key            String      @unique
+  key            String    @unique
   expires_at     DateTime?
-  created_at     DateTime    @default(now())
-  updated_at     DateTime    @default(now()) @updatedAt
-  deleted_at     DateTime?
-  integration    Integration @relation(fields: [integration_id], references: [id])
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+  deleted_at DateTime?
+
+  integration Integration @relation(fields: [integration_id], references: [id])
 
   @@map("integration_keys")
 }
 
 model Store {
-  id           Int       @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   name         String
-  registration String    @unique
-  document     String    @default("")
-  active       Boolean   @default(true)
-  created_at   DateTime  @default(now())
-  updated_at   DateTime  @default(now()) @updatedAt
-  deleted_at   DateTime?
-  products     Product[]
+  registration String  @unique
+  document     String  @default("")
+  active       Boolean @default(true)
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+  deleted_at DateTime?
+
+  products Product[]
 
   @@map("stores")
 }
 
 model Product {
-  id          String    @id @default(uuid())
+  id          String  @id @default(uuid())
   code        Int
   price       Float
   final_price Float
@@ -92,115 +99,28 @@ model Product {
   store_id    Int
   starts_at   String?
   expires_at  String?
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @default(now()) @updatedAt
-  deleted_at  DateTime?
-  store       Store     @relation(fields: [store_id], references: [id])
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+  deleted_at DateTime?
+
+  store Store @relation(fields: [store_id], references: [id])
 
   @@map("products")
 }
 
 model NotificationChannel {
-  id                  Int                 @id @default(autoincrement())
-  name                String              @unique
-  type                NotificationType
-  config              Json
-  active              Boolean             @default(true)
-  created_at          DateTime            @default(now())
-  updated_at          DateTime            @updatedAt
-  deleted_at          DateTime?
-  job_notifications   JobNotification[]
-  sync_configurations SyncConfiguration[]
+  id     Int              @id @default(autoincrement())
+  name   String           @unique
+  type   NotificationType
+  config Json
+  active Boolean          @default(true)
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
 
   @@map("notification_channels")
-}
-
-model JobConfiguration {
-  id                   Int               @id @default(autoincrement())
-  name                 String            @unique
-  description          String?
-  cron_pattern         String
-  job_type             JobType
-  config               Json
-  active               Boolean           @default(true)
-  integration_id       Int?
-  created_at           DateTime          @default(now())
-  updated_at           DateTime          @updatedAt
-  deleted_at           DateTime?
-  integration          Integration?      @relation(fields: [integration_id], references: [id])
-  executions           JobExecution[]
-  notification_configs JobNotification[]
-
-  @@map("job_configurations")
-}
-
-model JobExecution {
-  id            String           @id @default(uuid())
-  job_config_id Int
-  status        ExecutionStatus
-  started_at    DateTime         @default(now())
-  finished_at   DateTime?
-  logs          String?
-  metrics       Json?
-  error_details Json?
-  job_config    JobConfiguration @relation(fields: [job_config_id], references: [id])
-
-  @@map("job_executions")
-}
-
-model JobNotification {
-  id                      Int                 @id @default(autoincrement())
-  job_config_id           Int
-  notification_channel_id Int
-  on_success              Boolean             @default(false)
-  on_failure              Boolean             @default(true)
-  on_start                Boolean             @default(false)
-  created_at              DateTime            @default(now())
-  updated_at              DateTime            @updatedAt
-  job_config              JobConfiguration    @relation(fields: [job_config_id], references: [id])
-  notification_channel    NotificationChannel @relation(fields: [notification_channel_id], references: [id])
-
-  @@unique([job_config_id, notification_channel_id])
-  @@map("job_notifications")
-}
-
-model SyncConfiguration {
-  id                      Int                  @id @default(autoincrement())
-  name                    String               @unique
-  description             String?
-  source_integration_id   Int
-  target_integration_id   Int
-  notification_channel_id Int?
-  store_ids               Json                 @default("[]")
-  schedule                Json?
-  options                 Json                 @default("{}")
-  active                  Boolean              @default(true)
-  created_at              DateTime             @default(now())
-  updated_at              DateTime             @updatedAt
-  deleted_at              DateTime?
-  notification_channel    NotificationChannel? @relation(fields: [notification_channel_id], references: [id])
-  source_integration      Integration          @relation("SyncSourceIntegration", fields: [source_integration_id], references: [id])
-  target_integration      Integration          @relation("SyncTargetIntegration", fields: [target_integration_id], references: [id])
-  executions              SyncExecution[]
-
-  @@map("sync_configurations")
-}
-
-model SyncExecution {
-  id                 String             @id @default(uuid())
-  sync_config_id     Int?
-  status             ExecutionStatus    @default(PENDING)
-  started_at         DateTime           @default(now())
-  finished_at        DateTime?
-  stores_processed   Json
-  summary            Json
-  comparison_results Json?
-  execution_logs     String?
-  error_details      Json?
-  created_at         DateTime           @default(now())
-  sync_config        SyncConfiguration? @relation(fields: [sync_config_id], references: [id])
-
-  @@map("sync_executions")
 }
 
 model LogEntry {
